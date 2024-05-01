@@ -1,3 +1,5 @@
+import { BaseImage } from './BaseImage';
+
 export interface User {
     id: number;
     name: string;
@@ -9,4 +11,5 @@ export type PageProps<T extends Record<string, unknown> = Record<string, unknown
     auth: {
         user: User;
     };
+    baseImages?: BaseImage[];
 };

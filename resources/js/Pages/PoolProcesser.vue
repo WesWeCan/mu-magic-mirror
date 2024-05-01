@@ -31,6 +31,10 @@ onMounted(async () => {
 
     console.log('page', page.props.baseImages)
 
+    if (!page.props.baseImages) {
+        return;
+    }
+
     procesImages.value = page.props.baseImages.map((baseImage: BaseImage) => {
 
         return {

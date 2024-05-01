@@ -13,24 +13,17 @@ class FrontController extends Controller
     public function index()
     {
 
-        $corpse = [
-          
-
-            'head' => MaskImage::inRandomOrder()->where('label', 'head')->where('included', true)->with('baseImage')->first(),
-
-            'left_arm' => MaskImage::inRandomOrder()->where('label', 'left_arm')->where('included', true)->with('baseImage')->first(),
-
-            'right_arm' => MaskImage::inRandomOrder()->where('label', 'right_arm')->where('included', true)->with('baseImage')->first(),
-
-            'left_leg' => MaskImage::inRandomOrder()->where('label', 'left_leg')->where('included', true)->with('baseImage')->first(),
-
-            'right_leg' => MaskImage::inRandomOrder()->where('label', 'right_leg')->where('included', true)->with('baseImage')->first(),
-
-            'torso' => MaskImage::inRandomOrder()->where('label', 'torso')->where('included', true)->with('baseImage')->first(),
-
+        $labels = [
+            'background', 'top', 'middle', 'low', 'lowlow', 'left', 'right'
         ];
 
-        return Inertia::render('MagicMirror', [
+
+        $corpse = [];
+        foreach($labels as $label){
+            $corpse[$label] = MaskImage::inRandomOrder()->where('label', $label)->where('included', true)->with('baseImage')->first();
+        }
+
+        return Inertia::render('MorphingMirror', [
             "corpse" => $corpse
         ]);
     }
