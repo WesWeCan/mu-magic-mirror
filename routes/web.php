@@ -25,6 +25,9 @@ Route::post('/pool/baseupload', [PoolController::class, 'uploadBase'])->middlewa
 
 Route::post('/pool/maskupload', [PoolController::class, 'uploadMasked'])->middleware(['auth', 'verified'])->name('pool.mask.upload');
 
+
+Route::post('/pool/markasprocessed/{id}', [PoolController::class, 'markAsProcessed'])->middleware(['auth', 'verified'])->name('pool.markasprocessed');
+
 Route::get('/pool/manager', function () {
     return Inertia::render('PoolManager');
 })->middleware(['auth', 'verified'])->name('pool.manage');

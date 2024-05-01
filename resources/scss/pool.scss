@@ -136,6 +136,11 @@ body.pool {
             background-color: #007400;
         }
 
+        &:disabled {
+            background-color: #c4c4c4;
+            cursor: not-allowed;
+        }
+
         &:hover {
             background-color: #333;
 
@@ -145,6 +150,11 @@ body.pool {
 
             &.success {
                 background-color: #009900;
+            }
+
+            &:disabled {
+                background-color: #c4c4c4;
+                cursor: not-allowed;
             }
         }
     }
@@ -200,18 +210,30 @@ body.pool {
                 }
             }
 
+            .actions {
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-end;
+            }
+
         } 
 
+
+        
 
 
         .cutouts {
             display: flex;
-            flex-wrap: wrap;
+            // flex-wrap: wrap;
+            flex-direction: column;
             gap: 2rem;
 
 
             .cutout {
-                display: flex;
+                display: grid;
+
+                grid-template-columns: max-content 1fr;
+
                 flex-direction: column;
 
                 align-items: center;
@@ -225,6 +247,33 @@ body.pool {
                 &.included {
                     opacity: 1;
                 }
+
+                .cutout-actions {
+                    display: flex;
+                    flex-direction: column;
+                    padding: 2rem;
+                    gap: 2rem;
+
+                    align-items: flex-end;
+
+
+                    .label-wrap {
+                        display: flex;
+                        flex-direction: column;
+                        align-items: flex-end;
+
+                        width: 100%;
+
+                        select {
+                            width: 100%;
+                        }
+                    }
+
+                    button {
+                        width: max-content;
+                    }
+                }
+
             }
 
         }

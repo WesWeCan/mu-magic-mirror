@@ -23,7 +23,7 @@ onUnmounted(() => {
 
 <header>
 
-    <h1>MU - Magic Mirror</h1>
+    <h1>MU - Morphing Mirror</h1>
 
     <nav>
     <ul>
@@ -31,7 +31,7 @@ onUnmounted(() => {
             <Link :href="route('pool.upload')">Upload</Link>
         </li>
         <li>
-            <Link :href="route('pool.process')">Process</Link>
+            <Link :href="route('pool.process')">Slicer</Link>
         </li>
         <li>
             <Link :href="route('pool.manage')">Manage</Link>

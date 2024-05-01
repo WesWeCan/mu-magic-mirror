@@ -42,6 +42,23 @@ class PoolController extends Controller
         return response()->json(['success'=>'You have successfully uploaded an image.']);
     }
 
+    public function markAsProcessed($id)
+    {
+
+
+        $baseImage = BaseImage::find($id);
+
+        if(!$baseImage){
+            return response()->json(['error'=>'Base Image not found.']);
+        }
+
+        $baseImage->processed = true;
+        $baseImage->save();
+
+        return response()->json(['success'=>'You have successfully marked the image as processed.']);
+
+    }
+
 
     public function uploadMasked(Request $request)
     {
