@@ -153,7 +153,7 @@ const makeCollage = async () => {
     let newHeight = 0;
     let currentLabel = 'empty';
 
-    let margin = 50;
+    let margin = 0.05;
 
     let scalingConstraints = {
         min: 0.25,
@@ -169,11 +169,17 @@ const makeCollage = async () => {
 
     
     let boundingBoxes = {}
+    let aspectRatio = 1;
 
 
+    
+    
     // MIDDLE
-    dummyWidth = canvasWidth * 0.55;
-    dummyHeight = dummyWidth * 1;
+    currentLabel = 'middle'
+    aspectRatio = collagePieces[currentLabel].height / collagePieces[currentLabel].width;
+
+    dummyWidth = canvasWidth * 0.385;
+    dummyHeight = dummyWidth * aspectRatio;
 
     newWidth = dummyWidth * scaling;
     newHeight = dummyHeight * (newWidth / dummyWidth);
@@ -181,15 +187,11 @@ const makeCollage = async () => {
     x = center.x - newWidth / 2;
     y = center.y - newHeight / 2;
 
-    
-    x -= newWidth * 0.1;
-    y -= newHeight * 0.15;
-
     // put a rect in the centre
     ctx.fillStyle = 'red';
     ctx.fillRect(x, y, newWidth, newHeight);
 
-    boundingBoxes['middle'] = {
+    boundingBoxes[currentLabel] = {
         x: x,
         y: y,
         width: newWidth,
@@ -198,49 +200,90 @@ const makeCollage = async () => {
 
 
     // TOP
-    dummyWidth = canvasWidth * 0.45;
-    dummyHeight = dummyWidth * 1;
 
-    newWidth = dummyWidth * scaling;
-    newHeight = dummyHeight * (newWidth / dummyWidth);
+    currentLabel = 'top'
+    aspectRatio = collagePieces[currentLabel].height / collagePieces[currentLabel].width;
 
-    x = center.x - newWidth / 2;
-    y = center.y - newHeight / 2;
 
-    y -= newHeight * 1;
-    x += newWidth * 0.1;
+    let distBetweenCanvasTopAndMiddle = boundingBoxes['middle'].y - 0 - (canvasHeight * margin);
+    
+    dummyHeight = distBetweenCanvasTopAndMiddle;
+    dummyWidth = dummyHeight / aspectRatio;
+
+    newHeight = dummyHeight * scaling;
+    newWidth = dummyWidth * (newHeight / dummyHeight);
+
+    x = boundingBoxes['middle'].x;
+    y = boundingBoxes['middle'].y - newHeight;
+
+    if(x + newWidth > canvasWidth - (canvasWidth * margin)) {
+        newWidth = canvasWidth - (canvasWidth * margin) - x;
+        newHeight = newWidth * (dummyHeight / dummyWidth);
+
+        x = boundingBoxes['middle'].x;
+        y = boundingBoxes['middle'].y - newHeight;
+    }
+
+    if(y + newHeight > canvasHeight - (canvasHeight * margin)) {
+        newHeight = canvasHeight - (canvasHeight * margin) - y;
+        newWidth = newHeight * (dummyWidth / dummyHeight);
+
+        y = boundingBoxes['middle'].y - newHeight;
+        x = boundingBoxes['middle'].x;
+    }
 
     // put a rect in the centre
     ctx.fillStyle = 'blue';
     ctx.fillRect(x, y, newWidth, newHeight);
 
-    boundingBoxes['top'] = {
+    boundingBoxes[currentLabel] = {
         x: x,
         y: y,
         width: newWidth,
         height: newHeight
     }
 
-
-
     // LEFT
-    dummyWidth = canvasWidth * 0.37;
-    dummyHeight = dummyWidth * 1;
+
+    currentLabel = 'left'
+    aspectRatio = collagePieces[currentLabel].height / collagePieces[currentLabel].width;
+
+    let distBetweenCanvasLeftAndMiddle = boundingBoxes['middle'].x - 0 - (canvasWidth * margin);
+
+    dummyWidth = distBetweenCanvasLeftAndMiddle;
+    dummyHeight = dummyWidth * aspectRatio;
 
     newWidth = dummyWidth * scaling;
     newHeight = dummyHeight * (newWidth / dummyWidth);
 
-    x = center.x - newWidth / 2;
-    y = center.y - newHeight / 2;
+    x = boundingBoxes['middle'].x - newWidth;
+    y = boundingBoxes['middle'].y;
 
-    y += newHeight * 0;
-    x -= newWidth * 0.75;
+
+
+    if(x < 0 + (canvasWidth * margin)) {
+        newWidth = distBetweenCanvasLeftAndMiddle;
+        newHeight = newWidth * (dummyHeight / dummyWidth);
+
+        x = boundingBoxes['middle'].x - newWidth;
+        y = boundingBoxes['middle'].y;
+    }
+
+    if(y + newHeight > canvasHeight - (canvasHeight * margin)) {
+        newHeight = canvasHeight - (canvasHeight * margin) - y;
+        newWidth = newHeight * (dummyWidth / dummyHeight);
+
+        y = boundingBoxes['middle'].y;
+        x = boundingBoxes['middle'].x - newWidth;
+    }
+
+    
 
     // put a rect in the centre
     ctx.fillStyle = 'green';
     ctx.fillRect(x, y, newWidth, newHeight);
 
-    boundingBoxes['left'] = {
+    boundingBoxes[currentLabel] = {
         x: x,
         y: y,
         width: newWidth,
@@ -250,23 +293,47 @@ const makeCollage = async () => {
 
 
     // RIGHT
-    dummyWidth = canvasWidth * 0.37;
-    dummyHeight = dummyWidth * 1;
+
+    currentLabel = 'right'
+    aspectRatio = collagePieces[currentLabel].height / collagePieces[currentLabel].width;
+
+
+    let distBetweenCanvasRightAndMiddle = canvasWidth - boundingBoxes['middle'].x - boundingBoxes['middle'].width - (canvasWidth * margin);
+
+    dummyWidth = distBetweenCanvasRightAndMiddle;
+    dummyHeight = dummyWidth * aspectRatio;
 
     newWidth = dummyWidth * scaling;
     newHeight = dummyHeight * (newWidth / dummyWidth);
 
-    x = center.x - newWidth / 2;
-    y = center.y - newHeight / 2;
 
-    y += newHeight * 0.12;
-    x += newWidth * 0.75;
+    x = boundingBoxes['middle'].x + boundingBoxes['middle'].width;
+    y = boundingBoxes['middle'].y;
+
+    if(x + newWidth > canvasWidth - (canvasWidth * margin)) {
+        newWidth = canvasWidth - (canvasWidth * margin) - x;
+        newHeight = newWidth * (dummyHeight / dummyWidth);
+
+        x = boundingBoxes['middle'].x + boundingBoxes['middle'].width;
+        y = boundingBoxes['middle'].y;
+    }
+
+    if(y + newHeight > canvasHeight - (canvasHeight * margin)) {
+        newHeight = canvasHeight - (canvasHeight * margin) - y;
+        newWidth = newHeight * (dummyWidth / dummyHeight);
+
+        y = boundingBoxes['middle'].y;
+        x = boundingBoxes['middle'].x + boundingBoxes['middle'].width;
+    }
+
+
+    
 
     // put a rect in the centre
     ctx.fillStyle = 'purple';
     ctx.fillRect(x, y, newWidth, newHeight);
 
-    boundingBoxes['right'] = {
+    boundingBoxes[currentLabel] = {
         x: x,
         y: y,
         width: newWidth,
@@ -276,23 +343,48 @@ const makeCollage = async () => {
 
 
     // LOW
-    dummyWidth = canvasWidth * 0.42;
-    dummyHeight = dummyWidth * 1;
 
-    newWidth = dummyWidth * scaling;
-    newHeight = dummyHeight * (newWidth / dummyWidth);
+    currentLabel = 'low'
+    aspectRatio = collagePieces[currentLabel].height / collagePieces[currentLabel].width;
 
-    x = center.x - newWidth / 2;
-    y = center.y - newHeight / 2;
 
-    y += newHeight * 0.869;
-    x -= newWidth * 0.16;
+    let distBetweenCanvasLowAndMiddle = (canvasHeight - boundingBoxes['middle'].y - boundingBoxes['middle'].height - ((canvasHeight * margin) / 2)) / 2;
+
+
+    dummyHeight = distBetweenCanvasLowAndMiddle;
+    dummyWidth = dummyHeight / aspectRatio;
+
+    newHeight = dummyHeight * scaling;
+    newWidth = dummyWidth * (newHeight / dummyHeight);
+
+    x = boundingBoxes['middle'].x;
+    y = boundingBoxes['middle'].y + boundingBoxes['middle'].height;
+
+
+    if(x + newWidth > canvasWidth - (canvasWidth * margin)) {
+        newWidth = canvasWidth - (canvasWidth * margin) - x;
+        newHeight = newWidth * (dummyHeight / dummyWidth);
+
+        x = boundingBoxes['middle'].x;
+        y = boundingBoxes['middle'].y + boundingBoxes['middle'].height;
+    }
+
+    if(y + newHeight > canvasHeight - (canvasHeight * margin)) {
+        newHeight = canvasHeight - (canvasHeight * margin) - y;
+        newWidth = newHeight * (dummyWidth / dummyHeight);
+
+        y = boundingBoxes['middle'].y + boundingBoxes['middle'].height;
+        x = boundingBoxes['middle'].x;
+    }
+
+
+    // x -= newWidth * 0.16;
 
     // put a rect in the centre
     ctx.fillStyle = 'yellow';
     ctx.fillRect(x, y, newWidth, newHeight);
 
-    boundingBoxes['low'] = {
+    boundingBoxes[currentLabel] = {
         x: x,
         y: y,
         width: newWidth,
@@ -302,23 +394,40 @@ const makeCollage = async () => {
 
 
     // LOWLOW
-    dummyWidth = canvasWidth * 0.42;
-    dummyHeight = dummyWidth * 1;
 
-    newWidth = dummyWidth * scaling;
-    newHeight = dummyHeight * (newWidth / dummyWidth);
+    currentLabel = 'lowlow'
+    aspectRatio = collagePieces[currentLabel].height / collagePieces[currentLabel].width;
 
-    x = center.x - newWidth / 2;
-    y = center.y - newHeight / 2;
+    dummyHeight = distBetweenCanvasLowAndMiddle;
+    dummyWidth = dummyHeight / aspectRatio;
 
-    y += newHeight * 1.15;
-    x += newWidth * 0.26;
+    newHeight = dummyHeight * scaling;
+    newWidth = dummyWidth * (newHeight / dummyHeight);
+
+    x = boundingBoxes['low'].x;
+    y = boundingBoxes['low'].y + boundingBoxes['low'].height;
+
+    if(x + newWidth > canvasWidth - (canvasWidth * margin)) {
+        newWidth = canvasWidth - (canvasWidth * margin) - x;
+        newHeight = newWidth * (dummyHeight / dummyWidth);
+
+        x = boundingBoxes['low'].x;
+        y = boundingBoxes['low'].y + boundingBoxes['low'].height;
+    }
+
+    if(y + newHeight > canvasHeight - (canvasHeight * margin)) {
+        newHeight = canvasHeight - (canvasHeight * margin) - y;
+        newWidth = newHeight * (dummyWidth / dummyHeight);
+
+        y = boundingBoxes['low'].y + boundingBoxes['low'].height;
+        x = boundingBoxes['low'].x;
+    }
 
     // put a rect in the centre
     ctx.fillStyle = 'orange';
     ctx.fillRect(x, y, newWidth, newHeight);
 
-    boundingBoxes['lowlow'] = {
+    boundingBoxes[currentLabel] = {
         x: x,
         y: y,
         width: newWidth,
@@ -327,8 +436,42 @@ const makeCollage = async () => {
 
 
 
+    //  return;
+
+
+    // // loop through all bounding boxes and log them
+    // for (let key in boundingBoxes) {
+        
+    //     // check if the bounding box is still within the canvas
+    //     // if they are not, we need to adjust them so the size of them is within the margins of the canvas
+
+    //     let box = boundingBoxes[key];
+
+    //     if (box.x + box.width > canvasWidth - (canvasWidth * margin)) {
+    //         const aspectRatio = box.width / box.height;
+    //         box.width = canvasWidth - (canvasWidth * margin);
+    //         box.height = box.width / aspectRatio;
+    //         box.x = canvasWidth - box.width - (canvasWidth * margin);
+    //     }
+
+        
+
+
+
+        
+
     
 
+    //     console.log('bounding box', key, box);
+
+
+
+
+    // }
+   
+
+
+    
 
 
     // draw the pieces on the canvas
