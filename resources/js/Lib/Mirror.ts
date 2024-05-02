@@ -22,9 +22,6 @@ export class MagicMirror {
 
     detector: poseDetection.PoseDetector | null = null;
 
-
-
-
     detectorConfig: poseDetection.MoveNetModelConfig = {
         modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING,
         enableSmoothing: false,
@@ -53,15 +50,12 @@ export class MagicMirror {
 
 
     corpse = {
-
         head: null,
         left_arm: null,
         right_arm: null,
         torso: null,
         left_leg: null,
         right_leg: null
-
-
     }
 
 

@@ -3,6 +3,7 @@
 import { nextTick, onMounted, onUnmounted, ref } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 
+import Camera from '@/Components/Morphing/Camera.vue';
 
 import { MagicMirror } from '@/Lib/Mirror'
 
@@ -16,6 +17,8 @@ const div_result = ref<HTMLDivElement | null>(null);
 const collage_container = ref<HTMLDivElement | null>(null);
 
 
+
+
 const page = usePage();
 
 onMounted(async () => {
@@ -25,9 +28,9 @@ onMounted(async () => {
 
     await nextTick();
 
-    console.log('page.props.corpse', page.props.corpse);
+    // console.log('page.props.corpse', page.props.corpse);
 
-    makeCollage();
+    // makeCollage();
 
 
 });
@@ -704,6 +707,11 @@ const makeCollage = async () => {
 
 <template>
 
+
+    <Camera></Camera>
+
+
+
     <button @click="makeCollage">Make Collage</button>
     <div class="video_containter" ref="video_container"></div>
     <div class="process_containter" ref="div_process"></div>
@@ -711,9 +719,6 @@ const makeCollage = async () => {
 
 
     <div ref="collage_container" class="collage"></div>
-
-
-
 
     <div v-for="corpse in page.props.corpse" :key="corpse.id" v-if="page.props.corpse">
         Name:
