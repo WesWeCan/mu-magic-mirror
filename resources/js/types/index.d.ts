@@ -1,3 +1,4 @@
+import { CorpseObject } from '@/Lib/CreateCollage';
 import { BaseImage } from './BaseImage';
 
 export interface User {
@@ -12,4 +13,5 @@ export type PageProps<T extends Record<string, unknown> = Record<string, unknown
         user: User;
     };
     baseImages?: BaseImage[];
+    corpse? : CorpseObject;
 };

@@ -38,6 +38,11 @@ onMounted(async () => {
 
     console.log('page', page.props.baseImages)
 
+
+    if(!page.props.baseImages) {
+        return;
+    }
+
     procesImages.value = page.props.baseImages.map((baseImage: BaseImage) => {
 
         return {
@@ -216,20 +221,35 @@ const ProcessAll = async () => {
 
 
 
-const setIncluded = (cutout: Cutout) => {
+const setIncluded = (mask: MaskImage) => {
 
-    let newStatus = !cutout.included;
+    let newStatus = !mask.included;
 
     axios.patch(route('maskimage.setincluded'), {
-        id: cutout.id,
+        id: mask.id,
         included: newStatus
     })
     .then(() => {
-        cutout.included = newStatus;
+        mask.included = newStatus;
     })
     .catch(() => {
         console.error('Failed to update included status');
     });
+}
+
+
+
+const maxLoaded = ref(10);
+const canLoadMore = ref(true);
+
+
+const loadMore = () => {
+   maxLoaded.value += 10;   
+
+   if(page.props.baseImages?.length && maxLoaded.value > page.props.baseImages.length) {
+       maxLoaded.value = page.props.baseImages.length;
+       canLoadMore.value = false;
+   }
 }
 
 
@@ -241,12 +261,16 @@ const setIncluded = (cutout: Cutout) => {
 
         <div>
             <h1>Pool Manager</h1>
+            <span>Total {{ page.props.baseImages?.length  ?? 0 }} base images / Loaded {{ maxLoaded }}</span>
         </div>
 
         <div class="manager" >
 
             <div class="manager-images" v-if="page.props.baseImages">
-                <div v-for="(image, index) in (page.props.baseImages as BaseImage[])" :key="image.id" class="manager-image" >
+
+
+                <template v-for="(image, index) in (page.props.baseImages as BaseImage[])" :key="image.id">
+                <div  class="manager-image" v-if="index < maxLoaded">
 
                     <template v-if="image.processed">
                     <baseImageDetails :baseImage="image" @deleted="($page.props.baseImages ?? []).splice(index, 1)"></baseImageDetails>
@@ -275,9 +299,11 @@ const setIncluded = (cutout: Cutout) => {
 
                 </template>
                 </div>
-
+                </template>
             </div>
 
+            <br/>
+            <button @click="loadMore" v-if="canLoadMore">Load more</button>
 
         </div>
 
