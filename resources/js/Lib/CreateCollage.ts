@@ -23,14 +23,17 @@ export interface CorpseObject {
 
 
 
-export const CreateCollage = async (corpse : CorpseObject, collage_container : HTMLDivElement, slices : CutoutRaw[]) => {
+export const CreateCollage = async (corpse : CorpseObject, collage_container : HTMLDivElement, slices : CutoutRaw[], startingSize : {x: number, y : number}) => {
 
 
     console.log('corpse', corpse);
 
+    console.log(collage_container.clientHeight);
+
     const canvas = document.createElement('canvas');
-    canvas.width = 600;
-    canvas.height = 900;
+    canvas.id = 'collage-canvas';
+    canvas.width = startingSize.x;
+    canvas.height = startingSize.y;
 
     // empty the collage container first
     collage_container.innerHTML = '';
@@ -669,7 +672,10 @@ export const CreateCollage = async (corpse : CorpseObject, collage_container : H
 
 
 
-    return;
+    return new Promise<void>((resolve) => {
+        resolve();
+    }
+    );
 
 
     // // draw the pieces on the canvas

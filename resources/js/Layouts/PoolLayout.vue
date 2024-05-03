@@ -46,9 +46,4 @@ onUnmounted(() => {
     <slot></slot>
 </main>
 
-
-
-
-
-
 </template>

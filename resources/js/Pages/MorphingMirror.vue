@@ -9,10 +9,6 @@ import { MagicMirror } from '@/Lib/Mirror'
 
 const mirror = new MagicMirror();
 
-const video_container = ref<HTMLDivElement | null>(null);
-const div_process = ref<HTMLDivElement | null>(null);
-const div_result = ref<HTMLDivElement | null>(null);
-
 
 const collage_container = ref<HTMLDivElement | null>(null);
 
@@ -24,6 +20,8 @@ const page = usePage();
 
 const maxSlices = 3;
 const slices = ref<CutoutRaw[]>([]);
+const currentScreen = ref("camera")
+
 
 
 
@@ -47,8 +45,15 @@ onUnmounted(() => {
 });
 
 
+const collageProcessing = ref(false);
 
 const makeCollage = async () => {
+
+    if (collageProcessing.value) {
+        return;
+    }
+
+    collageProcessing.value = true;
 
     if (!collage_container.value) {
         console.error('no collage container');
@@ -60,7 +65,23 @@ const makeCollage = async () => {
         return;
     }
 
-    CreateCollage(page.props.corpse, collage_container.value, slices.value);
+
+    let container = document.getElementById('canvas_process');
+
+    if (!container) {
+        console.error('no container');
+        return;
+    }
+
+    let startingSize = {
+        x: container.offsetWidth,
+        y: container.offsetHeight
+    }
+
+    await CreateCollage(page.props.corpse, collage_container.value, slices.value, startingSize);
+    currentScreen.value = 'collage';
+
+    collageProcessing.value = false;
 
 }
 
@@ -75,6 +96,10 @@ const addSlice = (slice: CutoutRaw) => {
 }
 
 
+const reload = () => {
+    window.location.reload();
+}
+
 
 
 
@@ -83,33 +108,73 @@ const addSlice = (slice: CutoutRaw) => {
 
 <template>
 
+    <div class="morphing-mirror-layout">
 
-    <Camera @new-slice="addSlice" ></Camera>
-    <div v-for="slice in slices" :key="slice.part">
-        <img :src="slice.img" alt="slice.part" loading="lazy">
+        <header>
+            <h1>MU - Morphing Mirror</h1>
+        </header>
+
+        <main>
+            <div class="screen" :hidden="currentScreen != 'camera'">
+
+                <span class="hint">
+                    Click on the video to capture a slice
+                </span>
+
+                <Camera @new-slice="addSlice"></Camera>
+
+                <div class="slices" v-if="slices.length">
+                    <div v-for="slice in slices" :key="slice.part" class="slice"
+                        :style="`background-image: url('${slice.img}')`">
+                    </div>
+                </div>
+
+                <button v-if="slices.length" class="collage-button" @click="makeCollage">Make Collage</button>
+
+            </div>
+            <div class="screen" :hidden="currentScreen != 'collage'">
+                <div ref="collage_container" class="collage collage-container"></div>
+
+                <!-- <button v-if="slices.length" class="redo-button" @click="currentScreen = 'camera'">Start Over</button> -->
+
+                <button v-if="slices.length" class="redo-button" @click="currentScreen = 'camera'">Go back</button>
+
+                <button v-if="slices.length" class="start-over-button" @click="reload()">Start over with new corpse</button>
+
+                <button v-if="slices.length" class="list-button" @click="currentScreen = 'list'">List</button>
+            </div>
+            <div class="screen" :hidden="currentScreen != 'list'">
+
+                <div class="list-container">
+                    <h2>Used slices</h2>
+
+                    <div v-for="corpse in page.props.corpse" :key="corpse.id" v-if="page.props.corpse" class="list-item">
+                        <span>
+                            Name:<br />
+                            {{ corpse.base_image.name ?? 'no name' }}
+                        </span>
+                        <span>
+                            Link:
+                            {{ corpse.base_image.link ?? 'no link' }}
+                        </span>
+                    </div>
+                </div>
+
+
+                <button v-if="slices.length" class="list-button" @click="currentScreen = 'collage'">Go Back</button>
+
+            </div>
+
+
+        </main>
+
+
+
+        <footer>(alpha test)</footer>
+
     </div>
 
 
-    <button @click="makeCollage">Make Collage</button>
-
-
-    <div ref="collage_container" class="collage"></div>
-
-    <div v-for="corpse in page.props.corpse" :key="corpse.id" v-if="page.props.corpse">
-        Name:
-        {{ corpse.base_image.name }}
-
-        <br />
-        Link:
-        {{ corpse.base_image.link }}
-
-        <br />
-        <br />
-
-    </div>
-
-
-    
 
 
 

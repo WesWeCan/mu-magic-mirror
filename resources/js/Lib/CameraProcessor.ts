@@ -71,11 +71,7 @@ export class CameraProcessor {
 
 
     constructor() {
-
         console.log("ImageProcessor constructor");
-
-
-
     }
 
 
@@ -86,14 +82,14 @@ export class CameraProcessor {
 
 
         // this.bodySegmenter = await bodySegmentation.createSegmenter(this.bodySegmentationModel, this.bodySegmentationModelConfig);
-        const segmenterConfig = {
-            runtime: 'tfjs', // or 'tfjs'
-            solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation',
-            modelType: 'general'
-        }
-        this.bodySegmenter = await bodySegmentation.createSegmenter(this.bodySegmentationModel, segmenterConfig);
+        // const segmenterConfig = {
+        //     runtime: 'tfjs', // or 'tfjs'
+        //     solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation',
+        //     modelType: 'general'
+        // }
+        // this.bodySegmenter = await bodySegmentation.createSegmenter(this.bodySegmentationModel, segmenterConfig);
 
-        console.log("bodySegmenter loaded");
+        // console.log("bodySegmenter loaded");
 
 
         await this.getMediaStream(videoDiv);
@@ -173,8 +169,10 @@ export class CameraProcessor {
 
         const canvas_process = document.createElement('canvas');
         canvas_process.id = 'canvas_process';
-        canvas_process.width = 640;
-        canvas_process.height = 480;
+
+
+        canvas_process.width = this.div_process.clientWidth;
+        canvas_process.height = this.div_process.clientHeight;
 
         this.canvas_process = canvas_process;
 
@@ -223,9 +221,16 @@ export class CameraProcessor {
             return;
         }
 
-        if (!this.bodySegmenter) {
-            console.error('No bodySegmenter');
-            return;
+        // if (!this.bodySegmenter) {
+        //     console.error('No bodySegmenter');
+        //     return;
+        // }
+
+
+        // check if the size is changed
+        if (this.canvas_process.width !== this.div_process?.clientWidth || this.canvas_process.height !== this.div_process?.clientHeight) {
+            this.canvas_process.width = this.div_process?.clientWidth || 640;
+            this.canvas_process.height = this.div_process?.clientHeight || 480;
         }
 
         const ctx = this.canvas_process.getContext('2d');
@@ -235,12 +240,17 @@ export class CameraProcessor {
             return;
         }
 
-        ctx.drawImage(this.video, 0, 0, this.canvas_process.width, this.canvas_process.height);
-     
+        this.drawVideo(ctx);
+        
+
         // draw circle around mouse
-        ctx.beginPath();
-        ctx.arc(this.mousePos.x, this.mousePos.y, 10, 0, 2 * Math.PI);
-        ctx.stroke();
+        const drawDebugBox = false;
+
+        if(drawDebugBox){
+            ctx.beginPath();
+            ctx.arc(this.mousePos.x, this.mousePos.y, 10, 0, 2 * Math.PI);
+            ctx.stroke();
+        
 
 
         
@@ -257,6 +267,53 @@ export class CameraProcessor {
 
             ctx.strokeRect(x, y, width, height);
         }
+    }
+
+    }
+
+
+    async drawVideo(ctx : CanvasRenderingContext2D){
+
+        
+
+
+        if (!this.video) {
+            console.error('No video');
+            return;
+        }
+
+        if (!this.canvas_process) {
+            console.error('No canvas process');
+            return;
+        }
+
+        
+
+
+        // Calculate the aspect ratio of the video
+        const videoAspectRatio = this.video.videoWidth / this.video.videoHeight;
+
+        // Calculate the aspect ratio of the canvas
+        const canvasAspectRatio = this.canvas_process.width / this.canvas_process.height;
+
+        // Calculate the dimensions for drawing the video on the canvas
+        let drawWidth, drawHeight, drawX, drawY;
+
+        if (videoAspectRatio > canvasAspectRatio) {
+            // Video is wider than the canvas, so we need to adjust the height
+            drawWidth = this.canvas_process.height * videoAspectRatio;
+            drawHeight = this.canvas_process.height;
+            drawX = (this.canvas_process.width - drawWidth) / 2;
+            drawY = 0;
+        } else {
+            // Video is taller than the canvas, so we need to adjust the width
+            drawWidth = this.canvas_process.width;
+            drawHeight = this.canvas_process.width / videoAspectRatio;
+            drawX = 0;
+            drawY = (this.canvas_process.height - drawHeight) / 2;
+        }
+
+        ctx.drawImage(this.video, drawX, drawY, drawWidth, drawHeight);
 
     }
 
@@ -276,7 +333,7 @@ export class CameraProcessor {
         }
 
     
-        const squareSize = this.canvas_process.width * 0.23;
+        const squareSize = this.canvas_process.width * 0.30;
         let x = this.mousePos.x - squareSize / 2;
         let y = this.mousePos.y - squareSize / 2;
 
@@ -321,6 +378,13 @@ export class CameraProcessor {
         }
 
 
+        // check if the size is changed
+        if (this.canvas_process.width !== this.div_process?.clientWidth || this.canvas_process.height !== this.div_process?.clientHeight) {
+            this.canvas_process.width = this.div_process?.clientWidth || 640;
+            this.canvas_process.height = this.div_process?.clientHeight || 480;
+        }
+
+
         const ctx = this.canvas_process.getContext('2d');
 
         if (!ctx) {
@@ -328,8 +392,7 @@ export class CameraProcessor {
             return;
         }
 
-        ctx.drawImage(this.video, 0, 0, this.canvas_process.width, this.canvas_process.height);
-        // this.video.pause();
+        this.drawVideo(ctx);
 
         const imgData = this.canvas_process.toDataURL();
 
@@ -382,7 +445,7 @@ export class CameraProcessor {
 
         }
 
-        ctx.drawImage(this.video, 0, 0, this.canvas_process.width, this.canvas_process.height);
+        this.drawVideo(ctx);
 
 
         // cut out the part, based on the bounding box

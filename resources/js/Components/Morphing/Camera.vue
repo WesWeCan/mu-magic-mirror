@@ -21,18 +21,18 @@ const emit = defineEmits(['newSlice']);
 onMounted(async () => {
 
 
-    if (video_container.value && div_process.value){
+    if (video_container.value && div_process.value) {
         await cp.init(video_container.value, div_process.value);
 
         div_process.value.addEventListener('click', (e) => {
             const slice = cp.takePictureAndSlice()
-            .then((res) => {
+                .then((res) => {
 
-                if(res != null){
-                    emit('newSlice', res);
-                }
-              
-            })
+                    if (res != null) {
+                        emit('newSlice', res);
+                    }
+
+                })
 
         });
 
@@ -43,7 +43,7 @@ onMounted(async () => {
 
 
 const draw = () => {
-    if (video_container.value && div_process.value){
+    if (video_container.value && div_process.value) {
         // cp.readAndDrawSegmented();
         cp.draw();
         requestAnimationFrame(draw);
@@ -59,15 +59,15 @@ const cutOuts = ref<CutoutRaw[]>([]);
 
 const takePicture = () => {
     cp.takePictureAndProcess()
-    .then((res) => {
-        console.log(res);
+        .then((res) => {
+            console.log(res);
 
-        cutOuts.value = res;
+            cutOuts.value = res;
 
-    })
-    .catch((err) => {
-        console.log(err);
-    });
+        })
+        .catch((err) => {
+            console.log(err);
+        });
 }
 
 
@@ -77,40 +77,12 @@ const takePicture = () => {
 
 
 <template>
- 
-    <div ref="video_container" class="video-container">
-    </div>
 
-    
+    <div ref="video_container" class="video-container"></div>
+    <div ref="div_process" class="div-process"></div>
 
-    <div ref="div_process" class="div-process">
-    </div>
-
-    <button @click="takePicture">Make Photo</button>
     <div v-for="cutOut in cutOuts" :key="cutOut.part">
         <img :src="cutOut.img" :alt="cutOut.part" />
     </div>
 
-    
-
-    </template>
-
-
-
-<style scoped>
-    video {
-        display: none!important;
-    }
-
-
-    button {
-        margin-top: 20px;
-        background-color: #4CAF50;
-        border: none;
-        color: white;
-        padding: 15px 32px;
-
-
-    }
-
-    </style>
+</template>
