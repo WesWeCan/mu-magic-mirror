@@ -7,59 +7,63 @@ use Illuminate\Http\Request;
 
 class BaseImageController extends Controller
 {
+    
+
     /**
-     * Display a listing of the resource.
+     * Set the processed status of the specified resource.
      */
-    public function index()
+    public function setProcessed(Request $request)
     {
-        //
+        $baseImage = BaseImage::findOrFail($request->id);
+        $baseImage->processed = $request->processed;
+        $baseImage->save();
+
+
+        return response()->json(['success'=>'You have successfully changed the processed status.']);
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Set the title of the specified resource.
      */
-    public function create()
+    public function setTitle(Request $request)
     {
-        //
+        
+        $baseImage = BaseImage::findOrFail($request->id);
+        $baseImage->name = $request->title;
+        $baseImage->save();
+        
+
+        return response()->json(['success'=>'You have successfully changed the title.']);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Set the link of the specified resource.
      */
-    public function store(Request $request)
+    public function setLink(Request $request)
     {
-        //
+
+        $request->validate([
+            'link' => 'required|string|url|max:255',
+        ]);
+        
+        $baseImage = BaseImage::findOrFail($request->id);
+        $baseImage->link = $request->link;
+        $baseImage->save();
+
+
+        return response()->json(['success'=>'You have successfully changed the link.']);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(BaseImage $baseImage)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(BaseImage $baseImage)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, BaseImage $baseImage)
-    {
-        //
-    }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(BaseImage $baseImage)
+    public function destroy($id)
     {
-        //
+        $baseImage = BaseImage::findOrFail($id);
+        $baseImage->delete();
+        
+
+        return response()->json(['success'=>'You have successfully deleted the image.']);
     }
 }

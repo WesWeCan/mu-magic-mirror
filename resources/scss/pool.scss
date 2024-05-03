@@ -160,12 +160,6 @@ body.pool {
     }
 
 
-
-
-    
-
-
-
     .processor {
 
         display: flex;
@@ -186,10 +180,7 @@ body.pool {
             border: 1px solid #c4c4c4;
             padding: .5rem;
 
-            .base-img {
-                display: flex;
-                flex-direction: column;
-            }
+            
 
             .details {
                 display: flex;
@@ -280,6 +271,116 @@ body.pool {
 
 
     }
+
+
+
+
+
+
+
+
+    .manager {
+
+        display: flex;
+        flex-direction: column;
+
+        .manager-images {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+
+        .manager-image {
+            display: grid;
+            grid-template-columns: 0.6fr 2fr max-content;
+            gap: 2rem;
+
+            border: 1px solid #c4c4c4;
+            padding: .5rem;
+
+            .details {
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+
+                h3 {
+                    font-size: 1.25rem;
+                    font-weight: bold;
+                }
+
+                p {
+                    font-size: 1rem;
+                }
+
+                .error {
+                    color: #ff0000;
+                }
+            }
+
+        } 
+
+
+
+        .masks {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+
+
+            .mask {
+                display: flex;
+                flex-direction: column;
+
+                align-items: center;
+                justify-content: center;
+
+                background-color: #eeeeee;
+
+                opacity: 0.25;
+                cursor: pointer;
+
+                &.included {
+                    opacity: 1;
+                }
+            }
+
+        }
+
+
+    }
+
+
+
+
+
+
+
+    .base-img-details {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+
+        label {
+            margin-bottom: -1rem;
+        }
+
+        button {
+            width: max-content;
+
+            opacity: 0.5;
+
+            &:hover {
+                opacity: 1;
+            }
+        }
+
+
+    }
+
+
+
+
 
 
 

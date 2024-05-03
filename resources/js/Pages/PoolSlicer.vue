@@ -5,16 +5,17 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
 
 import { BaseImage, Cutout, CutoutRaw, ProcesImage } from '@/types/PoolTypes';
 
+
 import PoolLayout from '@/Layouts/PoolLayout.vue';
+
+import BaseImageDetails from '@/Components/Pool/BaseImageDetails.vue';
 
 import ImageSlicer from '@/Components/Pool/ImageSlicer.vue';
 import { usePage } from '@inertiajs/vue3';
 
 import axios from 'axios';
 
-const fileName = (path: string) => {
-    return path.split('/').pop() ?? '';
-};
+
 
 const page = usePage();
 
@@ -227,13 +228,10 @@ const canProcessBecauseOfCutouts = computed(() => {
                 <template v-for="(image, index) in procesImages" :key="image.baseImage.id">
                     <div class="processor-image" v-if="index == currentIndexOfImage">
 
-                        <div class="base-img">
-                            <img :src="image.baseImage.path" alt="image.title" loading="lazy">
-                            <span>{{ fileName(image.baseImage.path) }}</span>
-                            <span>{{ image.baseImage.name ?? "No Title" }}</span>
-                            <span>{{ image.baseImage.link ?? "No Link" }}</span>
-                        </div>
-                        <!--  -->
+                        <baseImageDetails :baseImage="image.baseImage"
+                        @deleted="(procesImages).splice(index, 1)"
+                        ></baseImageDetails>
+
                         <div class="cutouts">
                             <h2>Cutouts</h2>
                             <div v-for="cutout in image.cutouts" :key="cutout.part" class="cutout"

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class MaskImage extends Model
 {
@@ -19,4 +20,16 @@ class MaskImage extends Model
     {
         return $this->belongsTo(BaseImage::class);
     }
+
+
+    public function delete()
+    {
+        // Delete the associated image from storage
+        Storage::delete($this->path);
+
+        // Delete the model
+        return parent::delete();
+    }
+
+
 }

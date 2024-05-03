@@ -7,59 +7,43 @@ use Illuminate\Http\Request;
 
 class MaskImageController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    
+
+    public function setIncluded(Request $request)
     {
-        //
+
+        $request->validate([
+            'included' => 'required|boolean',
+        ]);
+
+        $maskImage = MaskImage::findOrFail($request->id);
+        $maskImage->included = $request->included;
+        $maskImage->save();
+
+        return response()->json(['success'=>'You have successfully changed the included status.']);
+
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function setLabel(Request $request)
     {
-        //
+        
+        $maskImage = MaskImage::findOrFail($request->id);
+        $maskImage->label = $request->label;
+        $maskImage->save();
+        
+
+        return response()->json(['success'=>'You have successfully changed the label.']);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function delete(Request $request)
     {
-        //
+        
+        $maskImage = MaskImage::findOrFail($request->id);
+        $maskImage->delete();
+        
+
+        return response()->json(['success'=>'You have successfully deleted the mask image.']);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(MaskImage $maskImage)
-    {
-        //
-    }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(MaskImage $maskImage)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, MaskImage $maskImage)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(MaskImage $maskImage)
-    {
-        //
-    }
 }

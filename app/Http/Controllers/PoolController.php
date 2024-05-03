@@ -105,10 +105,21 @@ class PoolController extends Controller
 
         $baseImages = BaseImage::where('processed', false)->get();
 
-        return Inertia::render('PoolProcesser', [
+        return Inertia::render('PoolSlicer', [
             'baseImages' => $baseImages
         ]);
         
+    }
+
+
+    public function poolManager(){
+
+        $baseImages = BaseImage::where('processed', true)->with("maskImages")->get();
+
+        return Inertia::render('PoolManager', [
+            'baseImages' => $baseImages
+        ]);
+
     }
 
 

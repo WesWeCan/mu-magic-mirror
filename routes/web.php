@@ -2,11 +2,14 @@
 
 use App\Http\Controllers\BaseImageController;
 use App\Http\Controllers\FrontController;
+use App\Http\Controllers\MaskImageController;
 use App\Http\Controllers\PoolController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+
+
 
 Route::get('/', [FrontController::class, 'index'])->name('mirror');
 
@@ -15,22 +18,36 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 
-Route::get('/pool/upload', function () {
-    return Inertia::render('PoolUploader');
-})->middleware(['auth', 'verified'])->name('pool.upload');
+Route::prefix('/pool')->middleware(['auth', 'verified'])->group(function () {
+    Route::get('/upload', function () {
+        return Inertia::render('PoolUploader');
+    })->name('pool.upload');
 
-Route::get('/pool/process', [PoolController::class, "poolProcessor"])->middleware(['auth', 'verified'])->name('pool.process');
+    Route::get('/process', [PoolController::class, "poolProcessor"])->name('pool.process');
 
-Route::post('/pool/baseupload', [PoolController::class, 'uploadBase'])->middleware(['auth', 'verified'])->name('pool.base.upload');
+    Route::post('/baseupload', [PoolController::class, 'uploadBase'])->name('pool.base.upload');
 
-Route::post('/pool/maskupload', [PoolController::class, 'uploadMasked'])->middleware(['auth', 'verified'])->name('pool.mask.upload');
+    Route::post('/maskupload', [PoolController::class, 'uploadMasked'])->name('pool.mask.upload');
+
+    Route::post('/markasprocessed/{id}', [PoolController::class, 'markAsProcessed'])->name('pool.markasprocessed');
+
+    Route::get('/manager', [PoolController::class, "poolManager"])->name('pool.manage');
+});
 
 
-Route::post('/pool/markasprocessed/{id}', [PoolController::class, 'markAsProcessed'])->middleware(['auth', 'verified'])->name('pool.markasprocessed');
+Route::prefix('/baseimage')->middleware(['auth', 'verified'])->group(function () {
+    Route::patch('/set-processed', [BaseImageController::class, 'setProcessed'])->name('baseimage.setprocessed');
+    Route::delete('/{id}', [BaseImageController::class, 'destroy'])->name('baseimage.destroy');
+    Route::patch('/set-title', [BaseImageController::class, 'setTitle'])->name('baseimage.settitle');
+    Route::patch('/set-description', [BaseImageController::class, 'setLink'])->name('baseimage.setlink');
+});
 
-Route::get('/pool/manager', function () {
-    return Inertia::render('PoolManager');
-})->middleware(['auth', 'verified'])->name('pool.manage');
+Route::prefix('/maskimage')->middleware(['auth', 'verified'])->group(function () {
+    Route::patch('/set-included', [MaskImageController::class, 'setIncluded'])->name('maskimage.setincluded');
+    Route::delete('/{id}', [MaskImageController::class, 'destroy'])->name('maskimage.destroy');
+    Route::patch('/set-label', [MaskImageController::class, 'setLabel'])->name('maskimage.setlabel');
+});
+
 
 
 Route::middleware('auth')->group(function () {

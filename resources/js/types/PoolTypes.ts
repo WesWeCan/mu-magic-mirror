@@ -8,6 +8,10 @@ export interface BaseImage {
     created_at: string;
     updated_at: string;
 
+    processed: boolean;
+
+    mask_images?: MaskImage[];
+
 }
 
 export interface Cutout {
@@ -29,4 +33,15 @@ export interface ProcesImage {
     isUploaded: boolean;
     cutouts: Cutout[];
 
+}
+
+
+export interface MaskImage {
+    id: number;
+    base_image_id: number;
+    included: boolean;
+    path: string;
+    label: string;
+    created_at: string;
+    updated_at: string;
 }
