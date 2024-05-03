@@ -17,11 +17,15 @@ const div_result = ref<HTMLDivElement | null>(null);
 const collage_container = ref<HTMLDivElement | null>(null);
 
 import { CreateCollage } from '@/Lib/CreateCollage';
-
-
+import { CutoutRaw } from '@/types/PoolTypes';
 
 
 const page = usePage();
+
+const maxSlices = 3;
+const slices = ref<CutoutRaw[]>([]);
+
+
 
 onMounted(async () => {
 
@@ -56,13 +60,19 @@ const makeCollage = async () => {
         return;
     }
 
-    CreateCollage(page.props.corpse, collage_container.value);
+    CreateCollage(page.props.corpse, collage_container.value, slices.value);
 
 }
 
 
+const addSlice = (slice: CutoutRaw) => {
 
+    slices.value.unshift(slice);
 
+    if (slices.value.length > maxSlices) {
+        slices.value.pop();
+    }
+}
 
 
 
@@ -74,14 +84,13 @@ const makeCollage = async () => {
 <template>
 
 
-    <Camera></Camera>
-
+    <Camera @new-slice="addSlice" ></Camera>
+    <div v-for="slice in slices" :key="slice.part">
+        <img :src="slice.img" alt="slice.part" loading="lazy">
+    </div>
 
 
     <button @click="makeCollage">Make Collage</button>
-    <div class="video_containter" ref="video_container"></div>
-    <div class="process_containter" ref="div_process"></div>
-    <div class="result_containter" ref="div_result"></div>
 
 
     <div ref="collage_container" class="collage"></div>
@@ -98,6 +107,9 @@ const makeCollage = async () => {
         <br />
 
     </div>
+
+
+    
 
 
 

@@ -1,11 +1,9 @@
 <script setup lang="ts">
 
 import { CameraProcessor } from '@/Lib/CameraProcessor';
+import { CutoutRaw } from '@/types/PoolTypes';
 
-type cutOut = {
-    part: string,
-    img: string
-}
+
 
 
 import { onMounted, ref } from 'vue';
@@ -17,11 +15,26 @@ const video_container = ref<HTMLDivElement | null>(null);
 const div_process = ref<HTMLDivElement | null>(null);
 
 
+const emit = defineEmits(['newSlice']);
+
+
 onMounted(async () => {
 
 
     if (video_container.value && div_process.value){
         await cp.init(video_container.value, div_process.value);
+
+        div_process.value.addEventListener('click', (e) => {
+            const slice = cp.takePictureAndSlice()
+            .then((res) => {
+
+                if(res != null){
+                    emit('newSlice', res);
+                }
+              
+            })
+
+        });
 
         requestAnimationFrame(draw);
     }
@@ -31,18 +44,18 @@ onMounted(async () => {
 
 const draw = () => {
     if (video_container.value && div_process.value){
-        cp.readAndDrawSegmented();
+        // cp.readAndDrawSegmented();
+        cp.draw();
         requestAnimationFrame(draw);
     }
-
-    
-
 }
 
 
 
 
-const cutOuts = ref<cutOut[]>([]);
+
+
+const cutOuts = ref<CutoutRaw[]>([]);
 
 const takePicture = () => {
     cp.takePictureAndProcess()

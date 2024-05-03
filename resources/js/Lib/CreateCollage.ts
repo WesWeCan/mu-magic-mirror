@@ -1,4 +1,4 @@
-import { BaseImage } from "@/types/PoolTypes";
+import { BaseImage, CutoutRaw } from "@/types/PoolTypes";
 
 export interface CorpsPart {
 
@@ -23,7 +23,7 @@ export interface CorpseObject {
 
 
 
-export const CreateCollage = async (corpse : CorpseObject, collage_container : HTMLDivElement) => {
+export const CreateCollage = async (corpse : CorpseObject, collage_container : HTMLDivElement, slices : CutoutRaw[]) => {
 
 
     console.log('corpse', corpse);
@@ -46,6 +46,61 @@ export const CreateCollage = async (corpse : CorpseObject, collage_container : H
 
     let keys = Object.keys(corpse);
 
+
+
+    // were replacing a random part of the corpse with a random slice
+    if(slices.length > 0) {
+
+        let randomKey = keys[Math.floor(Math.random() * keys.length)];
+        let randomSlice = slices[Math.floor(Math.random() * slices.length)];
+
+        let corpsePart = corpse[randomKey];
+
+        let img = new Image();
+        img.src = randomSlice.img;
+
+        // wait until image is loaded
+        await new Promise<void>((resolve) => {
+            img.onload = () => {
+                resolve();
+            }
+        });
+
+        const width = img.width;
+        const height = img.height;
+        const label = corpsePart.label;
+
+        // Create a new object for the updated corpse part
+        const updatedCorpsePart = {
+            ...corpsePart,
+            path: randomSlice.img,
+            base_image: {
+                ...corpsePart.base_image,
+                path: randomSlice.img
+            }
+        };
+
+        // Update the corpse object with the updated corpse part
+        const updatedCorpse = {
+            ...corpse,
+            [randomKey]: updatedCorpsePart
+        };
+
+        // Update the keys array
+        const updatedKeys = [...keys];
+        const index = updatedKeys.indexOf(randomKey);
+        if (index !== -1) {
+            updatedKeys.splice(index, 1);
+        }
+        updatedKeys.push(randomKey);
+
+        // Replace the original objects with the updated ones
+        corpse = updatedCorpse;
+        keys = updatedKeys;
+    }
+
+
+    
     console.log('keys', keys);
 
     let pieces = [];
@@ -76,7 +131,6 @@ export const CreateCollage = async (corpse : CorpseObject, collage_container : H
         });
 
     }
-
 
     // shuffle pieces
     pieces = pieces.sort(() => Math.random() - 0.5);

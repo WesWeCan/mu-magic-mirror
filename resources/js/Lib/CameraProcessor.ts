@@ -23,6 +23,7 @@ import '@mediapipe/selfie_segmentation';
 
 import { Segmentation } from '@tensorflow-models/body-segmentation/dist/shared/calculators/interfaces/common_interfaces';
 import { labelTable, labelTableCombinations } from './Tables';
+import { CutoutRaw } from '@/types/PoolTypes'
 
 
 export class CameraProcessor {
@@ -66,6 +67,9 @@ export class CameraProcessor {
     canvas_process: HTMLCanvasElement | null = null;
 
 
+    mousePos: { x: number, y: number } = { x: 0, y: 0 };
+
+
     constructor() {
 
         console.log("ImageProcessor constructor");
@@ -97,6 +101,8 @@ export class CameraProcessor {
 
         await this.createCanvasses(div_process);
         console.log('Canvasses created');
+
+        
 
 
         return new Promise<boolean>((resolve, reject) => {
@@ -172,14 +178,28 @@ export class CameraProcessor {
 
         this.canvas_process = canvas_process;
 
-        const canvas_result = document.createElement('canvas');
-        canvas_result.id = 'canvas_result';
-        canvas_result.width = 640;
-        canvas_result.height = 480;
+        // const canvas_result = document.createElement('canvas');
+        // canvas_result.id = 'canvas_result';
+        // canvas_result.width = 640;
+        // canvas_result.height = 480;
 
 
 
         this.div_process.appendChild(canvas_process);
+
+        this.canvas_process.addEventListener('mousemove', (e) => {
+            this.mousePos = { x: e.offsetX, y: e.offsetY };
+        });
+
+        this.canvas_process.addEventListener('mouseleave', (e) => {
+            this.mousePos = { x: -1, y: -1 };
+        });
+
+
+        this.canvas_process.addEventListener('click', (e) => {
+            this.mousePos = { x: e.offsetX, y: e.offsetY };
+            // this.takePictureAndSlice();
+        });
 
 
         return new Promise((resolve) => {
@@ -188,6 +208,103 @@ export class CameraProcessor {
 
 
     }
+
+
+    async draw(){
+
+
+        if (!this.video) {
+            console.error('No video');
+            return;
+        }
+
+        if (!this.canvas_process) {
+            console.error('No canvas process');
+            return;
+        }
+
+        if (!this.bodySegmenter) {
+            console.error('No bodySegmenter');
+            return;
+        }
+
+        const ctx = this.canvas_process.getContext('2d');
+
+        if (!ctx) {
+            console.error('No ctx');
+            return;
+        }
+
+        ctx.drawImage(this.video, 0, 0, this.canvas_process.width, this.canvas_process.height);
+     
+        // draw circle around mouse
+        ctx.beginPath();
+        ctx.arc(this.mousePos.x, this.mousePos.y, 10, 0, 2 * Math.PI);
+        ctx.stroke();
+
+
+        
+        let boundingBox = await this.getBoundingBoxFromMousePos();
+
+        if(boundingBox){
+            let x = boundingBox.x;
+            let y = boundingBox.y;
+            let width = boundingBox.width;
+            let height = boundingBox.height;
+
+            ctx.strokeStyle = 'red';
+            ctx.lineWidth = 2;
+
+            ctx.strokeRect(x, y, width, height);
+        }
+
+    }
+
+
+
+    async getBoundingBoxFromMousePos() {
+
+
+        if (!this.canvas_process) {
+            console.error('No canvas process');
+            return;
+        }
+
+
+        if(this.mousePos.x == -1 && this.mousePos.y == -1){
+            return;
+        }
+
+    
+        const squareSize = this.canvas_process.width * 0.23;
+        let x = this.mousePos.x - squareSize / 2;
+        let y = this.mousePos.y - squareSize / 2;
+
+
+
+        if (x < 0) {
+            x = 0;
+        } else if (x + squareSize > this.canvas_process.width) {
+            x = this.canvas_process.width - squareSize;
+        }
+
+        if (y < 0) {
+            y = 0;
+        } else if (y + squareSize > this.canvas_process.height) {
+            y = this.canvas_process.height - squareSize;
+        }
+
+
+        return {
+            x,
+            y,
+            width: squareSize,
+            height: squareSize
+        }
+
+
+    }
+
 
 
 
@@ -221,6 +338,83 @@ export class CameraProcessor {
         });
 
     }
+
+
+    async takePictureAndSlice() {
+        
+        
+        if (!this.video) {
+            console.error('No video');
+            
+            return new Promise<null>((resolve, reject) => {
+                reject('No video');
+            });
+        }
+
+        if (!this.canvas_process) {
+            console.error('No canvas process');
+            
+            return new Promise<null>((resolve, reject) => {
+                reject('No canvas process');
+            });
+        }
+
+
+        let ctx = this.canvas_process.getContext('2d');
+
+        if (!ctx) {
+            console.error('No ctx');
+            
+            return new Promise<null>((resolve, reject) => {
+                reject('No ctx');
+            });
+        }
+
+
+        let boundingBox = await this.getBoundingBoxFromMousePos();
+
+        if (!boundingBox) {
+            console.error('No bounding box');
+
+            return new Promise<null>((resolve, reject) => {
+                reject('No bounding box');
+            });
+
+        }
+
+        ctx.drawImage(this.video, 0, 0, this.canvas_process.width, this.canvas_process.height);
+
+
+        // cut out the part, based on the bounding box
+
+        let partCanvas = document.createElement('canvas');
+        partCanvas.width = boundingBox.width;
+        partCanvas.height = boundingBox.height;
+
+        let partCtx = partCanvas.getContext('2d');
+
+        if (!partCtx) {
+            console.error('No part ctx');
+
+            return new Promise<null>((resolve, reject) => {
+                reject('No part ctx');
+            });
+        }
+
+        partCtx.drawImage(this.canvas_process, boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height, 0, 0, boundingBox.width, boundingBox.height);
+
+        let cutOut = {
+            part: 'part',
+            img: partCanvas.toDataURL()
+        }
+
+        console.log("cutOut", cutOut);
+
+        return new Promise<CutoutRaw>((resolve, reject) => {
+            resolve(cutOut);
+        });
+    }
+
 
 
 
