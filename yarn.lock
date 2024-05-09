@@ -349,7 +349,7 @@
     "@tensorflow/tfjs-backend-cpu" "4.19.0"
     "@types/emscripten" "~0.0.34"
 
-"@tensorflow/tfjs-backend-webgl@4.19.0", "@tensorflow/tfjs-backend-webgl@^4.17.0":
+"@tensorflow/tfjs-backend-webgl@4.19.0", "@tensorflow/tfjs-backend-webgl@^4.19.0":
   version "4.19.0"
   resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-backend-webgl/-/tfjs-backend-webgl-4.19.0.tgz#9a732b99da64f861ce8bbe75e4b5aaa466aafedd"
   integrity sha512-R0DC1W65lqTOccCwxMhH+VOKCgSrhd9GEejIIGhjeXt6oZlACFnOx4SuUr/qKLCDsL5I4E9iFLxAJMmsfYvARw==
@@ -371,7 +371,7 @@
   resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-4.19.0.tgz#77fa13f2f06180570390380981e3c5aa9235637a"
   integrity sha512-xIOE6enaVHPYCXKpHxJnUlN8hzlcQkgFSymHjBmdDnNCresuRwBGz4dqYAQMeQG21Ei3lxCQFdDDH7aSvUEAPw==
 
-"@tensorflow/tfjs-core@4.19.0", "@tensorflow/tfjs-core@^4.17.0":
+"@tensorflow/tfjs-core@4.19.0", "@tensorflow/tfjs-core@^4.19.0":
   version "4.19.0"
   resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-4.19.0.tgz#90cadaeb3e4646e378f840ee6a86ce5a19a6f81c"
   integrity sha512-GZ0d53PG0HGQCC7hbWv1qDnZctHYe/cafHZrBY5eNeQjQE6fBr3NsR5GfLadT0TELwmX9/nyritGDzvy6xmzHQ==

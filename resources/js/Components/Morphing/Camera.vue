@@ -42,10 +42,10 @@ onMounted(async () => {
 });
 
 
-const draw = () => {
+const draw = async () => {
     if (video_container.value && div_process.value) {
         // cp.readAndDrawSegmented();
-        cp.draw();
+        await cp.loop();
         requestAnimationFrame(draw);
     }
 }
@@ -58,16 +58,16 @@ const draw = () => {
 const cutOuts = ref<CutoutRaw[]>([]);
 
 const takePicture = () => {
-    cp.takePictureAndProcess()
-        .then((res) => {
-            console.log(res);
+    // cp.takePictureAndProcess()
+    //     .then((res) => {
+    //         console.log(res);
 
-            cutOuts.value = res;
+    //         cutOuts.value = res;
 
-        })
-        .catch((err) => {
-            console.log(err);
-        });
+    //     })
+    //     .catch((err) => {
+    //         console.log(err);
+    //     });
 }
 
 

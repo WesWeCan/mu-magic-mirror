@@ -28,10 +28,10 @@
         "@tensorflow-models/pose-detection": "^2.1.3",
         "@tensorflow/tfjs": "^4.17.0",
         "@tensorflow/tfjs-backend-wasm": "^4.17.0",
-        "@tensorflow/tfjs-backend-webgl": "^4.17.0",
+        "@tensorflow/tfjs-backend-webgl": "^4.19.0",
         "@tensorflow/tfjs-backend-webgpu": "^4.17.0",
         "@tensorflow/tfjs-converter": "^4.17.0",
-        "@tensorflow/tfjs-core": "^4.17.0",
+        "@tensorflow/tfjs-core": "^4.19.0",
         "vue3-toastify": "^0.2.1"
     }
 }

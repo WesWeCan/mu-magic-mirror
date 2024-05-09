@@ -169,7 +169,16 @@ body.mirror {
 
 
     video {
-        display: none!important;
+        // display: none!important;
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        
+        transform-origin: bottom right;
+        transform: scale(0.5);
+
+        
+
     }
 
 

@@ -18,12 +18,20 @@ type cutOut = {
 import '@tensorflow/tfjs';
 import * as tf from '@tensorflow/tfjs';
 import * as bodySegmentation from '@tensorflow-models/body-segmentation';
-
+import '@tensorflow/tfjs-core';
+import '@tensorflow/tfjs-backend-webgl';
 import '@mediapipe/selfie_segmentation';
 
 import { Segmentation } from '@tensorflow-models/body-segmentation/dist/shared/calculators/interfaces/common_interfaces';
 import { labelTable, labelTableCombinations } from './Tables';
 import { CutoutRaw } from '@/types/PoolTypes'
+
+import * as poseDetection from '@tensorflow-models/pose-detection';
+// Register WebGL backend.
+import '@tensorflow/tfjs-backend-webgl';
+
+
+import { COCOKeypoints, COCOKeypointsCombinations } from './Tables';
 
 
 export class CameraProcessor {
@@ -32,31 +40,6 @@ export class CameraProcessor {
     drawCanvas: boolean = false;
 
     canvasses: HTMLCanvasElement | null = null;
-
-
-    bodySegmenter: bodySegmentation.BodySegmenter | null = null;
-    bodySegmentationModel = bodySegmentation.SupportedModels.MediaPipeSelfieSegmentation;
-
-    bodySegmentationModelConfig: bodySegmentation.BodyPixModelConfig = {
-        architecture: 'ResNet50',
-        outputStride: 16,
-        quantBytes: 4
-    };
-
-    bodySegmentationConfig: bodySegmentation.BodyPixSegmentationConfig = {
-        multiSegmentation: false,
-        segmentBodyParts: true,
-        flipHorizontal: false,
-        internalResolution: 'medium', // full, low, medium, high default is 'medium'
-        segmentationThreshold: 0.7,
-        maxDetections: 1,
-        scoreThreshold: 0.2,
-        nmsRadius: 20,
-
-        minKeypointScore: 0.5,
-        refineSteps: 20,
-    }
-
 
     cutouts: cutOut[] = [];
 
@@ -70,6 +53,10 @@ export class CameraProcessor {
     mousePos: { x: number, y: number } = { x: 0, y: 0 };
 
 
+    inference: any = {};
+    inferenceData: any = {};
+
+
     constructor() {
         console.log("ImageProcessor constructor");
     }
@@ -78,28 +65,15 @@ export class CameraProcessor {
     async init(videoDiv: HTMLDivElement, div_process: HTMLDivElement) {
         console.log("init");
 
-        await tf.ready();
 
 
-        // this.bodySegmenter = await bodySegmentation.createSegmenter(this.bodySegmentationModel, this.bodySegmentationModelConfig);
-        // const segmenterConfig = {
-        //     runtime: 'tfjs', // or 'tfjs'
-        //     solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation',
-        //     modelType: 'general'
-        // }
-        // this.bodySegmenter = await bodySegmentation.createSegmenter(this.bodySegmentationModel, segmenterConfig);
-
-        // console.log("bodySegmenter loaded");
-
+        await this.setupInferences();
 
         await this.getMediaStream(videoDiv);
         console.log('Got media stream');
 
         await this.createCanvasses(div_process);
         console.log('Canvasses created');
-
-        
-
 
         return new Promise<boolean>((resolve, reject) => {
             resolve(true);
@@ -115,11 +89,15 @@ export class CameraProcessor {
 
         this.div_video = videoDiv;
 
+
         const video = document.createElement('video');
         video.width = 640;
         video.height = 480;
 
         video.muted = true;
+
+        // append video to div
+        videoDiv.appendChild(video);
 
         navigator.mediaDevices.getUserMedia({ video: true })
             .then((stream) => {
@@ -139,8 +117,6 @@ export class CameraProcessor {
             console.error('No video');
             return;
         }
-
-        // videoDiv.appendChild(video);
         this.video = video;
 
         await new Promise((resolve) => {
@@ -165,40 +141,15 @@ export class CameraProcessor {
 
         this.div_process = div_process;
 
-
-
         const canvas_process = document.createElement('canvas');
         canvas_process.id = 'canvas_process';
-
 
         canvas_process.width = this.div_process.clientWidth;
         canvas_process.height = this.div_process.clientHeight;
 
         this.canvas_process = canvas_process;
 
-        // const canvas_result = document.createElement('canvas');
-        // canvas_result.id = 'canvas_result';
-        // canvas_result.width = 640;
-        // canvas_result.height = 480;
-
-
-
         this.div_process.appendChild(canvas_process);
-
-        this.canvas_process.addEventListener('mousemove', (e) => {
-            this.mousePos = { x: e.offsetX, y: e.offsetY };
-        });
-
-        this.canvas_process.addEventListener('mouseleave', (e) => {
-            this.mousePos = { x: -1, y: -1 };
-        });
-
-
-        this.canvas_process.addEventListener('click', (e) => {
-            this.mousePos = { x: e.offsetX, y: e.offsetY };
-            // this.takePictureAndSlice();
-        });
-
 
         return new Promise((resolve) => {
             resolve(true);
@@ -208,959 +159,289 @@ export class CameraProcessor {
     }
 
 
-    async draw(){
 
+    async setupInferences() {
 
-        if (!this.video) {
-            console.error('No video');
-            return;
-        }
+        await tf.ready();
+        console.log('Tensorflow ready');
 
-        if (!this.canvas_process) {
-            console.error('No canvas process');
-            return;
-        }
+        // BodyPix Segmentation
+        this.inference.bodyPix = undefined;
+        const bodyPixSegmenter = await bodySegmentation.createSegmenter(bodySegmentation.SupportedModels.BodyPix);
+        this.inference.bodyPix = bodyPixSegmenter;
+        console.log('BodyPix ready');
 
-        // if (!this.bodySegmenter) {
-        //     console.error('No bodySegmenter');
-        //     return;
-        // }
-
-
-        // check if the size is changed
-        if (this.canvas_process.width !== this.div_process?.clientWidth || this.canvas_process.height !== this.div_process?.clientHeight) {
-            this.canvas_process.width = this.div_process?.clientWidth || 640;
-            this.canvas_process.height = this.div_process?.clientHeight || 480;
-        }
-
-        const ctx = this.canvas_process.getContext('2d');
-
-        if (!ctx) {
-            console.error('No ctx');
-            return;
-        }
-
-        this.drawVideo(ctx);
-        
-
-        // draw circle around mouse
-        const drawDebugBox = false;
-
-        if(drawDebugBox){
-            ctx.beginPath();
-            ctx.arc(this.mousePos.x, this.mousePos.y, 10, 0, 2 * Math.PI);
-            ctx.stroke();
-        
-
-
-        
-        let boundingBox = await this.getBoundingBoxFromMousePos();
-
-        if(boundingBox){
-            let x = boundingBox.x;
-            let y = boundingBox.y;
-            let width = boundingBox.width;
-            let height = boundingBox.height;
-
-            ctx.strokeStyle = 'red';
-            ctx.lineWidth = 2;
-
-            ctx.strokeRect(x, y, width, height);
-        }
-    }
-
-    }
-
-
-    async drawVideo(ctx : CanvasRenderingContext2D){
-
-        
-
-
-        if (!this.video) {
-            console.error('No video');
-            return;
-        }
-
-        if (!this.canvas_process) {
-            console.error('No canvas process');
-            return;
-        }
-
-        
-
-
-        // Calculate the aspect ratio of the video
-        const videoAspectRatio = this.video.videoWidth / this.video.videoHeight;
-
-        // Calculate the aspect ratio of the canvas
-        const canvasAspectRatio = this.canvas_process.width / this.canvas_process.height;
-
-        // Calculate the dimensions for drawing the video on the canvas
-        let drawWidth, drawHeight, drawX, drawY;
-
-        if (videoAspectRatio > canvasAspectRatio) {
-            // Video is wider than the canvas, so we need to adjust the height
-            drawWidth = this.canvas_process.height * videoAspectRatio;
-            drawHeight = this.canvas_process.height;
-            drawX = (this.canvas_process.width - drawWidth) / 2;
-            drawY = 0;
-        } else {
-            // Video is taller than the canvas, so we need to adjust the width
-            drawWidth = this.canvas_process.width;
-            drawHeight = this.canvas_process.width / videoAspectRatio;
-            drawX = 0;
-            drawY = (this.canvas_process.height - drawHeight) / 2;
-        }
-
-        ctx.drawImage(this.video, drawX, drawY, drawWidth, drawHeight);
-
-    }
-
-
-
-    async getBoundingBoxFromMousePos() {
-
-
-        if (!this.canvas_process) {
-            console.error('No canvas process');
-            return;
-        }
-
-
-        if(this.mousePos.x == -1 && this.mousePos.y == -1){
-            return;
-        }
-
-    
-        const squareSize = this.canvas_process.width * 0.30;
-        let x = this.mousePos.x - squareSize / 2;
-        let y = this.mousePos.y - squareSize / 2;
-
-
-
-        if (x < 0) {
-            x = 0;
-        } else if (x + squareSize > this.canvas_process.width) {
-            x = this.canvas_process.width - squareSize;
-        }
-
-        if (y < 0) {
-            y = 0;
-        } else if (y + squareSize > this.canvas_process.height) {
-            y = this.canvas_process.height - squareSize;
-        }
-
-
-        return {
-            x,
-            y,
-            width: squareSize,
-            height: squareSize
-        }
-
+        // BlazePose
+        this.inference.blazePose = undefined;
+        const detectorConfig = {
+            runtime: 'tfjs',
+            enableSmoothing: true,
+            modelType: "full",
+        };
+        const blazePose = await poseDetection.createDetector(poseDetection.SupportedModels.BlazePose, detectorConfig);
+        this.inference.blazePose = blazePose;
+        console.log('BlazePose ready');
 
     }
 
 
 
 
-    async takePicture() {
+    // --------------------------------------------------
 
-        if (!this.video) {
-            console.error('No video');
-            return;
-        }
-
-        if (!this.canvas_process) {
-            console.error('No canvas process');
-            return;
-        }
-
-
-        // check if the size is changed
-        if (this.canvas_process.width !== this.div_process?.clientWidth || this.canvas_process.height !== this.div_process?.clientHeight) {
-            this.canvas_process.width = this.div_process?.clientWidth || 640;
-            this.canvas_process.height = this.div_process?.clientHeight || 480;
-        }
-
-
-        const ctx = this.canvas_process.getContext('2d');
-
-        if (!ctx) {
-            console.error('No ctx');
-            return;
-        }
-
-        this.drawVideo(ctx);
-
-        const imgData = this.canvas_process.toDataURL();
-
-        return new Promise<string>((resolve, reject) => {
-            resolve(imgData);
-        });
-
+    async loop() {
+        await this.process();
+        await this.draw();
     }
 
+    // --------------------------------------------------
 
-    async takePictureAndSlice() {
-        
-        
-        if (!this.video) {
-            console.error('No video');
-            
-            return new Promise<null>((resolve, reject) => {
-                reject('No video');
-            });
-        }
+    async process() {
 
-        if (!this.canvas_process) {
-            console.error('No canvas process');
-            
-            return new Promise<null>((resolve, reject) => {
-                reject('No canvas process');
-            });
-        }
+        console.log('process');
+
+        await this.segmentBodyPix();
+        await this.estimatePose();
 
 
-        let ctx = this.canvas_process.getContext('2d');
-
-        if (!ctx) {
-            console.error('No ctx');
-            
-            return new Promise<null>((resolve, reject) => {
-                reject('No ctx');
-            });
-        }
-
-
-        let boundingBox = await this.getBoundingBoxFromMousePos();
-
-        if (!boundingBox) {
-            console.error('No bounding box');
-
-            return new Promise<null>((resolve, reject) => {
-                reject('No bounding box');
-            });
-
-        }
-
-        this.drawVideo(ctx);
-
-
-        // cut out the part, based on the bounding box
-
-        let partCanvas = document.createElement('canvas');
-        partCanvas.width = boundingBox.width;
-        partCanvas.height = boundingBox.height;
-
-        let partCtx = partCanvas.getContext('2d');
-
-        if (!partCtx) {
-            console.error('No part ctx');
-
-            return new Promise<null>((resolve, reject) => {
-                reject('No part ctx');
-            });
-        }
-
-        partCtx.drawImage(this.canvas_process, boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height, 0, 0, boundingBox.width, boundingBox.height);
-
-        let cutOut = {
-            part: 'part',
-            img: partCanvas.toDataURL()
-        }
-
-        console.log("cutOut", cutOut);
-
-        return new Promise<CutoutRaw>((resolve, reject) => {
-            resolve(cutOut);
-        });
-    }
-
-
-
-
-    async takePictureAndProcess() {
-
-        const image = await this.takePicture();
-
-        if (!image) {
-            console.error('No image');
-            return new Promise<cutOut[]>((resolve, reject) => {
-                reject('No image');
-            }
-            );
-        }
-
-        const cutouts = await this.processImage(image);
-
-        console.log("cutouts", cutouts);
-
-
-
-        return new Promise<cutOut[]>((resolve, reject) => {
-
-            if (!cutouts || cutouts.length === 0) {
-                reject([]);
-            }
-            else {
-                resolve(cutouts);
-            }
-
-        });
-
-
-
-    }
-
-
-
-
-
-    async readAndDrawSegmented() {
-
-        if (!this.video) {
-            console.error('No video');
-            return;
-        }
-
-        if (!this.canvas_process) {
-            console.error('No canvas process');
-            return;
-        }
-
-        if (!this.bodySegmenter) {
-            console.error('No bodySegmenter');
-            return;
-        }
-
-        const ctx = this.canvas_process.getContext('2d');
-
-        if (!ctx) {
-            console.error('No ctx');
-            return;
-        }
-
-        ctx.drawImage(this.video, 0, 0, this.canvas_process.width, this.canvas_process.height);
-        // const image = new Image();
-        // image.src = this.canvas_process.toDataURL();
+        console.log(this.inferenceData);
 
         // await new Promise((resolve) => {
-        //     image.onload = resolve;
-        // });
+        //     setTimeout(() => {
+        //         resolve(true);
+        //     }, 1000);
+        // }
+        // )
 
     }
 
+    async segmentBodyPix() {
 
-    async processImage(image: string) {
-
-        console.log("processImage");
-
-        let cutouts: cutOut[] = [];
-
-        let cutout = await this.drawMasksFromImgData(image);
-            if (cutout) {
-                cutouts.push(...cutout);
-            }
-
-        console.log("total cutouts", cutouts);
-
-        return new Promise<cutOut[]>((resolve, reject) => {
-            resolve(cutouts);
-        });
-
-
-    }
-
-    async detectHumans(image: HTMLImageElement) {
-
-        if (!this.cocoSsdModel) {
-            console.error("cocoSsdModel is not loaded");
+        if (!this.video || !this.inference.bodyPix) {
+            console.error('No video or inference');
             return;
         }
 
-        const predictions = await this.cocoSsdModel.detect(image, 50, 0.6);
-        console.log("predictions", predictions);
+        const bodyPix = this.inference.bodyPix as bodySegmentation.BodySegmenter;
 
-        // filter only persons
-        const persons = predictions.filter(prediction => prediction.class === 'person');
+        const segmentation = await bodyPix.segmentPeople(this.video, { multiSegmentation: false, segmentBodyParts: true });
+        const coloredPartImage = await bodySegmentation.toColoredMask(segmentation, bodySegmentation.bodyPixMaskValueToRainbowColor, { r: 255, g: 255, b: 255, a: 255 });
 
-        if (this.drawCanvas) {
-            this.drawBoundingBoxesFromObjectDetection(image, predictions);
+        this.inferenceData.coloredPartImage = coloredPartImage;
+
+        return segmentation;
+    }
+
+
+    async estimatePose() {
+
+        if (!this.video || !this.inference.blazePose) {
+            console.error('No video or inference');
+            return;
         }
 
-        return new Promise<cocoSsd.DetectedObject[]>((resolve, reject) => {
-            resolve(persons);
-        });
+        const estimationConfig = {
+            flipHorizontal: false,
+        }
+
+        const timestamp = performance.now();
+        const blazePose = this.inference.blazePose as poseDetection.PoseDetector;
+
+        const poses = await blazePose.estimatePoses(this.video, estimationConfig, timestamp);
+
+
+        this.inferenceData.poses = poses;
+
 
     }
 
-    async drawBoundingBoxesFromObjectDetection(image: HTMLImageElement, predictions: cocoSsd.DetectedObject[]) {
 
-        let canvas = document.createElement('canvas');
-        canvas.width = image.width;
-        canvas.height = image.height;
 
-        let ctx = canvas.getContext('2d');
+    // --------------------------------------------------
+
+    async draw() {
+        console.log('draw');
+
+        await this.clearCanvas();
+
+        // await this.drawVideo();
+
+        await this.drawSegmentation();
+        await this.drawPose();
+
+        // wait 1 second
+        // await new Promise((resolve) => {
+        //     setTimeout(() => {
+        //         resolve(true);
+        //     }, 1000);
+        // });
+    }
+
+
+    async clearCanvas() {
+        if (!this.canvas_process) {
+            console.error('No canvas');
+            return;
+        }
+
+        const canvas = this.canvas_process as HTMLCanvasElement;
+        const ctx = canvas.getContext('2d');
 
         if (!ctx) {
-            console.error("ctx is null");
+            console.error('No context');
             return;
         }
 
-        ctx.drawImage(image, 0, 0, image.width, image.height);
-
-        predictions.forEach((prediction) => {
-            const { bbox } = prediction;
-            const [x, y, width, height] = bbox;
-            ctx.beginPath();
-            ctx.rect(x, y, width, height);
-
-
-            if (prediction.class === 'person') {
-                ctx.strokeStyle = 'green';
-            }
-            else {
-                ctx.strokeStyle = 'red';
-            }
-
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-
-            // draw the label, with background
-            ctx.beginPath();
-            const textWidth = ctx.measureText(prediction.class).width;
-            ctx.rect(x, y - 20, width, 20);
-            ctx.fillStyle = 'black';
-            ctx.fill();
-            ctx.font = '16px Arial';
-            ctx.fillStyle = 'white';
-            ctx.fillText(`${prediction.class} (${Math.round(prediction.score * 100)}%)`, x, y - 10);
-            ctx.fillStyle = 'black';
-            ctx.fill();
-
-
-            ctx.font = '16px Arial';
-            ctx.fillStyle = 'white';
-            ctx.fillText(`${prediction.class} (${Math.round(prediction.score * 100)}%)`, x, y - 10);
-
-        });
-
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
 
     }
 
 
-    async splitCanvasIntoPersons(image: HTMLImageElement, predictions: cocoSsd.DetectedObject[]) {
+    // TODO: make this responsive
+    // TODO: use a processing canvas and a rendering canvas
+    async drawVideo() {
+        if (!this.canvas_process || !this.video) {
+            console.error('No canvas or video');
+            return;
+        }
 
+        const canvas = this.canvas_process as HTMLCanvasElement;
+        const ctx = canvas.getContext('2d');
 
-        const imgData: string[] = [];
+        if (!ctx) {
+            console.error('No context');
+            return;
+        }
 
-        predictions.forEach((prediction, index) => {
-            // Create a new canvas for each prediction
-            let canvas = document.createElement('canvas');
-            canvas.width = prediction.bbox[2];
-            canvas.height = prediction.bbox[3];
-
-            let ctx = canvas.getContext('2d');
-
-            if (!ctx) {
-                console.error('No ctx');
-                return;
-            }
-
-            // Draw the prediction on the new canvas
-            ctx.drawImage(
-                image,
-                prediction.bbox[0],
-                prediction.bbox[1],
-                prediction.bbox[2],
-                prediction.bbox[3],
-                0,
-                0,
-                prediction.bbox[2],
-                prediction.bbox[3]
-            );
-
-            // Append the new canvas to the canvasses div
-            // this.canvasses?.appendChild(canvas);
-
-            imgData.push(canvas.toDataURL());
-
-        });
-
-
-        return new Promise<string[]>((resolve, reject) => {
-            resolve(imgData);
-        });
+        ctx.drawImage(this.video, 0, 0, canvas.width, canvas.height);
 
     }
 
 
-    async getSegmentationFromImage(image: HTMLImageElement) {
+    async drawSegmentation() {
 
-        if (!this.bodySegmenter) {
-            console.error("bodySegmenter is not loaded");
+        if (!this.canvas_process || !this.inferenceData.coloredPartImage) {
+            console.error('No canvas or coloredPartImage');
             return;
         }
 
-        const segmentation = await this.bodySegmenter.segmentPeople(image);
+        const canvas = this.canvas_process as HTMLCanvasElement;
+        const ctx = canvas.getContext('2d');
 
-        // console.log("segmentation", segmentation);
+        if (!ctx) {
+            console.error('No context');
+            return;
+        }
 
-        return new Promise<Segmentation[]>((resolve, reject) => {
-            resolve(segmentation);
-        });
+        const coloredPartImage = this.inferenceData.coloredPartImage as ImageData;
+
+        ctx.putImageData(coloredPartImage, 0, 0);
 
     }
 
-    async drawMasksFromImgData(imgData: string) {
+
+    async drawPose() {
 
 
-        const img = new Image();
-        img.src = imgData;
-
-        // await the image to load
-        await new Promise(resolve => {
-            img.onload = resolve;
-        });
-
-        const segmentation = await this.getSegmentationFromImage(img);
-
-        if (!segmentation) {
-            console.error("No segmentation");
+        if (!this.canvas_process || !this.inferenceData.poses) {
+            console.error('No canvas or poses');
             return;
         }
 
+        const canvas = this.canvas_process as HTMLCanvasElement;
+        const ctx = canvas.getContext('2d');
 
-        let cutouts: cutOut[] = [];
-
-        for (let i = 0; i < segmentation.length; i++) {
-
-            const person = segmentation[i];
-
-            // get the pixel data
-            let pixels = await this.getPixelData(person);
-
-
-            // based on the pixel data, I want to get the bounding box of each part
-            let partBoundingBoxesRaw = await this.getBoundingBoxesRaw(pixels);
-
-            // get the bounding boxes of the combinations
-            let partBoundingBoxesCombinations = await this.getBoundingBoxesCombinations(pixels);
-
-            // create a canvas for this person, append it to the canvasses div
-            let personCanvas = document.createElement('canvas');
-            personCanvas.width = img.width;
-            personCanvas.height = img.height;
-
-
-            // TODO: fix this
-            // if(this.drawCanvas){
-            //     // draw the mask on the canvas
-            //     this.drawMaskOnCanvas(person, img, personCanvas);
-
-            //     // draw the bounding box of the raw parts
-            //     this.drawRawBoxes(img, partBoundingBoxesRaw);
-            // await this.drawCombinedBoxes(img, partBoundingBoxesCombinations);
-            // }
-
-            // draw the bounding box of the combinations
-
-
-
-            // extract the cutouts
-            let cutout = await this.extractCutouts(img, partBoundingBoxesCombinations);
-            if (cutout) {
-                cutouts.push(...cutout);
-            }
-
-            // await this.extractCutoutsMasked(img, partBoundingBoxesCombinations, pixels);
+        if (!ctx) {
+            console.error('No context');
+            return;
         }
 
-        console.log("cutouts", cutouts);
-        this.cutouts.push(...cutouts);
+        const poses = this.inferenceData.poses as poseDetection.Pose[];
 
-        return new Promise<cutOut[]>((resolve, reject) => {
-            resolve(cutouts);
+        if (poses.length > 0) {
+            this.drawKeypoints(ctx, poses[0].keypoints);
+            this.drawSkeleton(ctx, poses[0].keypoints, 0);
+        }
+
+    }
+
+    async drawKeypoints(ctx: CanvasRenderingContext2D, keypoints: poseDetection.Keypoint[]) {
+
+        if (!ctx) {
+            console.error('No context');
+            return;
+        }
+
+        const keypointInd =
+            poseDetection.util.getKeypointIndexBySide(poseDetection.SupportedModels.BlazePose);
+        ctx.fillStyle = 'Red';
+        ctx.strokeStyle = '#ffd8b1';
+        ctx.lineWidth = 5;
+
+        for (const i of keypointInd.middle) {
+            this.drawKeypoint(ctx, keypoints[i]);
+        }
+
+        ctx.fillStyle = 'Green';
+        for (const i of keypointInd.left) {
+            this.drawKeypoint(ctx, keypoints[i]);
+        }
+
+        ctx.fillStyle = 'Orange';
+        for (const i of keypointInd.right) {
+            this.drawKeypoint(ctx, keypoints[i]);
+        }
+
+    }
+
+    drawKeypoint(ctx: CanvasRenderingContext2D, keypoint: poseDetection.Keypoint) {
+        // If score is null, just show the keypoint.
+        const score = keypoint.score != null ? keypoint.score : 1;
+        const scoreThreshold = 0;
+        const radius = 8;
+
+        if (score >= scoreThreshold) {
+            const circle = new Path2D();
+            circle.arc(keypoint.x, keypoint.y, radius, 0, 2 * Math.PI);
+            ctx.fill(circle);
+            ctx.stroke(circle);
+        }
+    }
+
+
+    async drawSkeleton(ctx: CanvasRenderingContext2D, keypoints: poseDetection.Keypoint[], poseId: number) {
+
+        const COLOR_PALETTE = [
+            '#ffffff', '#800000', '#469990', '#e6194b', '#42d4f4', '#fabed4', '#aaffc3',
+            '#9a6324', '#000075', '#f58231', '#4363d8', '#ffd8b1', '#dcbeff', '#808000',
+            '#ffe119', '#911eb4', '#bfef45', '#f032e6', '#3cb44b', '#a9a9a9'
+        ];
+
+        // Each poseId is mapped to a color in the color palette.
+        const color = "#a9a9a9";
+        ctx.fillStyle = color;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 3;
+
+        poseDetection.util.getAdjacentPairs(poseDetection.SupportedModels.BlazePose).forEach(([ i, j ]) => {
+            const kp1 = keypoints[i];
+            const kp2 = keypoints[j];
+
+            // If score is null, just show the keypoint.
+            const score1 = kp1.score != null ? kp1.score : 1;
+            const score2 = kp2.score != null ? kp2.score : 1;
+            const scoreThreshold = 0;
+
+            if (score1 >= scoreThreshold && score2 >= scoreThreshold) {
+                ctx.beginPath();
+                ctx.moveTo(kp1.x, kp1.y);
+                ctx.lineTo(kp2.x, kp2.y);
+                ctx.stroke();
+            }
         });
 
     }
-
-
-    getPixelData = async (person: Segmentation) => {
-
-
-        let rawImgData = (await person.mask.toImageData());
-        const width = rawImgData.width;
-        const height = rawImgData.height;
-        const rawData = rawImgData.data;
-
-        let pixels: Pixel[] = [];
-
-        for (let i = 0; i < rawData.length; i += 4) {
-
-            let pixel: Pixel = {
-                x: (i / 4) % width,
-                y: Math.floor((i / 4) / width),
-                color: {
-                    r: rawData[i],
-                    g: rawData[i + 1],
-                    b: rawData[i + 2],
-                    a: rawData[i + 3]
-                }
-            }
-
-            pixels.push(pixel);
-
-        }
-
-        return pixels;
-
-    }
-
-
-    getBoundingBoxesRaw = async (pixels: Pixel[]) => {
-
-        // get the bounding box of the head
-        // first get all the pixels that are part of the head
-        // loop through the pixels and get the min and max x and y values
-        // this will give me the bounding box of the head
-        let partBoundingBoxesRaw = {};
-
-        for (let part in labelTable) {
-            let partPixels = pixels.filter(pixel => pixel.color.r === parseInt(part));
-
-            if (partPixels.length > 0) {
-                let minX = partPixels.reduce((acc, curr) => curr.x < acc ? curr.x : acc, partPixels[0].x);
-                let maxX = partPixels.reduce((acc, curr) => curr.x > acc ? curr.x : acc, partPixels[0].x);
-
-                let minY = partPixels.reduce((acc, curr) => curr.y < acc ? curr.y : acc, partPixels[0].y);
-                let maxY = partPixels.reduce((acc, curr) => curr.y > acc ? curr.y : acc, partPixels[0].y);
-
-                // @ts-ignore due to the labelTable
-                partBoundingBoxesRaw[labelTable[part]] = { minX, maxX, minY, maxY };
-            }
-        }
-
-
-        console.log('Raw part bounding boxes:', partBoundingBoxesRaw);
-
-        return partBoundingBoxesRaw;
-
-    }
-
-
-    getBoundingBoxesCombinations = async (pixels: Pixel[]) => {
-
-        let partBoundingBoxesCombinations = {};
-
-        for (let part in labelTableCombinations) {
-            let partPixels = pixels.filter(pixel => labelTableCombinations[part].includes(pixel.color.r));
-
-            if (partPixels.length > 0) {
-                let minX = partPixels.reduce((acc, curr) => curr.x < acc ? curr.x : acc, partPixels[0].x);
-                let maxX = partPixels.reduce((acc, curr) => curr.x > acc ? curr.x : acc, partPixels[0].x);
-
-                let minY = partPixels.reduce((acc, curr) => curr.y < acc ? curr.y : acc, partPixels[0].y);
-                let maxY = partPixels.reduce((acc, curr) => curr.y > acc ? curr.y : acc, partPixels[0].y);
-
-                partBoundingBoxesCombinations[part] = { minX, maxX, minY, maxY, pixels: partPixels };
-            }
-        }
-
-        // console.log(
-        //     'Combinations part bounding boxes:',
-        //     partBoundingBoxesCombinations);
-
-        return partBoundingBoxesCombinations;
-
-    }
-
-
-    drawMaskOnCanvas = async (person: Segmentation, image: HTMLImageElement, canvas: HTMLCanvasElement) => {
-
-        // The colored part image is an rgb image with a corresponding color from the
-        // rainbow colors for each part at each pixel, and white pixels where there is
-        // no part.
-        const coloredPartImage = await bodySegmentation.toColoredMask(person, bodySegmentation.bodyPixMaskValueToRainbowColor, { r: 255, g: 255, b: 255, a: 0 });
-        const opacity = 1;
-        const flipHorizontal = false;
-        const maskBlurAmount = 0;
-        const pixelCellWidth = 4.0;
-
-
-        // Draw the pixelated colored part image on top of the original image onto a
-        // canvas.  Each pixel cell's width will be set to 10 px. The pixelated colored
-        // part image will be drawn semi-transparent, with an opacity of 0.7, allowing
-        // for the original image to be visible under.
-        // await bodySegmentation.drawPixelatedMask(
-        //   canvas, img, coloredPartImage, opacity, maskBlurAmount,
-        //   flipHorizontal, pixelCellWidth);
-
-        // clear the canvas
-
-        // remove the canvas from the dom
-        await bodySegmentation.drawMask(canvas, image, coloredPartImage, opacity, maskBlurAmount, flipHorizontal);
-
-    }
-
-    drawRawBoxes = async (img: HTMLImageElement, partBoundingBoxesRaw: HTMLCanvasElement) => {
-
-
-        // create a canvas only for the image
-        // append it to the canvasses div
-        let imgCanvas = document.createElement('canvas');
-
-        if (!imgCanvas) {
-            console.error('No img canvas');
-            return;
-        }
-
-        imgCanvas.width = img.width;
-        imgCanvas.height = img.height;
-
-        let imgCtx = imgCanvas.getContext('2d');
-
-        if (!imgCtx) {
-            console.error('No img ctx');
-            return;
-        }
-
-        imgCtx.drawImage(img, 0, 0, img.width, img.height);
-
-        // draw the bounding box of the combinations
-        imgCtx.strokeStyle = 'red';
-        imgCtx.lineWidth = 2;
-
-        for (let part in partBoundingBoxesRaw) {
-            let { minX, maxX, minY, maxY } = partBoundingBoxesRaw[part];
-            imgCtx.strokeRect(minX, minY, maxX - minX, maxY - minY);
-        }
-
-
-
-    }
-
-    drawCombinedBoxes = async (img: HTMLImageElement, partBoundingBoxesCombinations: any) => {
-
-
-        // create a canvas only for the image
-        // append it to the canvasses div
-        let imgCanvas = document.createElement('canvas');
-
-        if (!imgCanvas) {
-            console.error('No img canvas');
-            return;
-        }
-
-        imgCanvas.width = img.width;
-        imgCanvas.height = img.height;
-
-        let imgCtx = imgCanvas.getContext('2d');
-
-        if (!imgCtx) {
-            console.error('No img ctx');
-            return;
-        }
-
-        imgCtx.drawImage(img, 0, 0, img.width, img.height);
-
-        // draw the bounding box of the combinations
-        imgCtx.strokeStyle = 'green';
-        imgCtx.lineWidth = 2;
-
-        for (let part in partBoundingBoxesCombinations) {
-            let { minX, maxX, minY, maxY } = partBoundingBoxesCombinations[part];
-            imgCtx.strokeRect(minX, minY, maxX - minX, maxY - minY);
-        }
-
-    }
-
-
-
-    extractCutouts = async (img: any, partBoundingBoxesCombinations: any) => {
-
-
-        // create a canvas only for the image
-        // append it to the canvasses div
-        let imgCanvas = document.createElement('canvas');
-
-        if (!imgCanvas) {
-            console.error('No img canvas');
-            return;
-        }
-
-        imgCanvas.width = img.width;
-        imgCanvas.height = img.height;
-
-        let imgCtx = imgCanvas.getContext('2d');
-
-        if (!imgCtx) {
-            console.error('No img ctx');
-            return;
-        }
-
-        imgCtx.drawImage(img, 0, 0, img.width, img.height);
-
-
-        // cut out all partBoundingBoxesCombinations
-        // add them as an image to the dom as img tags
-
-        let cutouts: cutOut[] = [];
-
-        for (let part in partBoundingBoxesCombinations) {
-            let { minX, maxX, minY, maxY } = partBoundingBoxesCombinations[part];
-
-            let imgCanvas = document.createElement('canvas');
-            imgCanvas.width = maxX - minX;
-            imgCanvas.height = maxY - minY;
-
-            let partCtx = imgCanvas.getContext('2d');
-            if (!partCtx) {
-                console.error('No part ctx');
-                return;
-            }
-            partCtx.drawImage(img, minX, minY, maxX - minX, maxY - minY, 0, 0, maxX - minX, maxY - minY);
-
-
-
-
-            let cutOut = {
-                part,
-                img: imgCanvas.toDataURL()
-            }
-
-
-            cutouts.push(cutOut);
-
-            // let partImg = document.createElement('img');
-            // partImg.src = partCanvas.toDataURL();
-            // document.body.appendChild(partImg);
-
-        }
-
-        console.log("cutouts", cutouts);
-        return cutouts;
-
-    }
-
-
-
-    //   extractCutoutsMasked = async (img: any, partBoundingBoxesCombinations: any, pixels: Pixel[]) => {
-
-
-    //     // create a canvas only for the image
-    //     // append it to the canvasses div
-    //     let imgCanvas = document.createElement('canvas');
-
-    //     if (!imgCanvas) {
-    //       console.error('No img canvas');
-    //       return;
-    //     }
-
-    //     imgCanvas.width = img.width;
-    //     imgCanvas.height = img.height;
-    //     canvasses.value?.appendChild(imgCanvas);
-
-    //     let imgCtx = imgCanvas.getContext('2d');
-
-    //     if (!imgCtx) {
-    //       console.error('No img ctx');
-    //       return;
-    //     }
-
-    //     imgCanvas.setAttribute('willReadFrequently', '');
-
-    //     const PixelParts = Object.keys(partBoundingBoxesCombinations).map(part => {
-    //       return {
-    //         part,
-    //         pixels: partBoundingBoxesCombinations[part].pixels
-    //       }
-    //     });
-
-    //     console.log('PixelParts', PixelParts);
-
-    //     // make a copy in a canvas of the original image for data extraction
-    //     const imgCanvasCopy = document.createElement('canvas');
-    //     imgCanvasCopy.width = img.width;
-    //     imgCanvasCopy.height = img.height;
-    //     const imgCtxCopy = imgCanvasCopy.getContext('2d');
-    //     if (!imgCtxCopy) {
-    //       console.error('No img ctx copy');
-    //       return;
-    //     }
-
-    //     imgCtxCopy.drawImage(img, 0, 0, img.width, img.height);
-
-
-    //     PixelParts.forEach(part => {
-
-    //       // imgCtx.drawImage(img, 0, 0, img.width, img.height);
-    //       // clear the canvas to be able to draw the next part
-    //       imgCtx.clearRect(0, 0, img.width, img.height);
-
-    //       for (let pixel of part.pixels) {
-
-    //         let correctValues = labelTableCombinations[part.part];
-
-    //         // if the r value is in the correct values, then it's part of the part
-    //         if (correctValues.includes(pixel.color.r)) {
-    //           const originalPixel = imgCtxCopy.getImageData(pixel.x, pixel.y, 1, 1);
-    //           pixel.color.r = originalPixel.data[0];
-    //           pixel.color.g = originalPixel.data[1];
-    //           pixel.color.b = originalPixel.data[2];
-    //           pixel.color.a = 255;
-
-    //         }
-    //         else {
-    //           pixel.color.r = 0;
-    //           pixel.color.g = 0;
-    //           pixel.color.b = 0;
-    //           pixel.color.a = 0;
-    //         }
-
-    //         let imgData = imgCtx.getImageData(pixel.x, pixel.y, 1, 1);
-    //         imgData.data[0] = pixel.color.r;
-    //         imgData.data[1] = pixel.color.g;
-    //         imgData.data[2] = pixel.color.b;
-    //         imgData.data[3] = pixel.color.a;
-
-
-    //         imgCtx.putImageData(imgData, pixel.x, pixel.y);
-    //       }
-
-
-    //       let { minX, maxX, minY, maxY } = partBoundingBoxesCombinations[part.part];
-
-    //       // draw the bounding box of the current part
-    //       // imgCtx.strokeStyle = 'green';
-    //       // imgCtx.lineWidth = 2;
-    //       // imgCtx.strokeRect(minX, minY, maxX - minX, maxY - minY);
-
-    //       // cut out the part, based on the bounding box
-    //       // make sure to keep the transparency
-
-    //       let partCanvas = document.createElement('canvas');
-    //       partCanvas.width = maxX - minX;
-    //       partCanvas.height = maxY - minY;
-
-    //       let partCtx = partCanvas.getContext('2d');
-    //       if (!partCtx) {
-    //         console.error('No part ctx');
-    //         return;
-    //       }
-
-    //       partCtx.drawImage(imgCanvas, minX, minY, maxX - minX, maxY - minY, 0, 0, maxX - minX, maxY - minY);
-
-    //       cutouts.value.push(partCanvas.toDataURL());
-
-
-    //     });
-
-    //   }
 
 
 
