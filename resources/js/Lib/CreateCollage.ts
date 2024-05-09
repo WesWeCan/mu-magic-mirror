@@ -277,8 +277,8 @@ export const CreateCollage = async (corpse : CorpseObject, collage_container : H
     maxOverlapY = 0.35;
 
     scalingConstraints = {
-        min: 0.65,
-        max: 0.85
+        min: 0.75,
+        max: 1
     }
 
     while (!validPosition && testCount < maxTests) {
@@ -334,15 +334,22 @@ export const CreateCollage = async (corpse : CorpseObject, collage_container : H
     maxOverlapX = 0.35;
 
     scalingConstraints = {
-        min: 0.65,
-        max: 0.85
+        min: 0.75,
+        max: 1
     }
 
     while (!validPosition && testCount < maxTests) {
 
-        newHeight = boundingBoxes['middle'].height * (Math.random() * (scalingConstraints.max - scalingConstraints.min) + scalingConstraints.min);
+        // newHeight = boundingBoxes['middle'].height * (Math.random() * (scalingConstraints.max - scalingConstraints.min) + scalingConstraints.min);
 
-        newWidth = newHeight * (dummyWidth / dummyHeight);
+        // newWidth = newHeight * (dummyWidth / dummyHeight);
+
+
+        newWidth = boundingBoxes['middle'].width * (Math.random() * (scalingConstraints.max - scalingConstraints.min) + scalingConstraints.min);
+
+        newHeight = newWidth * (dummyHeight / dummyWidth);
+
+
 
         y = Math.random() * (boundingBoxes['middle'].height - newHeight) + boundingBoxes['middle'].y;
 
@@ -393,15 +400,19 @@ export const CreateCollage = async (corpse : CorpseObject, collage_container : H
     maxOverlapX = 0.65;
 
     scalingConstraints = {
-        min: 0.65,
-        max: 0.85
+        min: 0.75,
+        max: 1
     }
 
     while (!validPosition && testCount < maxTests) {
 
-        newHeight = boundingBoxes['middle'].height * (Math.random() * (scalingConstraints.max - scalingConstraints.min) + scalingConstraints.min);
+        // newHeight = boundingBoxes['middle'].height * (Math.random() * (scalingConstraints.max - scalingConstraints.min) + scalingConstraints.min);
 
-        newWidth = newHeight * (dummyWidth / dummyHeight);
+        // newWidth = newHeight * (dummyWidth / dummyHeight);
+
+        newWidth = boundingBoxes['middle'].width * (Math.random() * (scalingConstraints.max - scalingConstraints.min) + scalingConstraints.min);
+
+        newHeight = newWidth * (dummyHeight / dummyWidth);
 
         y = Math.random() * (boundingBoxes['middle'].height - newHeight) + boundingBoxes['middle'].y;
 
@@ -453,8 +464,8 @@ export const CreateCollage = async (corpse : CorpseObject, collage_container : H
     maxOverlapY = 0.55;
 
     scalingConstraints = {
-        min: 0.65,
-        max: 0.85
+        min: 0.75,
+        max: 1
     }
 
     while (!validPosition && testCount < maxTests) {
@@ -509,8 +520,8 @@ export const CreateCollage = async (corpse : CorpseObject, collage_container : H
     maxOverlapY = 0.50;
 
     scalingConstraints = {
-        min: 0.65,
-        max: 0.85
+        min: 0.75,
+        max: 1
     }
 
     while (!validPosition && testCount < maxTests) {
