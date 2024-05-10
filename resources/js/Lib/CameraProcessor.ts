@@ -154,7 +154,7 @@ export class CameraProcessor {
 
         videoDiv.innerHTML = '';
         videoDiv.appendChild(video);
-        
+
 
 
         const constraints = {
@@ -258,7 +258,7 @@ export class CameraProcessor {
 
     async loop() {
 
-    
+
 
         if (!this.video || !this.canvas_process) {
             console.error('No video or canvas');
@@ -271,7 +271,7 @@ export class CameraProcessor {
 
     // --------------------------------------------------
 
-    async process(input : PixelInput) {
+    async process(input: PixelInput) {
 
         console.log('process');
 
@@ -295,7 +295,7 @@ export class CameraProcessor {
 
     }
 
-    async segmentBodyPix(input : PixelInput) {
+    async segmentBodyPix(input: PixelInput) {
 
         if (!input || !this.inference.bodyPix) {
             console.error('No video or inference');
@@ -304,7 +304,7 @@ export class CameraProcessor {
 
         const bodyPix = this.inference.bodyPix as bodySegmentation.BodySegmenter;
 
-        const segmentationConfig : bodySegmentation.BodyPixSegmentationConfig = {
+        const segmentationConfig: bodySegmentation.BodyPixSegmentationConfig = {
             multiSegmentation: false,
             segmentBodyParts: true,
             maxDetections: 1,
@@ -348,11 +348,11 @@ export class CameraProcessor {
         this.inferenceData.pixels = pixels;
 
         return pixels;
-        
+
     }
 
 
-    async estimatePose(input : PixelInput) {
+    async estimatePose(input: PixelInput) {
 
         if (!input || !this.inference.blazePose) {
             console.error('No video or inference');
@@ -377,68 +377,131 @@ export class CameraProcessor {
     }
 
 
-    async getBoundingBoxes(poses: poseDetection.Pose[], coloredPartImage: ImageData) {
+    async getBoundingBoxes(poses: poseDetection.Pose[], input: PixelInput) {
 
 
         // from the poses, get the bounding boxes based on the coloredPartImage
-     
+
         const boundingBoxes: { x: number, y: number, width: number, height: number, label: string }[] = [];
 
         for (const pose of poses) {
             const keypoints = pose.keypoints;
-            const boundingBox = this.getBoundingBox(keypoints, coloredPartImage);
+            const boundingBox = this.getBoundingBox(keypoints, input);
         }
 
     }
 
-    async getBoundingBox(keypoints: poseDetection.Keypoint[], coloredPartImage: ImageData) {
+    async getBoundingBox(keypoints: poseDetection.Keypoint[], input: PixelInput) {
 
-            this.boundingBoxes = [];
+        this.boundingBoxes = [];
 
-            const blazePoseLabel = "head";
-    
-            const headPoints : poseDetection.Keypoint[] = [];
+        const blazePoseLabel = "head";
 
-            for (const part of blazePosePoseBodyParts[blazePoseLabel]) {
-                headPoints.push(keypoints[part]);
-            }
+        const headPoints: poseDetection.Keypoint[] = [];
 
-            const headMinX = Math.min(...headPoints.map(point => point.x));
-            const headMinY = Math.min(...headPoints.map(point => point.y));
-            const headMaxX = Math.max(...headPoints.map(point => point.x));
-            const headMaxY = Math.max(...headPoints.map(point => point.y));
+        for (const part of blazePosePoseBodyParts[blazePoseLabel]) {
+            headPoints.push(keypoints[part]);
+        }
 
-            const headWidth = headMaxX - headMinX;
-            const headHeight = headMaxY - headMinY;
+        const headMinX = Math.min(...headPoints.map(point => point.x));
+        const headMinY = Math.min(...headPoints.map(point => point.y));
+        const headMaxX = Math.max(...headPoints.map(point => point.x));
+        const headMaxY = Math.max(...headPoints.map(point => point.y));
 
-            let boundingBox = { x: headMinX, y: headMinY, width: headWidth, height: headHeight, label: 'head_pose' };
+        const headWidth = headMaxX - headMinX;
+        const headHeight = headMaxY - headMinY;
 
-            this.boundingBoxes.push(boundingBox);
+        let boundingBox = { x: headMinX, y: headMinY, width: headWidth, height: headHeight, label: 'head_pose' };
 
-
-            let pixels = this.inferenceData.pixels as Pixel[];
-
-            let headBoundingBox = {
-                x: -1,
-                y: -1,
-                width: -1,
-                height: -1
-            }
+        this.boundingBoxes.push(boundingBox);
 
 
-            const bodyPixLabel = "head";
-         
-            let headPixels = pixels.filter(pixel => (bodyPixCombination[bodyPixLabel].includes(pixel.color.r)));
+        let pixels = this.inferenceData.pixels as Pixel[];
 
-            headBoundingBox.x = Math.min(...headPixels.map(pixel => pixel.x));
-            headBoundingBox.y = Math.min(...headPixels.map(pixel => pixel.y));
-            headBoundingBox.width = Math.max(...headPixels.map(pixel => pixel.x)) - headBoundingBox.x;
-            headBoundingBox.height = Math.max(...headPixels.map(pixel => pixel.y)) - headBoundingBox.y;
+        let headBoundingBox = {
+            x: -1,
+            y: -1,
+            width: -1,
+            height: -1
+        }
 
-            boundingBox = { x: headBoundingBox.x, y: headBoundingBox.y, width: headBoundingBox.width, height: headBoundingBox.height, label: 'head_mask' };
+        const bodyPixLabel = "head";
+        let headPixels = pixels.filter(pixel => (bodyPixCombination[bodyPixLabel].includes(pixel.color.r)));
 
-            this.boundingBoxes.push(boundingBox);
-           
+        headBoundingBox.x = Math.min(...headPixels.map(pixel => pixel.x));
+        headBoundingBox.y = Math.min(...headPixels.map(pixel => pixel.y));
+        headBoundingBox.width = Math.max(...headPixels.map(pixel => pixel.x)) - headBoundingBox.x;
+        headBoundingBox.height = Math.max(...headPixels.map(pixel => pixel.y)) - headBoundingBox.y;
+
+        boundingBox = { x: headBoundingBox.x, y: headBoundingBox.y, width: headBoundingBox.width, height: headBoundingBox.height, label: 'head_mask' };
+
+        // this.boundingBoxes.push(boundingBox);
+
+let imageWidth = this.inferenceData.maskData?.width as number;
+let imageHeight = this.inferenceData.maskData?.height as number;
+
+// Calculate the center of the head_pose bounding box
+const centerX = Math.round(headMinX + headWidth / 2);
+const centerY = Math.round(headMinY + headHeight / 2);
+
+// Initialize the boundaries to the center
+let topY = centerY;
+let bottomY = centerY;
+let leftX = centerX;
+let rightX = centerX;
+
+// Raycast upwards
+for (let y = centerY; y >= 0; y--) {
+    const pixel = pixels.find(p => p.x === centerX && p.y === y);
+    if (pixel && bodyPixCombination[bodyPixLabel].includes(pixel.color.r)) {
+        topY = y;
+    } else {
+        break;
+    }
+}
+
+// Raycast downwards
+for (let y = centerY; y < imageHeight; y++) {
+    const pixel = pixels.find(p => p.x === centerX && p.y === y);
+    if (pixel && bodyPixCombination[bodyPixLabel].includes(pixel.color.r)) {
+        bottomY = y;
+    } else {
+        break;
+    }
+}
+
+// Raycast left
+for (let x = centerX; x >= 0; x--) {
+    const pixel = pixels.find(p => p.x === x && p.y === centerY);
+    if (pixel && bodyPixCombination[bodyPixLabel].includes(pixel.color.r)) {
+        leftX = x;
+    } else {
+        break;
+    }
+}
+
+// Raycast right
+for (let x = centerX; x < imageWidth; x++) {
+    const pixel = pixels.find(p => p.x === x && p.y === centerY);
+    if (pixel && bodyPixCombination[bodyPixLabel].includes(pixel.color.r)) {
+        rightX = x;
+    } else {
+        break;
+    }
+}
+
+const combinedMinX = leftX;
+const combinedMinY = topY;
+const combinedMaxX = rightX;
+const combinedMaxY = bottomY;
+
+const combinedWidth = combinedMaxX - combinedMinX;
+const combinedHeight = combinedMaxY - combinedMinY;
+
+boundingBox = { x: combinedMinX, y: combinedMinY, width: combinedWidth, height: combinedHeight, label: 'head_combined' };
+
+this.boundingBoxes.push(boundingBox);
+
     }
 
 
