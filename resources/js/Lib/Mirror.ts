@@ -1,6 +1,6 @@
 import * as tf from '@tensorflow/tfjs';
 import * as poseDetection from '@tensorflow-models/pose-detection';
-import { COCOKeypoints, COCOKeypointsCombinations } from './Tables';
+// import { COCOKeypoints, COCOKeypointsCombinations } from './Tables';
 
 
 

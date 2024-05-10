@@ -23,15 +23,12 @@ import '@tensorflow/tfjs-backend-webgl';
 import '@mediapipe/selfie_segmentation';
 
 import { PixelInput, Segmentation } from '@tensorflow-models/body-segmentation/dist/shared/calculators/interfaces/common_interfaces';
-import { labelTable, labelTableCombinations } from './Tables';
+import { blazePosePoseBodyParts, blazePosePoseLandmarks, bodyPixCombination, bodyPixRedValue } from './Tables';
 import { CutoutRaw } from '@/types/PoolTypes'
 
 import * as poseDetection from '@tensorflow-models/pose-detection';
 // Register WebGL backend.
 import '@tensorflow/tfjs-backend-webgl';
-
-
-import { COCOKeypoints, COCOKeypointsCombinations } from './Tables';
 
 
 export class CameraProcessor {
@@ -68,12 +65,20 @@ export class CameraProcessor {
         };
     inferenceData: {
         poses: poseDetection.Pose[] | undefined,
-        coloredPartImage: ImageData | undefined
+        coloredPartImage: ImageData | undefined,
+        bodyPixSegmentation: Segmentation[] | undefined
+        pixels: Pixel[] | undefined,
+        maskData: ImageData | undefined
     } = {
             poses: undefined,
-            coloredPartImage: undefined
+            bodyPixSegmentation: undefined,
+            coloredPartImage: undefined,
+            pixels: undefined,
+            maskData: undefined
         };
 
+
+    boundingBoxes: { x: number, y: number, width: number, height: number, label: string }[] = [];
 
     constructor() {
         console.log("ImageProcessor constructor");
@@ -82,8 +87,6 @@ export class CameraProcessor {
 
     async init(videoDiv: HTMLDivElement, div_process: HTMLDivElement) {
         console.log("init");
-
-
 
         await this.setupInferences();
         console.log('Inferences setup');
@@ -274,13 +277,14 @@ export class CameraProcessor {
 
         await this.segmentBodyPix(input);
         await this.estimatePose(input);
+        await this.convertImageDataToPixels(this.inferenceData.maskData as ImageData);
 
         if (this.inferenceData.poses && this.inferenceData.coloredPartImage) {
             await this.getBoundingBoxes(this.inferenceData.poses, this.inferenceData.coloredPartImage);
         }
 
 
-        console.log(this.inferenceData);
+        // console.log(this.inferenceData);
 
         // await new Promise((resolve) => {
         //     setTimeout(() => {
@@ -300,12 +304,51 @@ export class CameraProcessor {
 
         const bodyPix = this.inference.bodyPix as bodySegmentation.BodySegmenter;
 
-        const segmentation = await bodyPix.segmentPeople(input, { multiSegmentation: false, segmentBodyParts: true });
+        const segmentationConfig : bodySegmentation.BodyPixSegmentationConfig = {
+            multiSegmentation: false,
+            segmentBodyParts: true,
+            maxDetections: 1,
+            // nmsRadius: 20,
+        }
+
+        const segmentation = await bodyPix.segmentPeople(input, segmentationConfig);
+
+        this.inferenceData.bodyPixSegmentation = segmentation;
+
         const coloredPartImage = await bodySegmentation.toColoredMask(segmentation, bodySegmentation.bodyPixMaskValueToRainbowColor, { r: 255, g: 255, b: 255, a: 255 });
 
         this.inferenceData.coloredPartImage = coloredPartImage;
+        this.inferenceData.maskData = await segmentation[0].mask.toImageData();
 
         return segmentation;
+    }
+
+
+    // Important: this image data is a .mask.toImageData() from the segmentation, NOT .toColoredMask()
+    async convertImageDataToPixels(imageData: ImageData) {
+
+        let pixels: Pixel[] = [];
+
+        const data = imageData.data;
+        const width = imageData.width;
+        const height = imageData.height;
+
+        for (let i = 0; i < data.length; i += 4) {
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+            const a = data[i + 3];
+
+            const x = (i / 4) % width;
+            const y = Math.floor((i / 4) / width);
+
+            pixels.push({ x: x, y: y, color: { r: r, g: g, b: b, a: a } });
+        }
+
+        this.inferenceData.pixels = pixels;
+
+        return pixels;
+        
     }
 
 
@@ -328,6 +371,8 @@ export class CameraProcessor {
 
         this.inferenceData.poses = poses;
 
+        return poses;
+
 
     }
 
@@ -335,7 +380,65 @@ export class CameraProcessor {
     async getBoundingBoxes(poses: poseDetection.Pose[], coloredPartImage: ImageData) {
 
 
+        // from the poses, get the bounding boxes based on the coloredPartImage
+     
+        const boundingBoxes: { x: number, y: number, width: number, height: number, label: string }[] = [];
 
+        for (const pose of poses) {
+            const keypoints = pose.keypoints;
+            const boundingBox = this.getBoundingBox(keypoints, coloredPartImage);
+        }
+
+    }
+
+    async getBoundingBox(keypoints: poseDetection.Keypoint[], coloredPartImage: ImageData) {
+
+            this.boundingBoxes = [];
+
+            const blazePoseLabel = "head";
+    
+            const headPoints : poseDetection.Keypoint[] = [];
+
+            for (const part of blazePosePoseBodyParts[blazePoseLabel]) {
+                headPoints.push(keypoints[part]);
+            }
+
+            const headMinX = Math.min(...headPoints.map(point => point.x));
+            const headMinY = Math.min(...headPoints.map(point => point.y));
+            const headMaxX = Math.max(...headPoints.map(point => point.x));
+            const headMaxY = Math.max(...headPoints.map(point => point.y));
+
+            const headWidth = headMaxX - headMinX;
+            const headHeight = headMaxY - headMinY;
+
+            let boundingBox = { x: headMinX, y: headMinY, width: headWidth, height: headHeight, label: 'head_pose' };
+
+            this.boundingBoxes.push(boundingBox);
+
+
+            let pixels = this.inferenceData.pixels as Pixel[];
+
+            let headBoundingBox = {
+                x: -1,
+                y: -1,
+                width: -1,
+                height: -1
+            }
+
+
+            const bodyPixLabel = "head";
+         
+            let headPixels = pixels.filter(pixel => (bodyPixCombination[bodyPixLabel].includes(pixel.color.r)));
+
+            headBoundingBox.x = Math.min(...headPixels.map(pixel => pixel.x));
+            headBoundingBox.y = Math.min(...headPixels.map(pixel => pixel.y));
+            headBoundingBox.width = Math.max(...headPixels.map(pixel => pixel.x)) - headBoundingBox.x;
+            headBoundingBox.height = Math.max(...headPixels.map(pixel => pixel.y)) - headBoundingBox.y;
+
+            boundingBox = { x: headBoundingBox.x, y: headBoundingBox.y, width: headBoundingBox.width, height: headBoundingBox.height, label: 'head_mask' };
+
+            this.boundingBoxes.push(boundingBox);
+           
     }
 
 
@@ -347,12 +450,14 @@ export class CameraProcessor {
 
         await this.clearCanvas();
 
-        // await this.drawVideo();
+        await this.drawVideo();
 
         await this.drawSegmentation();
         await this.drawPose();
 
-        // wait 1 second
+        await this.drawBoundingBoxes();
+
+        //wait 1 second
         // await new Promise((resolve) => {
         //     setTimeout(() => {
         //         resolve(true);
@@ -526,7 +631,36 @@ export class CameraProcessor {
 
     }
 
+    async drawBoundingBoxes() {
 
+        if (!this.canvas_process || !this.boundingBoxes) {
+            console.error('No canvas or bounding boxes');
+            return;
+        }
+
+        const canvas = this.canvas_process as HTMLCanvasElement;
+        const ctx = canvas.getContext('2d');
+
+        if (!ctx) {
+            console.error('No context');
+            return;
+        }
+
+        for (const boundingBox of this.boundingBoxes) {
+            ctx.beginPath();
+            ctx.rect(boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height);
+            ctx.strokeStyle = 'red';
+            ctx.lineWidth = 5;
+            ctx.stroke();
+
+            ctx.font = '20px Arial';
+            ctx.fillStyle = 'red';
+            ctx.fillText(boundingBox.label, boundingBox.x, boundingBox.y - 10);
+
+        }
+
+
+    }
 
 
 
