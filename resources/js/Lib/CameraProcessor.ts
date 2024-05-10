@@ -435,72 +435,87 @@ export class CameraProcessor {
 
         boundingBox = { x: headBoundingBox.x, y: headBoundingBox.y, width: headBoundingBox.width, height: headBoundingBox.height, label: 'head_mask' };
 
-        // this.boundingBoxes.push(boundingBox);
+        this.boundingBoxes.push(boundingBox);
 
-let imageWidth = this.inferenceData.maskData?.width as number;
-let imageHeight = this.inferenceData.maskData?.height as number;
+        let imageWidth = this.inferenceData.maskData?.width as number;
+        let imageHeight = this.inferenceData.maskData?.height as number;
 
-// Calculate the center of the head_pose bounding box
-const centerX = Math.round(headMinX + headWidth / 2);
-const centerY = Math.round(headMinY + headHeight / 2);
+        // Calculate the center of the head_pose bounding box
+        const centerX = Math.round(headMinX + headWidth / 2);
+        const centerY = Math.round(headMinY + headHeight / 2);
 
-// Initialize the boundaries to the center
-let topY = centerY;
-let bottomY = centerY;
-let leftX = centerX;
-let rightX = centerX;
+        // Initialize the boundaries to the center
+        let topY = centerY;
+        let bottomY = centerY;
+        let leftX = centerX;
+        let rightX = centerX;
 
-// Raycast upwards
-for (let y = centerY; y >= 0; y--) {
-    const pixel = pixels.find(p => p.x === centerX && p.y === y);
-    if (pixel && bodyPixCombination[bodyPixLabel].includes(pixel.color.r)) {
-        topY = y;
-    } else {
-        break;
-    }
-}
+        // Create a 2D array for the mask
+        let mask = Array(imageHeight).fill(0).map(() => Array(imageWidth).fill(false));
 
-// Raycast downwards
-for (let y = centerY; y < imageHeight; y++) {
-    const pixel = pixels.find(p => p.x === centerX && p.y === y);
-    if (pixel && bodyPixCombination[bodyPixLabel].includes(pixel.color.r)) {
-        bottomY = y;
-    } else {
-        break;
-    }
-}
+        // Fill the mask array based on the bodyPix mask
+        for (let pixel of pixels) {
+            if (bodyPixCombination[bodyPixLabel].includes(pixel.color.r)) {
+                mask[pixel.y][pixel.x] = true;
+            }
+        }
 
-// Raycast left
-for (let x = centerX; x >= 0; x--) {
-    const pixel = pixels.find(p => p.x === x && p.y === centerY);
-    if (pixel && bodyPixCombination[bodyPixLabel].includes(pixel.color.r)) {
-        leftX = x;
-    } else {
-        break;
-    }
-}
+        // Raycast upwards
+        for (let y = centerY; y >= 0; y--) {
+            if (mask[y][centerX]) {
+                topY = y;
+            } else {
+                break;
+            }
+        }
 
-// Raycast right
-for (let x = centerX; x < imageWidth; x++) {
-    const pixel = pixels.find(p => p.x === x && p.y === centerY);
-    if (pixel && bodyPixCombination[bodyPixLabel].includes(pixel.color.r)) {
-        rightX = x;
-    } else {
-        break;
-    }
-}
+        // Raycast downwards
+        for (let y = centerY; y < imageHeight; y++) {
+            if (mask[y][centerX]) {
+                bottomY = y;
+            } else {
+                break;
+            }
+        }
 
-const combinedMinX = leftX;
-const combinedMinY = topY;
-const combinedMaxX = rightX;
-const combinedMaxY = bottomY;
+        // Raycast left
+        for (let x = centerX; x >= 0; x--) {
+            if (mask[centerY][x]) {
+                leftX = x;
+            } else {
+                break;
+            }
+        }
 
-const combinedWidth = combinedMaxX - combinedMinX;
-const combinedHeight = combinedMaxY - combinedMinY;
+        // Raycast right
+        for (let x = centerX; x < imageWidth; x++) {
+            if (mask[centerY][x]) {
+                rightX = x;
+            } else {
+                break;
+            }
+        }
 
-boundingBox = { x: combinedMinX, y: combinedMinY, width: combinedWidth, height: combinedHeight, label: 'head_combined' };
+        const combinedMinX = leftX;
+        const combinedMinY = topY;
+        const combinedMaxX = rightX;
+        const combinedMaxY = bottomY;
 
-this.boundingBoxes.push(boundingBox);
+        const combinedWidth = combinedMaxX - combinedMinX;
+        const combinedHeight = combinedMaxY - combinedMinY;
+
+        const scalingFactor = 1.2;
+
+        const combinedBoundingBox = {
+            x: combinedMinX - (combinedWidth * scalingFactor - combinedWidth) / 2,
+            y: combinedMinY - (combinedHeight * scalingFactor - combinedHeight) / 2,
+            width: combinedWidth * scalingFactor,
+            height: combinedHeight * scalingFactor
+        };
+
+        boundingBox = { x: combinedBoundingBox.x, y: combinedBoundingBox.y, width: combinedBoundingBox.width, height: combinedBoundingBox.height, label: 'head_combined' };
+
+        this.boundingBoxes.push(boundingBox);
 
     }
 
@@ -712,12 +727,12 @@ this.boundingBoxes.push(boundingBox);
         for (const boundingBox of this.boundingBoxes) {
             ctx.beginPath();
             ctx.rect(boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height);
-            ctx.strokeStyle = 'red';
+            ctx.strokeStyle = boundingBox.label === 'head_combined' ? 'green' : 'red';
             ctx.lineWidth = 5;
             ctx.stroke();
 
             ctx.font = '20px Arial';
-            ctx.fillStyle = 'red';
+            ctx.fillStyle = boundingBox.label === 'head_combined' ? 'green' : 'red';
             ctx.fillText(boundingBox.label, boundingBox.x, boundingBox.y - 10);
 
         }
