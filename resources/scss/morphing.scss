@@ -101,7 +101,7 @@ body.mirror {
     }
 
 
-    .collage-button, .list-button, .redo-button, .start-over-button {
+    .collage-button, .list-button, .redo-button, .start-over-button, .switch-device-button {
         position: absolute;
         bottom: calc(20% + 0rem);
         right: 0;
@@ -178,7 +178,6 @@ body.mirror {
         transform: scale(0.5);
 
         
-
     }
 
 

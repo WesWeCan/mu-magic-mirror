@@ -71,7 +71,9 @@ const takePicture = () => {
 }
 
 
-
+const switchDevice = () => {
+    cp.switchVideoDevice();
+}
 
 </script>
 
@@ -80,6 +82,8 @@ const takePicture = () => {
 
     <div ref="video_container" class="video-container"></div>
     <div ref="div_process" class="div-process"></div>
+
+    <button class="switch-device-button" @click="switchDevice">Switch Device</button>
 
     <div v-for="cutOut in cutOuts" :key="cutOut.part">
         <img :src="cutOut.img" :alt="cutOut.part" />

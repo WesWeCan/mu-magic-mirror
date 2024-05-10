@@ -22,7 +22,7 @@ import '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-backend-webgl';
 import '@mediapipe/selfie_segmentation';
 
-import { Segmentation } from '@tensorflow-models/body-segmentation/dist/shared/calculators/interfaces/common_interfaces';
+import { PixelInput, Segmentation } from '@tensorflow-models/body-segmentation/dist/shared/calculators/interfaces/common_interfaces';
 import { labelTable, labelTableCombinations } from './Tables';
 import { CutoutRaw } from '@/types/PoolTypes'
 
@@ -53,8 +53,26 @@ export class CameraProcessor {
     mousePos: { x: number, y: number } = { x: 0, y: 0 };
 
 
-    inference: any = {};
-    inferenceData: any = {};
+    availableVideoDevices: MediaDeviceInfo[] = [];
+    currentVideoDevice: MediaDeviceInfo | undefined;
+
+
+    inference:
+        {
+            bodyPix: bodySegmentation.BodySegmenter | undefined,
+            blazePose: poseDetection.PoseDetector | undefined
+        }
+        = {
+            bodyPix: undefined,
+            blazePose: undefined
+        };
+    inferenceData: {
+        poses: poseDetection.Pose[] | undefined,
+        coloredPartImage: ImageData | undefined
+    } = {
+            poses: undefined,
+            coloredPartImage: undefined
+        };
 
 
     constructor() {
@@ -68,6 +86,11 @@ export class CameraProcessor {
 
 
         await this.setupInferences();
+        console.log('Inferences setup');
+
+        await this.getAvailableVideoDevices();
+        console.log('Got available video devices');
+        this.currentVideoDevice = this.availableVideoDevices[0];
 
         await this.getMediaStream(videoDiv);
         console.log('Got media stream');
@@ -78,6 +101,35 @@ export class CameraProcessor {
         return new Promise<boolean>((resolve, reject) => {
             resolve(true);
         });
+    }
+
+    async getAvailableVideoDevices() {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        this.availableVideoDevices = devices.filter(device => device.kind === 'videoinput');
+    }
+
+    async switchVideoDevice() {
+
+        if (!this.currentVideoDevice) {
+            console.error('No current video device');
+            return;
+        }
+
+        const currentDevice = this.currentVideoDevice;
+
+        // get index of current device
+        const currentIndex = this.availableVideoDevices.indexOf(currentDevice);
+
+        // get next device
+        const nextIndex = (currentIndex + 1) % this.availableVideoDevices.length;
+        const nextDevice = this.availableVideoDevices[nextIndex];
+
+        // set next device
+        this.currentVideoDevice = nextDevice;
+        console.log('Switching video device to: ' + nextDevice.label);
+
+        this.getMediaStream(this.div_video as HTMLDivElement);
+
     }
 
     async getMediaStream(videoDiv: HTMLDivElement) {
@@ -96,10 +148,22 @@ export class CameraProcessor {
 
         video.muted = true;
 
-        // append video to div
-        videoDiv.appendChild(video);
 
-        navigator.mediaDevices.getUserMedia({ video: true })
+        videoDiv.innerHTML = '';
+        videoDiv.appendChild(video);
+        
+
+
+        const constraints = {
+            video: {
+                deviceId: this.currentVideoDevice ? { exact: this.currentVideoDevice.deviceId } : undefined,
+                width: { ideal: 640 },
+                height: { ideal: 480 }
+            }
+        };
+
+
+        navigator.mediaDevices.getUserMedia(constraints)
             .then((stream) => {
                 video.srcObject = stream;
             });
@@ -190,18 +254,30 @@ export class CameraProcessor {
     // --------------------------------------------------
 
     async loop() {
-        await this.process();
+
+    
+
+        if (!this.video || !this.canvas_process) {
+            console.error('No video or canvas');
+            return;
+        }
+
+        await this.process(this.video);
         await this.draw();
     }
 
     // --------------------------------------------------
 
-    async process() {
+    async process(input : PixelInput) {
 
         console.log('process');
 
-        await this.segmentBodyPix();
-        await this.estimatePose();
+        await this.segmentBodyPix(input);
+        await this.estimatePose(input);
+
+        if (this.inferenceData.poses && this.inferenceData.coloredPartImage) {
+            await this.getBoundingBoxes(this.inferenceData.poses, this.inferenceData.coloredPartImage);
+        }
 
 
         console.log(this.inferenceData);
@@ -215,16 +291,16 @@ export class CameraProcessor {
 
     }
 
-    async segmentBodyPix() {
+    async segmentBodyPix(input : PixelInput) {
 
-        if (!this.video || !this.inference.bodyPix) {
+        if (!input || !this.inference.bodyPix) {
             console.error('No video or inference');
             return;
         }
 
         const bodyPix = this.inference.bodyPix as bodySegmentation.BodySegmenter;
 
-        const segmentation = await bodyPix.segmentPeople(this.video, { multiSegmentation: false, segmentBodyParts: true });
+        const segmentation = await bodyPix.segmentPeople(input, { multiSegmentation: false, segmentBodyParts: true });
         const coloredPartImage = await bodySegmentation.toColoredMask(segmentation, bodySegmentation.bodyPixMaskValueToRainbowColor, { r: 255, g: 255, b: 255, a: 255 });
 
         this.inferenceData.coloredPartImage = coloredPartImage;
@@ -233,9 +309,9 @@ export class CameraProcessor {
     }
 
 
-    async estimatePose() {
+    async estimatePose(input : PixelInput) {
 
-        if (!this.video || !this.inference.blazePose) {
+        if (!input || !this.inference.blazePose) {
             console.error('No video or inference');
             return;
         }
@@ -247,10 +323,17 @@ export class CameraProcessor {
         const timestamp = performance.now();
         const blazePose = this.inference.blazePose as poseDetection.PoseDetector;
 
-        const poses = await blazePose.estimatePoses(this.video, estimationConfig, timestamp);
+        const poses = await blazePose.estimatePoses(input, estimationConfig, timestamp);
 
 
         this.inferenceData.poses = poses;
+
+
+    }
+
+
+    async getBoundingBoxes(poses: poseDetection.Pose[], coloredPartImage: ImageData) {
+
 
 
     }
@@ -424,7 +507,7 @@ export class CameraProcessor {
         ctx.strokeStyle = color;
         ctx.lineWidth = 3;
 
-        poseDetection.util.getAdjacentPairs(poseDetection.SupportedModels.BlazePose).forEach(([ i, j ]) => {
+        poseDetection.util.getAdjacentPairs(poseDetection.SupportedModels.BlazePose).forEach(([i, j]) => {
             const kp1 = keypoints[i];
             const kp2 = keypoints[j];
 
