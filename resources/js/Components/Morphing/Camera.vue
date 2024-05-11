@@ -13,6 +13,7 @@ const cp = new CameraProcessor();
 
 const video_container = ref<HTMLDivElement | null>(null);
 const div_process = ref<HTMLDivElement | null>(null);
+const div_render= ref<HTMLDivElement | null>(null);
 
 
 const emit = defineEmits(['newSlice']);
@@ -21,8 +22,8 @@ const emit = defineEmits(['newSlice']);
 onMounted(async () => {
 
 
-    if (video_container.value && div_process.value) {
-        await cp.init(video_container.value, div_process.value);
+    if (video_container.value && div_process.value, div_render.value) {
+        await cp.init(video_container.value, div_process.value, div_render.value);
 
         div_process.value.addEventListener('click', (e) => {
             const slice = cp.takePictureAndSlice()
@@ -82,6 +83,8 @@ const switchDevice = () => {
 
     <div ref="video_container" class="video-container"></div>
     <div ref="div_process" class="div-process"></div>
+
+    <div ref="div_render" class="div-render"></div>
 
     <button class="switch-device-button" @click="switchDevice">Switch Device</button>
 

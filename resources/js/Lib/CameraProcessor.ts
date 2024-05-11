@@ -46,6 +46,8 @@ export class CameraProcessor {
     div_process: HTMLDivElement | null = null;
     canvas_process: HTMLCanvasElement | null = null;
 
+    div_render: HTMLDivElement | null = null;
+    canvas_render: HTMLCanvasElement | null = null;
 
     mousePos: { x: number, y: number } = { x: 0, y: 0 };
 
@@ -85,7 +87,7 @@ export class CameraProcessor {
     }
 
 
-    async init(videoDiv: HTMLDivElement, div_process: HTMLDivElement) {
+    async init(videoDiv: HTMLDivElement, div_process: HTMLDivElement, div_render: HTMLDivElement) {
         console.log("init");
 
         await this.setupInferences();
@@ -98,7 +100,7 @@ export class CameraProcessor {
         await this.getMediaStream(videoDiv);
         console.log('Got media stream');
 
-        await this.createCanvasses(div_process);
+        await this.createCanvasses(div_process, div_render);
         console.log('Canvasses created');
 
         return new Promise<boolean>((resolve, reject) => {
@@ -199,24 +201,48 @@ export class CameraProcessor {
 
     }
 
-    async createCanvasses(div_process: HTMLDivElement) {
+    async createCanvasses(div_process: HTMLDivElement, div_render: HTMLDivElement) {
 
         if (!div_process) {
             console.error('No div process');
             return;
         }
 
-        this.div_process = div_process;
+
+
+        this.div_process = div_process  ;
 
         const canvas_process = document.createElement('canvas');
         canvas_process.id = 'canvas_process';
 
-        canvas_process.width = this.div_process.clientWidth;
-        canvas_process.height = this.div_process.clientHeight;
+        canvas_process.width = this.video?.videoWidth || 0;
+        canvas_process.height = this.video?.videoHeight || 0;
 
         this.canvas_process = canvas_process;
 
         this.div_process.appendChild(canvas_process);
+
+
+
+
+        if (!div_render) {
+            console.error('No div render');
+            return;
+        }
+
+        this.div_render = div_render;
+
+        const canvas_render = document.createElement('canvas');
+        canvas_render.id = 'canvas_render';
+
+        canvas_render.width = this.div_render.clientWidth;
+        canvas_render.height = this.div_render.clientHeight;
+
+        this.canvas_render = canvas_render;
+
+        this.div_render.appendChild(canvas_render);
+
+
 
         return new Promise((resolve) => {
             resolve(true);
@@ -267,6 +293,7 @@ export class CameraProcessor {
 
         await this.process(this.video);
         await this.draw();
+        await this.render();
     }
 
     // --------------------------------------------------
@@ -353,7 +380,6 @@ export class CameraProcessor {
 
 
     async estimatePose(input: PixelInput) {
-
         if (!input || !this.inference.blazePose) {
             console.error('No video or inference');
             return;
@@ -367,12 +393,20 @@ export class CameraProcessor {
         const blazePose = this.inference.blazePose as poseDetection.PoseDetector;
 
         const poses = await blazePose.estimatePoses(input, estimationConfig, timestamp);
-
-
         this.inferenceData.poses = poses;
 
         return poses;
+    }
 
+    async filterkeypoints(keypoints: poseDetection.Keypoint[]) {
+
+        const treshold = 0.9;
+
+        const filteredKeypoints = keypoints.filter(keypoint => keypoint.score as number > treshold);
+
+
+        this.inferenceData.filteredKeypoints = filteredKeypoints;
+        return filteredKeypoints;
 
     }
 
@@ -392,130 +426,165 @@ export class CameraProcessor {
     }
 
     async getBoundingBox(keypoints: poseDetection.Keypoint[], input: PixelInput) {
-
+        return;
         this.boundingBoxes = [];
-
-        const blazePoseLabel = "head";
-
-        const headPoints: poseDetection.Keypoint[] = [];
-
-        for (const part of blazePosePoseBodyParts[blazePoseLabel]) {
-            headPoints.push(keypoints[part]);
-        }
-
-        const headMinX = Math.min(...headPoints.map(point => point.x));
-        const headMinY = Math.min(...headPoints.map(point => point.y));
-        const headMaxX = Math.max(...headPoints.map(point => point.x));
-        const headMaxY = Math.max(...headPoints.map(point => point.y));
-
-        const headWidth = headMaxX - headMinX;
-        const headHeight = headMaxY - headMinY;
-
-        let boundingBox = { x: headMinX, y: headMinY, width: headWidth, height: headHeight, label: 'head_pose' };
-
-        this.boundingBoxes.push(boundingBox);
-
-
-        let pixels = this.inferenceData.pixels as Pixel[];
-
-        let headBoundingBox = {
-            x: -1,
-            y: -1,
-            width: -1,
-            height: -1
-        }
-
-        const bodyPixLabel = "head";
-        let headPixels = pixels.filter(pixel => (bodyPixCombination[bodyPixLabel].includes(pixel.color.r)));
-
-        headBoundingBox.x = Math.min(...headPixels.map(pixel => pixel.x));
-        headBoundingBox.y = Math.min(...headPixels.map(pixel => pixel.y));
-        headBoundingBox.width = Math.max(...headPixels.map(pixel => pixel.x)) - headBoundingBox.x;
-        headBoundingBox.height = Math.max(...headPixels.map(pixel => pixel.y)) - headBoundingBox.y;
-
-        boundingBox = { x: headBoundingBox.x, y: headBoundingBox.y, width: headBoundingBox.width, height: headBoundingBox.height, label: 'head_mask' };
-
-        this.boundingBoxes.push(boundingBox);
+        const pixels = this.inferenceData.pixels as Pixel[];
 
         let imageWidth = this.inferenceData.maskData?.width as number;
         let imageHeight = this.inferenceData.maskData?.height as number;
 
-        // Calculate the center of the head_pose bounding box
-        const centerX = Math.round(headMinX + headWidth / 2);
-        const centerY = Math.round(headMinY + headHeight / 2);
-
-        // Initialize the boundaries to the center
-        let topY = centerY;
-        let bottomY = centerY;
-        let leftX = centerX;
-        let rightX = centerX;
-
-        // Create a 2D array for the mask
-        let mask = Array(imageHeight).fill(0).map(() => Array(imageWidth).fill(false));
-
-        // Fill the mask array based on the bodyPix mask
-        for (let pixel of pixels) {
-            if (bodyPixCombination[bodyPixLabel].includes(pixel.color.r)) {
-                mask[pixel.y][pixel.x] = true;
-            }
-        }
-
-        // Raycast upwards
-        for (let y = centerY; y >= 0; y--) {
-            if (mask[y][centerX]) {
-                topY = y;
-            } else {
-                break;
-            }
-        }
-
-        // Raycast downwards
-        for (let y = centerY; y < imageHeight; y++) {
-            if (mask[y][centerX]) {
-                bottomY = y;
-            } else {
-                break;
-            }
-        }
-
-        // Raycast left
-        for (let x = centerX; x >= 0; x--) {
-            if (mask[centerY][x]) {
-                leftX = x;
-            } else {
-                break;
-            }
-        }
-
-        // Raycast right
-        for (let x = centerX; x < imageWidth; x++) {
-            if (mask[centerY][x]) {
-                rightX = x;
-            } else {
-                break;
-            }
-        }
-
-        const combinedMinX = leftX;
-        const combinedMinY = topY;
-        const combinedMaxX = rightX;
-        const combinedMaxY = bottomY;
-
-        const combinedWidth = combinedMaxX - combinedMinX;
-        const combinedHeight = combinedMaxY - combinedMinY;
-
         const scalingFactor = 1.2;
 
-        const combinedBoundingBox = {
-            x: combinedMinX - (combinedWidth * scalingFactor - combinedWidth) / 2,
-            y: combinedMinY - (combinedHeight * scalingFactor - combinedHeight) / 2,
-            width: combinedWidth * scalingFactor,
-            height: combinedHeight * scalingFactor
+
+        const labels = Object.keys(blazePosePoseBodyParts)
+        
+        for(let label of labels) {
+
+            // General Bounding Box based on only keypoints
+
+            const blazePoseLabel = label as keyof typeof blazePosePoseBodyParts;
+
+            const partPoints: poseDetection.Keypoint[] = [];
+
+            for (const part of blazePosePoseBodyParts[blazePoseLabel]) {
+                partPoints.push(keypoints[part]);
+            }
+
+            const partMinX = Math.min(...partPoints.map(point => point.x));
+            const partMinY = Math.min(...partPoints.map(point => point.y));
+            const partMaxX = Math.max(...partPoints.map(point => point.x));
+            const partMaxY = Math.max(...partPoints.map(point => point.y));
+
+            const partWidth = partMaxX - partMinX;
+            const partHeight = partMaxY - partMinY;
+
+            const boundingBox = { x: partMinX, y: partMinY, width: partWidth, height: partHeight, label: `${blazePoseLabel}_pose` };
+
+            this.boundingBoxes.push(boundingBox);
+
+
+            // ----------------------------
+
+
+
+            // Bounding Box based on BodyPix mask
+
+            let partBoundingBox = {
+                x: -1,
+                y: -1,
+                width: -1,
+                height: -1
+            }
+
+            const bodyPixLabel = label as keyof typeof bodyPixCombination;
+            let partPixels = pixels.filter(pixel => (bodyPixCombination[bodyPixLabel].includes(pixel.color.r)));
+
+            partBoundingBox.x = Math.min(...partPixels.map(pixel => pixel.x));
+            partBoundingBox.y = Math.min(...partPixels.map(pixel => pixel.y));
+            partBoundingBox.width = Math.max(...partPixels.map(pixel => pixel.x)) - partBoundingBox.x;
+            partBoundingBox.height = Math.max(...partPixels.map(pixel => pixel.y)) - partBoundingBox.y;
+
+            const maskBoundingBox = { x: partBoundingBox.x, y: partBoundingBox.y, width: partBoundingBox.width, height: partBoundingBox.height, label: `${blazePoseLabel}_mask` };
+
+            this.boundingBoxes.push(maskBoundingBox);
+
+            // ----------------------------
+
+
+
+            // Bounding Box based on combined mask
+
+
+            // Calculate the center of the {part}_pose bounding box
+            const centerX = Math.round(partMinX + partWidth / 2);
+            const centerY = Math.round(partMinY + partHeight / 2);
+
+            // Initialize the boundaries to the center
+            let topY = centerY;
+            let bottomY = centerY;
+            let leftX = centerX;
+            let rightX = centerX;
+
+            // Create a 2D array for the mask
+            let mask = Array(imageHeight).fill(0).map(() => Array(imageWidth).fill(false));
+
+            // Fill the mask array based on the bodyPix mask
+
+            let atLeastOnePixel = false;
+            for (let pixel of pixels) {
+                if (bodyPixCombination[bodyPixLabel].includes(pixel.color.r)) {
+                    mask[pixel.y][pixel.x] = true;
+                    atLeastOnePixel = true;
+                }
+            }
+
+
+            if (!atLeastOnePixel) {
+                console.log('No pixels found', bodyPixLabel);
+                continue;
+            }
+
+            // Raycast upwards
+            for (let y = centerY; y >= 0; y--) {
+                if (mask[y][centerX]) {
+                    topY = y;
+                } else {
+                    break;
+                }
+            }
+
+            // Raycast downwards
+            for (let y = centerY; y < imageHeight; y++) {
+                if (mask[y][centerX]) {
+                    bottomY = y;
+                } else {
+                    break;
+                }
+            }
+
+            // Raycast left
+            for (let x = centerX; x >= 0; x--) {
+                if (mask[centerY][x]) {
+                    leftX = x;
+                } else {
+                    break;
+                }
+            }
+
+            // Raycast right
+            for (let x = centerX; x < imageWidth; x++) {
+                if (mask[centerY][x]) {
+                    rightX = x;
+                } else {
+                    break;
+                }
+            }
+
+
+            const combinedMinX = leftX;
+            const combinedMinY = topY;
+            const combinedMaxX = rightX;
+            const combinedMaxY = bottomY;
+
+            const combinedWidth = combinedMaxX - combinedMinX;
+            const combinedHeight = combinedMaxY - combinedMinY;
+
+
+            // Include the scaling factor
+            const combinedBoundingBox = {
+                x: combinedMinX - (combinedWidth * scalingFactor - combinedWidth) / 2,
+                y: combinedMinY - (combinedHeight * scalingFactor - combinedHeight) / 2,
+                width: combinedWidth * scalingFactor,
+                height: combinedHeight * scalingFactor,
+                label: `${bodyPixLabel}_combined`
+            };
+
+
+            this.boundingBoxes.push(combinedBoundingBox);
+
+
+
         };
-
-        boundingBox = { x: combinedBoundingBox.x, y: combinedBoundingBox.y, width: combinedBoundingBox.width, height: combinedBoundingBox.height, label: 'head_combined' };
-
-        this.boundingBoxes.push(boundingBox);
 
     }
 
@@ -527,12 +596,9 @@ export class CameraProcessor {
         console.log('draw');
 
         await this.clearCanvas();
-
         await this.drawVideo();
-
         await this.drawSegmentation();
         await this.drawPose();
-
         await this.drawBoundingBoxes();
 
         //wait 1 second
@@ -639,23 +705,31 @@ export class CameraProcessor {
             return;
         }
 
+
+
         const keypointInd =
             poseDetection.util.getKeypointIndexBySide(poseDetection.SupportedModels.BlazePose);
         ctx.fillStyle = 'Red';
-        ctx.strokeStyle = '#ffd8b1';
+
         ctx.lineWidth = 5;
 
+
+
+
         for (const i of keypointInd.middle) {
+            ctx.strokeStyle = (keypoints[i].score ?? 0 >= .5) ? 'rgba(0,255,0,1)' : 'rgba(0,0,255)';
             this.drawKeypoint(ctx, keypoints[i]);
         }
 
         ctx.fillStyle = 'Green';
         for (const i of keypointInd.left) {
+            ctx.strokeStyle = (keypoints[i].score ?? 0 >= .5) ? 'rgba(0,255,0,1)' : 'rgba(0,0,255)';
             this.drawKeypoint(ctx, keypoints[i]);
         }
 
         ctx.fillStyle = 'Orange';
         for (const i of keypointInd.right) {
+            ctx.strokeStyle = (keypoints[i].score ?? 0 >= .5) ? 'rgba(0,255,0,1)' : 'rgba(0,0,255)';
             this.drawKeypoint(ctx, keypoints[i]);
         }
 
@@ -736,6 +810,57 @@ export class CameraProcessor {
             ctx.fillText(boundingBox.label, boundingBox.x, boundingBox.y - 10);
 
         }
+
+
+    }
+
+
+
+
+
+
+
+    async render() {
+
+        console.log('render');
+
+        // render the processed canvas to the rendering canvas
+        // fill the rendering canvas with the processed canvas, make it responsive
+
+        if (!this.canvas_process || !this.canvas_render) {
+            console.error('No canvas or rendering canvas');
+            return;
+        }
+
+        const canvas_process = this.canvas_process as HTMLCanvasElement;
+        const canvas_render = this.canvas_render as HTMLCanvasElement;
+
+        const ctx_render = canvas_render.getContext('2d');
+        const ctx_process = canvas_process.getContext('2d');
+
+        if (!ctx_render || !ctx_process) {
+            console.error('No context');
+            return;
+        }
+
+        // draw processed canvas, make it responsive and scale proportionally, but cover the whole rendering canvas
+       
+
+        const aspectRatio = canvas_process.width / canvas_process.height;
+
+        const renderHeight = canvas_render.height;
+        const renderWidth = renderHeight * aspectRatio;
+
+        const renderX = (canvas_render.width - renderWidth) / 2;
+        const renderY = 0;
+
+        ctx_render.drawImage(canvas_process, renderX, renderY, renderWidth, renderHeight);
+
+        
+
+
+
+
 
 
     }

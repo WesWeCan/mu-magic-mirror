@@ -48,7 +48,6 @@ export const blazePosePoseBodyParts = {
 }
 
 
-
 export const bodyPixRedValue = {
     0: "left_face",
     1: "right_face",
@@ -79,9 +78,13 @@ export const bodyPixRedValue = {
   
   export const bodyPixCombination = {
     "head": [0, 1],
-    "left_arm": [2, 3, 6, 7, 10],
-    "right_arm": [4, 5, 8, 9, 11],
     "torso": [12, 13],
+    "right_arm": [4, 5, 8, 9, 11],
+    "left_arm": [2, 3, 6, 7, 10],
+    "right_leg": [16, 17, 20, 21, 23],
     "left_leg": [14, 15, 18, 19, 22],
-    "right_leg": [16, 17, 20, 21, 23]
+    "right_hand": [11],
+    "left_hand": [10],
+    "right_foot": [23],
+    "left_foot": [22]
   };
