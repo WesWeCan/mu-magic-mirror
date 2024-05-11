@@ -398,19 +398,6 @@ export class CameraProcessor {
         return poses;
     }
 
-    async filterkeypoints(keypoints: poseDetection.Keypoint[]) {
-
-        const treshold = 0.9;
-
-        const filteredKeypoints = keypoints.filter(keypoint => keypoint.score as number > treshold);
-
-
-        this.inferenceData.filteredKeypoints = filteredKeypoints;
-        return filteredKeypoints;
-
-    }
-
-
     async getBoundingBoxes(poses: poseDetection.Pose[], input: PixelInput) {
 
 
@@ -425,8 +412,8 @@ export class CameraProcessor {
 
     }
 
-    async getBoundingBox(keypoints: poseDetection.Keypoint[], input: PixelInput) {
-        return;
+    async getBoundingBox(keypoints: poseDetection.Keypoint[], input: PixelInput) {    
+
         this.boundingBoxes = [];
         const pixels = this.inferenceData.pixels as Pixel[];
 
@@ -460,11 +447,9 @@ export class CameraProcessor {
 
             const boundingBox = { x: partMinX, y: partMinY, width: partWidth, height: partHeight, label: `${blazePoseLabel}_pose` };
 
-            this.boundingBoxes.push(boundingBox);
-
+            // this.boundingBoxes.push(boundingBox);
 
             // ----------------------------
-
 
 
             // Bounding Box based on BodyPix mask
@@ -486,18 +471,36 @@ export class CameraProcessor {
 
             const maskBoundingBox = { x: partBoundingBox.x, y: partBoundingBox.y, width: partBoundingBox.width, height: partBoundingBox.height, label: `${blazePoseLabel}_mask` };
 
-            this.boundingBoxes.push(maskBoundingBox);
+            // this.boundingBoxes.push(maskBoundingBox);
 
+
+           
             // ----------------------------
-
 
 
             // Bounding Box based on combined mask
 
 
-            // Calculate the center of the {part}_pose bounding box
-            const centerX = Math.round(partMinX + partWidth / 2);
-            const centerY = Math.round(partMinY + partHeight / 2);
+          
+
+            let centerX = Math.floor((partBoundingBox.x + partBoundingBox.width / 2));
+            let centerY = Math.floor((partBoundingBox.y + partBoundingBox.height / 2));
+
+            if (centerX < 0) {
+                centerX = 0;
+            }
+
+            if (centerX > imageWidth) {
+                centerX = imageWidth;
+            }
+
+            if (centerY < 0) {
+                centerY = 0;
+            }
+
+            if (centerY > imageHeight) {
+                centerY = imageHeight;
+            }
 
             // Initialize the boundaries to the center
             let topY = centerY;
@@ -509,19 +512,10 @@ export class CameraProcessor {
             let mask = Array(imageHeight).fill(0).map(() => Array(imageWidth).fill(false));
 
             // Fill the mask array based on the bodyPix mask
-
-            let atLeastOnePixel = false;
             for (let pixel of pixels) {
                 if (bodyPixCombination[bodyPixLabel].includes(pixel.color.r)) {
                     mask[pixel.y][pixel.x] = true;
-                    atLeastOnePixel = true;
                 }
-            }
-
-
-            if (!atLeastOnePixel) {
-                console.log('No pixels found', bodyPixLabel);
-                continue;
             }
 
             // Raycast upwards
@@ -801,12 +795,12 @@ export class CameraProcessor {
         for (const boundingBox of this.boundingBoxes) {
             ctx.beginPath();
             ctx.rect(boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height);
-            ctx.strokeStyle = boundingBox.label === 'head_combined' ? 'green' : 'red';
+            ctx.strokeStyle = boundingBox.label.includes('_combined') ? 'green' : 'red';
             ctx.lineWidth = 5;
             ctx.stroke();
 
             ctx.font = '20px Arial';
-            ctx.fillStyle = boundingBox.label === 'head_combined' ? 'green' : 'red';
+            ctx.fillStyle = boundingBox.label.includes('_combined') ? 'green' : 'red';
             ctx.fillText(boundingBox.label, boundingBox.x, boundingBox.y - 10);
 
         }
