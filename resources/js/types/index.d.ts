@@ -15,3 +15,20 @@ export type PageProps<T extends Record<string, unknown> = Record<string, unknown
     baseImages?: BaseImage[];
     corpse? : CorpseObject;
 };
+
+
+type Pixel = {
+    x: number,
+    y: number,
+    color: {
+        r: number,
+        g: number,
+        b: number,
+        a: number
+    }
+}
+
+type cutOut = {
+    part: string,
+    img: string
+}
