@@ -3,7 +3,6 @@ import { CameraProcessor } from "@/Lib/CameraProcessor";
 export const drawObjects = async (context: CameraProcessor) => {
 
     if (!context.canvas_process || !context.inferenceData.detectedOjects) {
-        console.error('No canvas or objects');
         return;
     }
 
@@ -15,7 +14,12 @@ export const drawObjects = async (context: CameraProcessor) => {
         return;
     }
 
-    const objects = context.inferenceData.detectedOjects;
+    const objects = context.inferenceData.humans;
+
+    if (!objects) {
+        // console.error('No objects');
+        return;
+    }
 
     objects.forEach((object) => {
         const x = object.bbox[0];

@@ -32,8 +32,12 @@ export const getBoundingBox = async (context: CameraProcessor, keypoints: poseDe
 
     const scalingFactor = 1.2;
 
-    const labels = Object.keys(blazePosePoseBodyParts)
-    
+    const labels = Object.keys(blazePosePoseBodyParts);
+
+
+    // combine the keypoints with the detected Humans to determine the bounding boxes for the masks first
+    // the bodypix mask is not able to differentiate single humans accurately. Therefore, we need to combine the masks
+
     for(let label of labels) {
 
         // General Bounding Box based on only keypoints
@@ -86,7 +90,7 @@ export const getBoundingBox = async (context: CameraProcessor, keypoints: poseDe
         // ----------------------------
 
 
-        continue;
+  
 
         // Bounding Box based on combined mask
         // let centerX = Math.floor((partBoundingBox.x + partBoundingBox.width / 2));

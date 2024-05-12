@@ -28,6 +28,7 @@ import { drawPose } from './CameraProcessorFunctions/draw/drawPose';
 import { drawBoundingBoxes } from './CameraProcessorFunctions/draw/drawBoundingboxes';
 import { detectHumans } from './CameraProcessorFunctions/process/detectHumans';
 import { drawObjects } from './CameraProcessorFunctions/draw/drawObjects';
+import { process } from './CameraProcessorFunctions/process/process';
 
 
 export class CameraProcessor {
@@ -148,38 +149,14 @@ export class CameraProcessor {
             return;
         }
 
-        await this.process(this.video);
+        await process(this, this.video);
         await this.draw();
         await this.render();
     }
 
     // --------------------------------------------------
 
-    async process(input: PixelInput) {
-
-        console.log('process');
-
-        await detectHumans(this, input as ImageData | HTMLImageElement | HTMLCanvasElement | HTMLVideoElement);
-
-        await segmentBodyPix(this, input);
-        await estimatePose(this, input);
-        await convertImageDataToPixels(this, this.inferenceData.maskData as ImageData);
-
-        if (this.inferenceData.poses && this.inferenceData.coloredPartImage) {
-            await getBoundingBoxes(this, this.inferenceData.poses, this.inferenceData.coloredPartImage);
-        }
-
-
-        // console.log(this.inferenceData);
-
-        // await new Promise((resolve) => {
-        //     setTimeout(() => {
-        //         resolve(true);
-        //     }, 1000);
-        // }
-        // )
-
-    }
+    
 
     // --------------------------------------------------
 
