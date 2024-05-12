@@ -83,108 +83,106 @@ export const getBoundingBox = async (context: CameraProcessor, keypoints: poseDe
 
         const maskBoundingBox = { x: partBoundingBox.x, y: partBoundingBox.y, width: partBoundingBox.width, height: partBoundingBox.height, label: `${blazePoseLabel}_mask` };
 
-        context.boundingBoxes.push(maskBoundingBox);
+        // context.boundingBoxes.push(maskBoundingBox);
 
 
        
         // ----------------------------
-
-
   
 
         // Bounding Box based on combined mask
-        // let centerX = Math.floor((partBoundingBox.x + partBoundingBox.width / 2));
-        // let centerY = Math.floor((partBoundingBox.y + partBoundingBox.height / 2));
+        let centerX = Math.floor((partBoundingBox.x + partBoundingBox.width / 2));
+        let centerY = Math.floor((partBoundingBox.y + partBoundingBox.height / 2));
 
-        // if (centerX < 0) {
-        //     centerX = 0;
-        // }
+        if (centerX < 0) {
+            centerX = 0;
+        }
 
-        // if (centerX > imageWidth) {
-        //     centerX = imageWidth;
-        // }
+        if (centerX > imageWidth) {
+            centerX = imageWidth;
+        }
 
-        // if (centerY < 0) {
-        //     centerY = 0;
-        // }
+        if (centerY < 0) {
+            centerY = 0;
+        }
 
-        // if (centerY > imageHeight) {
-        //     centerY = imageHeight;
-        // }
+        if (centerY > imageHeight) {
+            centerY = imageHeight;
+        }
 
-        // // Initialize the boundaries to the center
-        // let topY = centerY;
-        // let bottomY = centerY;
-        // let leftX = centerX;
-        // let rightX = centerX;
+        // Initialize the boundaries to the center
+        let topY = centerY;
+        let bottomY = centerY;
+        let leftX = centerX;
+        let rightX = centerX;
 
-        // // Create a 2D array for the mask
-        // let mask = Array(imageHeight).fill(0).map(() => Array(imageWidth).fill(false));
+        // Create a 2D array for the mask
+        let mask = Array(imageHeight).fill(0).map(() => Array(imageWidth).fill(false));
 
-        // // Fill the mask array based on the bodyPix mask
-        // for (let pixel of pixels) {
-        //     if (bodyPixCombination[bodyPixLabel].includes(pixel.color.r)) {
-        //         mask[pixel.y][pixel.x] = true;
-        //     }
-        // }
+        // Fill the mask array based on the bodyPix mask
+        for (let pixel of pixels) {
+            if (bodyPixCombination[bodyPixLabel].includes(pixel.color.r)) {
+                mask[pixel.y][pixel.x] = true;
+            }
+        }
 
-        // // Raycast upwards
-        // for (let y = centerY; y >= 0; y--) {
-        //     if (mask[y][centerX]) {
-        //         topY = y;
-        //     } else {
-        //         break;
-        //     }
-        // }
+        // Raycast upwards
+        for (let y = centerY; y >= 0; y--) {
+            if (mask[y][centerX]) {
+                topY = y;
+            } else {
+                break;
+            }
+        }
 
-        // // Raycast downwards
-        // for (let y = centerY; y < imageHeight; y++) {
-        //     if (mask[y][centerX]) {
-        //         bottomY = y;
-        //     } else {
-        //         break;
-        //     }
-        // }
+        // Raycast downwards
+        for (let y = centerY; y < imageHeight; y++) {
+            if (mask[y][centerX]) {
+                bottomY = y;
+            } else {
+                break;
+            }
+        }
 
-        // // Raycast left
-        // for (let x = centerX; x >= 0; x--) {
-        //     if (mask[centerY][x]) {
-        //         leftX = x;
-        //     } else {
-        //         break;
-        //     }
-        // }
+        // Raycast left
+        for (let x = centerX; x >= 0; x--) {
+            if (mask[centerY][x]) {
+                leftX = x;
+            } else {
+                break;
+            }
+        }
 
-        // // Raycast right
-        // for (let x = centerX; x < imageWidth; x++) {
-        //     if (mask[centerY][x]) {
-        //         rightX = x;
-        //     } else {
-        //         break;
-        //     }
-        // }
-
-
-        // const combinedMinX = leftX;
-        // const combinedMinY = topY;
-        // const combinedMaxX = rightX;
-        // const combinedMaxY = bottomY;
-
-        // const combinedWidth = combinedMaxX - combinedMinX;
-        // const combinedHeight = combinedMaxY - combinedMinY;
+        // Raycast right
+        for (let x = centerX; x < imageWidth; x++) {
+            if (mask[centerY][x]) {
+                rightX = x;
+            } else {
+                break;
+            }
+        }
 
 
-        // // Include the scaling factor
-        // const combinedBoundingBox = {
-        //     x: combinedMinX - (combinedWidth * scalingFactor - combinedWidth) / 2,
-        //     y: combinedMinY - (combinedHeight * scalingFactor - combinedHeight) / 2,
-        //     width: combinedWidth * scalingFactor,
-        //     height: combinedHeight * scalingFactor,
-        //     label: `${bodyPixLabel}_combined`
-        // };
+        const combinedMinX = leftX;
+        const combinedMinY = topY;
+        const combinedMaxX = rightX;
+        const combinedMaxY = bottomY;
+
+        const combinedWidth = combinedMaxX - combinedMinX;
+        const combinedHeight = combinedMaxY - combinedMinY;
 
 
-        // context.boundingBoxes.push(combinedBoundingBox);
+        // Include the scaling factor
+        const combinedBoundingBox = {
+            x: combinedMinX - (combinedWidth * scalingFactor - combinedWidth) / 2,
+            y: combinedMinY - (combinedHeight * scalingFactor - combinedHeight) / 2,
+            width: combinedWidth * scalingFactor,
+            height: combinedHeight * scalingFactor,
+            label: `${bodyPixLabel}_combined`
+        };
+
+
+        context.boundingBoxes.push(combinedBoundingBox);
 
 
 

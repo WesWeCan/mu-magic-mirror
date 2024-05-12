@@ -60,12 +60,14 @@ export class CameraProcessor {
         {
             bodyPix: bodySegmentation.BodySegmenter | undefined,
             blazePose: poseDetection.PoseDetector | undefined,
-            cocoSsd: cocoSsd.ObjectDetection | undefined
+            cocoSsd: cocoSsd.ObjectDetection | undefined,
+            selfieSegmentation: bodySegmentation.BodySegmenter | undefined
         }
         = {
             bodyPix: undefined,
             blazePose: undefined,
-            cocoSsd: undefined
+            cocoSsd: undefined,
+            selfieSegmentation: undefined
         };
     inferenceData: {
         poses: poseDetection.Pose[] | undefined,
@@ -137,6 +139,7 @@ export class CameraProcessor {
         console.log('Switching video device to: ' + nextDevice.label);
 
         getMediaStream(this, this.div_video as HTMLDivElement);
+        // createCanvasses(this, this.div_process as HTMLDivElement, this.div_render as HTMLDivElement);
 
     }
 
@@ -165,11 +168,12 @@ export class CameraProcessor {
 
         await clearCanvas(this);
         await drawVideo(this);
-        
+
         await drawSegmentation(this);
         await drawPose(this);
 
         await drawObjects(this);
+
         await drawBoundingBoxes(this);
 
         //wait 1 second

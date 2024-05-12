@@ -13,7 +13,7 @@ export const process = async (context: CameraProcessor, input: PixelInput) => {
 
     console.log('process');
 
-    // await detectHumans(context, input as ImageData | HTMLImageElement | HTMLCanvasElement | HTMLVideoElement);
+    await detectHumans(context, input as ImageData | HTMLImageElement | HTMLCanvasElement | HTMLVideoElement);
 
     await segmentBodyPix(context, input);
     await estimatePose(context, input);

@@ -6,6 +6,7 @@ import * as cocoSsd from '@tensorflow-models/coco-ssd';
 // Register WebGL backend.
 import '@tensorflow/tfjs-backend-webgl';
 import * as tf from '@tensorflow/tfjs';
+import '@tensorflow/tfjs-backend-webgl';
 
 export const setupInferences = async (context: CameraProcessor) => {
 
@@ -22,6 +23,19 @@ export const setupInferences = async (context: CameraProcessor) => {
     const cocoSsdModel = await cocoSsd.load(modelConfig);
     context.inference.cocoSsd = cocoSsdModel;
     console.log('CocoSsd ready');
+
+
+
+    // Selfie Segmentation
+    context.inference.selfieSegmentation = undefined;
+    const selfieSegmenterConfig : bodySegmentation.MediaPipeSelfieSegmentationMediaPipeModelConfig = {
+        runtime: 'mediapipe',
+        solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation'
+    }
+    const selfieSegmentation = await bodySegmentation.createSegmenter(bodySegmentation.SupportedModels.MediaPipeSelfieSegmentation, selfieSegmenterConfig);
+    context.inference.selfieSegmentation = selfieSegmentation;
+    console.log('SelfieSegmentation ready');
+
 
 
 

@@ -32,8 +32,8 @@ export const getMediaStream = async (context: CameraProcessor, videoDiv: HTMLDiv
     const constraints = {
         video: {
             deviceId: context.currentVideoDevice ? { exact: context.currentVideoDevice.deviceId } : undefined,
-            width: { ideal: 640 },
-            height: { ideal: 480 }
+            // width: { ideal: 640 },
+            // height: { ideal: 480 }
         }
     };
 
