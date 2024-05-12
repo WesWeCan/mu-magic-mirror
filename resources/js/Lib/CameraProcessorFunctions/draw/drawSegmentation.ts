@@ -3,7 +3,6 @@ import { CameraProcessor } from "@/Lib/CameraProcessor";
 export const drawSegmentation = async (context: CameraProcessor) => {
 
     if (!context.canvas_process || !context.inferenceData.coloredPartImage) {
-        console.error('No canvas or coloredPartImage');
         return;
     }
 

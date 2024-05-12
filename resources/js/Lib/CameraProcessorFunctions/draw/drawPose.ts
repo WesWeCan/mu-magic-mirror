@@ -7,7 +7,6 @@ export const drawPose = async (context: CameraProcessor) => {
 
 
     if (!context.canvas_process || !context.inferenceData.poses) {
-        console.error('No canvas or poses');
         return;
     }
 

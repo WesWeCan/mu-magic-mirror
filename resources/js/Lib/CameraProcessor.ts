@@ -2,14 +2,14 @@
 import { Pixel, cutOut } from '@/types';
 
 import '@tensorflow/tfjs';
-import * as tf from '@tensorflow/tfjs';
+
 import * as bodySegmentation from '@tensorflow-models/body-segmentation';
 import '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-backend-webgl';
 import '@mediapipe/selfie_segmentation';
 
 import { PixelInput, Segmentation } from '@tensorflow-models/body-segmentation/dist/shared/calculators/interfaces/common_interfaces';
-
+import * as cocoSsd from '@tensorflow-models/coco-ssd';
 
 import * as poseDetection from '@tensorflow-models/pose-detection';
 // Register WebGL backend.
@@ -26,6 +26,8 @@ import { drawVideo } from './CameraProcessorFunctions/draw/drawVideo';
 import { drawSegmentation } from './CameraProcessorFunctions/draw/drawSegmentation';
 import { drawPose } from './CameraProcessorFunctions/draw/drawPose';
 import { drawBoundingBoxes } from './CameraProcessorFunctions/draw/drawBoundingboxes';
+import { detectHumans } from './CameraProcessorFunctions/process/detectHumans';
+import { drawObjects } from './CameraProcessorFunctions/draw/drawObjects';
 
 
 export class CameraProcessor {
@@ -56,24 +58,30 @@ export class CameraProcessor {
     inference:
         {
             bodyPix: bodySegmentation.BodySegmenter | undefined,
-            blazePose: poseDetection.PoseDetector | undefined
+            blazePose: poseDetection.PoseDetector | undefined,
+            cocoSsd: cocoSsd.ObjectDetection | undefined
         }
         = {
             bodyPix: undefined,
-            blazePose: undefined
+            blazePose: undefined,
+            cocoSsd: undefined
         };
     inferenceData: {
         poses: poseDetection.Pose[] | undefined,
         coloredPartImage: ImageData | undefined,
         bodyPixSegmentation: Segmentation[] | undefined
         pixels: Pixel[] | undefined,
-        maskData: ImageData | undefined
+        maskData: ImageData | undefined,
+        detectedOjects: cocoSsd.DetectedObject[] | undefined,
+        humans: cocoSsd.DetectedObject[] | undefined
     } = {
             poses: undefined,
             bodyPixSegmentation: undefined,
             coloredPartImage: undefined,
             pixels: undefined,
-            maskData: undefined
+            maskData: undefined,
+            detectedOjects: undefined,
+            humans: undefined
         };
 
 
@@ -151,6 +159,8 @@ export class CameraProcessor {
 
         console.log('process');
 
+        await detectHumans(this, input as ImageData | HTMLImageElement | HTMLCanvasElement | HTMLVideoElement);
+
         await segmentBodyPix(this, input);
         await estimatePose(this, input);
         await convertImageDataToPixels(this, this.inferenceData.maskData as ImageData);
@@ -178,8 +188,11 @@ export class CameraProcessor {
 
         await clearCanvas(this);
         await drawVideo(this);
+        
         await drawSegmentation(this);
         await drawPose(this);
+
+        await drawObjects(this);
         await drawBoundingBoxes(this);
 
         //wait 1 second
