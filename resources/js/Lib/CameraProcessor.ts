@@ -147,6 +147,7 @@ export class CameraProcessor {
     // --------------------------------------------------
 
     async loop() {
+
         if (!this.video || !this.canvas_process) {
             console.error('No video or canvas');
             return;
@@ -170,6 +171,8 @@ export class CameraProcessor {
         await drawVideo(this);
 
         await drawSegmentation(this);
+
+        return;
         await drawPose(this);
 
         await drawObjects(this);

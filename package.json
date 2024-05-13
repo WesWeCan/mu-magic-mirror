@@ -32,6 +32,7 @@
         "@tensorflow/tfjs-backend-webgpu": "^4.17.0",
         "@tensorflow/tfjs-converter": "^4.17.0",
         "@tensorflow/tfjs-core": "^4.19.0",
+        "mirada": "^0.0.15",
         "vue3-toastify": "^0.2.1"
     }
 }

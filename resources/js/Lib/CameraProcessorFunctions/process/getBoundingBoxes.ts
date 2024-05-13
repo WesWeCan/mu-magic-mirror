@@ -86,103 +86,197 @@ export const getBoundingBox = async (context: CameraProcessor, keypoints: poseDe
         // context.boundingBoxes.push(maskBoundingBox);
 
 
-       
         // ----------------------------
-  
+        
 
-        // Bounding Box based on combined mask
-        let centerX = Math.floor((partBoundingBox.x + partBoundingBox.width / 2));
-        let centerY = Math.floor((partBoundingBox.y + partBoundingBox.height / 2));
+        // EXAMPLE CODE FROM OPENCV
+        // let src = cv.imread('canvasInput');
+        // let dst = cv.Mat.zeros(src.rows, src.cols, cv.CV_8UC3);
+        // cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
+        // cv.threshold(src, src, 177, 200, cv.THRESH_BINARY);
+        // let contours = new cv.MatVector();
+        // let hierarchy = new cv.Mat();
+        // cv.findContours(src, contours, hierarchy, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE);
+        // let cnt = contours.get(0);
+        // // You can try more different parameters
+        // let rect = cv.boundingRect(cnt);
+        // let contoursColor = new cv.Scalar(255, 255, 255);
+        // let rectangleColor = new cv.Scalar(255, 0, 0);
+        // cv.drawContours(dst, contours, 0, contoursColor, 1, 8, hierarchy, 100);
+        // let point1 = new cv.Point(rect.x, rect.y);
+        // let point2 = new cv.Point(rect.x + rect.width, rect.y + rect.height);
+        // cv.rectangle(dst, point1, point2, rectangleColor, 2, cv.LINE_AA, 0);
+        // cv.imshow('canvasOutput', dst);
+        // src.delete(); dst.delete(); contours.delete(); hierarchy.delete(); cnt.delete();
 
-        if (centerX < 0) {
-            centerX = 0;
-        }
 
-        if (centerX > imageWidth) {
-            centerX = imageWidth;
-        }
+        // Based on the mask, get the bounding box of this label
+        // first I probably have to make a binary image of the mask
+        // then I can use the findContours method to get the bounding box
 
-        if (centerY < 0) {
-            centerY = 0;
-        }
+        const mask = Array(imageHeight).fill(0).map(() => Array(imageWidth).fill(0));
 
-        if (centerY > imageHeight) {
-            centerY = imageHeight;
-        }
-
-        // Initialize the boundaries to the center
-        let topY = centerY;
-        let bottomY = centerY;
-        let leftX = centerX;
-        let rightX = centerX;
-
-        // Create a 2D array for the mask
-        let mask = Array(imageHeight).fill(0).map(() => Array(imageWidth).fill(false));
-
-        // Fill the mask array based on the bodyPix mask
         for (let pixel of pixels) {
             if (bodyPixCombination[bodyPixLabel].includes(pixel.color.r)) {
-                mask[pixel.y][pixel.x] = true;
+                mask[pixel.y][pixel.x] = 1;
             }
         }
 
-        // Raycast upwards
-        for (let y = centerY; y >= 0; y--) {
-            if (mask[y][centerX]) {
-                topY = y;
-            } else {
-                break;
-            }
+        const cvCanvas = document.createElement('canvas');
+        cvCanvas.width = imageWidth;
+        cvCanvas.height = imageHeight;
+
+        const cvContext = cvCanvas.getContext('2d');
+
+        if (!cvContext) {
+            console.error('No context');
+            return;
         }
 
-        // Raycast downwards
-        for (let y = centerY; y < imageHeight; y++) {
-            if (mask[y][centerX]) {
-                bottomY = y;
-            } else {
-                break;
-            }
-        }
+        const cvImageData = cvContext.createImageData(imageWidth, imageHeight);
 
-        // Raycast left
-        for (let x = centerX; x >= 0; x--) {
-            if (mask[centerY][x]) {
-                leftX = x;
-            } else {
-                break;
-            }
-        }
+        let data = cvImageData.data;
 
-        // Raycast right
-        for (let x = centerX; x < imageWidth; x++) {
-            if (mask[centerY][x]) {
-                rightX = x;
-            } else {
-                break;
-            }
+        for (let i = 0; i < data.length; i += 4) {
+            let x = (i / 4) % imageWidth;
+            let y = Math.floor((i / 4) / imageWidth);
+
+            let value = mask[y][x] * 255;
+
+            data[i] = value;
+            data[i + 1] = value;
+            data[i + 2] = value;
+            data[i + 3] = 255;
         }
 
 
-        const combinedMinX = leftX;
-        const combinedMinY = topY;
-        const combinedMaxX = rightX;
-        const combinedMaxY = bottomY;
-
-        const combinedWidth = combinedMaxX - combinedMinX;
-        const combinedHeight = combinedMaxY - combinedMinY;
-
-
-        // Include the scaling factor
-        const combinedBoundingBox = {
-            x: combinedMinX - (combinedWidth * scalingFactor - combinedWidth) / 2,
-            y: combinedMinY - (combinedHeight * scalingFactor - combinedHeight) / 2,
-            width: combinedWidth * scalingFactor,
-            height: combinedHeight * scalingFactor,
-            label: `${bodyPixLabel}_combined`
-        };
+        // download the image
+        // let downloadCanvas = document.createElement('canvas');
+        // downloadCanvas.width = imageWidth;
+        // downloadCanvas.height = imageHeight;
+        // let downloadContext = downloadCanvas.getContext('2d');
+        // downloadContext?.putImageData(cvImageData, 0, 0);
+        // let downloadImage = downloadCanvas.toDataURL('image/png');
+        // let downloadLink = document.createElement('a');
+        // downloadLink.href = downloadImage;
+        // downloadLink.download = `mask_${label}.png`;
+        // // downloadLink.click();
 
 
-        context.boundingBoxes.push(combinedBoundingBox);
+        cvContext.putImageData(cvImageData, 0, 0);
+
+        // let src = cv.imread(cvCanvas);
+        
+        
+        // ----------------------------
+
+
+
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        continue;
+
+        // Bounding Box based on combined mask
+        // let centerX = Math.floor((partBoundingBox.x + partBoundingBox.width / 2));
+        // let centerY = Math.floor((partBoundingBox.y + partBoundingBox.height / 2));
+
+        // if (centerX < 0) {
+        //     centerX = 0;
+        // }
+
+        // if (centerX > imageWidth) {
+        //     centerX = imageWidth;
+        // }
+
+        // if (centerY < 0) {
+        //     centerY = 0;
+        // }
+
+        // if (centerY > imageHeight) {
+        //     centerY = imageHeight;
+        // }
+
+        // // Initialize the boundaries to the center
+        // let topY = centerY;
+        // let bottomY = centerY;
+        // let leftX = centerX;
+        // let rightX = centerX;
+
+        // // Create a 2D array for the mask
+        // let mask = Array(imageHeight).fill(0).map(() => Array(imageWidth).fill(false));
+
+        // // Fill the mask array based on the bodyPix mask
+        // for (let pixel of pixels) {
+        //     if (bodyPixCombination[bodyPixLabel].includes(pixel.color.r)) {
+        //         mask[pixel.y][pixel.x] = true;
+        //     }
+        // }
+
+        // // Raycast upwards
+        // for (let y = centerY; y >= 0; y--) {
+        //     if (mask[y][centerX]) {
+        //         topY = y;
+        //     } else {
+        //         break;
+        //     }
+        // }
+
+        // // Raycast downwards
+        // for (let y = centerY; y < imageHeight; y++) {
+        //     if (mask[y][centerX]) {
+        //         bottomY = y;
+        //     } else {
+        //         break;
+        //     }
+        // }
+
+        // // Raycast left
+        // for (let x = centerX; x >= 0; x--) {
+        //     if (mask[centerY][x]) {
+        //         leftX = x;
+        //     } else {
+        //         break;
+        //     }
+        // }
+
+        // // Raycast right
+        // for (let x = centerX; x < imageWidth; x++) {
+        //     if (mask[centerY][x]) {
+        //         rightX = x;
+        //     } else {
+        //         break;
+        //     }
+        // }
+
+
+        // const combinedMinX = leftX;
+        // const combinedMinY = topY;
+        // const combinedMaxX = rightX;
+        // const combinedMaxY = bottomY;
+
+        // const combinedWidth = combinedMaxX - combinedMinX;
+        // const combinedHeight = combinedMaxY - combinedMinY;
+
+
+        // // Include the scaling factor
+        // const combinedBoundingBox = {
+        //     x: combinedMinX - (combinedWidth * scalingFactor - combinedWidth) / 2,
+        //     y: combinedMinY - (combinedHeight * scalingFactor - combinedHeight) / 2,
+        //     width: combinedWidth * scalingFactor,
+        //     height: combinedHeight * scalingFactor,
+        //     label: `${bodyPixLabel}_combined`
+        // };
+
+
+        // context.boundingBoxes.push(combinedBoundingBox);
 
 
 

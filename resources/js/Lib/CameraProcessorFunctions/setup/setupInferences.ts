@@ -8,10 +8,20 @@ import '@tensorflow/tfjs-backend-webgl';
 import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-backend-webgl';
 
+
+
+
+
 export const setupInferences = async (context: CameraProcessor) => {
 
     await tf.ready();
     console.log('Tensorflow ready');
+
+    console.log('Setting up inferences')
+
+    console.log(cv.getBuildInformation());
+
+
 
 
     // COCO-SSD
