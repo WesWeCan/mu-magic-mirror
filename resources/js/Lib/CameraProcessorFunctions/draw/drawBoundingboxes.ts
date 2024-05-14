@@ -18,12 +18,12 @@ export const drawBoundingBoxes = async (context: CameraProcessor) => {
     for (const boundingBox of context.boundingBoxes) {
         ctx.beginPath();
         ctx.rect(boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height);
-        ctx.strokeStyle = boundingBox.label.includes('_combined') ? 'green' : 'red';
+        ctx.strokeStyle = boundingBox.label.includes('_pose') ? 'green' : 'red';
         ctx.lineWidth = 5;
         ctx.stroke();
 
         ctx.font = '20px Arial';
-        ctx.fillStyle = boundingBox.label.includes('_combined') ? 'green' : 'red';
+        ctx.fillStyle = boundingBox.label.includes('_pose') ? 'green' : 'red';
         ctx.fillText(boundingBox.label, boundingBox.x, boundingBox.y - 10);
 
     }

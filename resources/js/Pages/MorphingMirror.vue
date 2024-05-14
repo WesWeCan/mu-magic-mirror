@@ -106,7 +106,7 @@ const reload = () => {
 
 const pictureTaken = async (boundingBoxes : BoundingBox[]) => {
 
-    console.log('picture taken', event);
+    console.log('picture taken', boundingBoxes);
 
     if (collageProcessing.value) {
         return;

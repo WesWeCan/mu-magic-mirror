@@ -44,21 +44,21 @@ export const getBoundingBox = async (context: CameraProcessor, keypoints: poseDe
 
         const blazePoseLabel = label as keyof typeof blazePosePoseBodyParts;
 
-        // const partPoints: poseDetection.Keypoint[] = [];
+        const partPoints: poseDetection.Keypoint[] = [];
 
-        // for (const part of blazePosePoseBodyParts[blazePoseLabel]) {
-        //     partPoints.push(keypoints[part]);
-        // }
+        for (const part of blazePosePoseBodyParts[blazePoseLabel]) {
+            partPoints.push(keypoints[part]);
+        }
 
-        // const partMinX = Math.min(...partPoints.map(point => point.x));
-        // const partMinY = Math.min(...partPoints.map(point => point.y));
-        // const partMaxX = Math.max(...partPoints.map(point => point.x));
-        // const partMaxY = Math.max(...partPoints.map(point => point.y));
+        const partMinX = Math.min(...partPoints.map(point => point.x));
+        const partMinY = Math.min(...partPoints.map(point => point.y));
+        const partMaxX = Math.max(...partPoints.map(point => point.x));
+        const partMaxY = Math.max(...partPoints.map(point => point.y));
 
-        // const partWidth = partMaxX - partMinX;
-        // const partHeight = partMaxY - partMinY;
+        const partWidth = partMaxX - partMinX;
+        const partHeight = partMaxY - partMinY;
 
-        // const boundingBox = { x: partMinX, y: partMinY, width: partWidth, height: partHeight, label: `${blazePoseLabel}_pose` };
+        const boundingBox = { x: partMinX, y: partMinY, width: partWidth, height: partHeight, label: `${blazePoseLabel}_pose` };
 
         // context.boundingBoxes.push(boundingBox);
 
