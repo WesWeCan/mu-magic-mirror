@@ -19,32 +19,32 @@ export const setupInferences = async (context: CameraProcessor) => {
 
     console.log('Setting up inferences')
 
-    console.log(cv.getBuildInformation());
+    // console.log(cv.getBuildInformation());
 
 
 
 
-    // COCO-SSD
-    context.inference.cocoSsd = undefined;
-    const modelConfig : cocoSsd.ModelConfig = {
-        base: 'lite_mobilenet_v2',
-        modelUrl: undefined,
-    }
-    const cocoSsdModel = await cocoSsd.load(modelConfig);
-    context.inference.cocoSsd = cocoSsdModel;
-    console.log('CocoSsd ready');
+    // // COCO-SSD
+    // context.inference.cocoSsd = undefined;
+    // const modelConfig : cocoSsd.ModelConfig = {
+    //     base: 'lite_mobilenet_v2',
+    //     modelUrl: undefined,
+    // }
+    // const cocoSsdModel = await cocoSsd.load(modelConfig);
+    // context.inference.cocoSsd = cocoSsdModel;
+    // console.log('CocoSsd ready');
 
 
 
-    // Selfie Segmentation
-    context.inference.selfieSegmentation = undefined;
-    const selfieSegmenterConfig : bodySegmentation.MediaPipeSelfieSegmentationMediaPipeModelConfig = {
-        runtime: 'mediapipe',
-        solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation'
-    }
-    const selfieSegmentation = await bodySegmentation.createSegmenter(bodySegmentation.SupportedModels.MediaPipeSelfieSegmentation, selfieSegmenterConfig);
-    context.inference.selfieSegmentation = selfieSegmentation;
-    console.log('SelfieSegmentation ready');
+    // // Selfie Segmentation
+    // context.inference.selfieSegmentation = undefined;
+    // const selfieSegmenterConfig : bodySegmentation.MediaPipeSelfieSegmentationMediaPipeModelConfig = {
+    //     runtime: 'mediapipe',
+    //     solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation'
+    // }
+    // const selfieSegmentation = await bodySegmentation.createSegmenter(bodySegmentation.SupportedModels.MediaPipeSelfieSegmentation, selfieSegmenterConfig);
+    // context.inference.selfieSegmentation = selfieSegmentation;
+    // console.log('SelfieSegmentation ready');
 
 
 
@@ -60,7 +60,7 @@ export const setupInferences = async (context: CameraProcessor) => {
     const detectorConfig = {
         runtime: 'tfjs',
         enableSmoothing: true,
-        modelType: "full",
+        modelType: "lite",
     };
     const blazePose = await poseDetection.createDetector(poseDetection.SupportedModels.BlazePose, detectorConfig);
     context.inference.blazePose = blazePose;

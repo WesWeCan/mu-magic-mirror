@@ -11,7 +11,7 @@ import { getBoundingBoxes } from './getBoundingBoxes';
 
 export const process = async (context: CameraProcessor, input: PixelInput) => {
 
-    console.log('process');
+    // console.log('process');
 
     // await detectHumans(context, input as ImageData | HTMLImageElement | HTMLCanvasElement | HTMLVideoElement);
 

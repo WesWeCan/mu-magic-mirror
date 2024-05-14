@@ -16,64 +16,52 @@ const div_process = ref<HTMLDivElement | null>(null);
 const div_render= ref<HTMLDivElement | null>(null);
 
 
-const emit = defineEmits(['newSlice']);
+const emit = defineEmits(['newSlice', 'pictureTaken']);
 
 
 onMounted(async () => {
 
 
-    if (video_container.value && div_process.value, div_render.value) {
+    if (video_container.value && div_process.value && div_render.value) {
         await cp.init(video_container.value, div_process.value, div_render.value);
 
-        div_process.value.addEventListener('click', (e) => {
-            const slice = cp.takePictureAndSlice()
-                .then((res) => {
+        // div_process.value.addEventListener('click', (e) => {
+        //     const slice = cp.takePictureAndSlice()
+        //         .then((res) => {
 
-                    if (res != null) {
-                        emit('newSlice', res);
-                    }
+        //             if (res != null) {
+        //                 emit('newSlice', res);
+        //             }
 
-                })
+        //         })
 
-        });
+        // });
 
-        requestAnimationFrame(draw);
+        requestAnimationFrame(loop);
     }
 
 });
 
 
-const draw = async () => {
+const loop = async () => {
     if (video_container.value && div_process.value) {
-        // cp.readAndDrawSegmented();
         await cp.loop();
-        requestAnimationFrame(draw);
+        requestAnimationFrame(loop);
     }
 }
 
-
-
-
-
-
 const cutOuts = ref<CutoutRaw[]>([]);
-
-const takePicture = () => {
-    // cp.takePictureAndProcess()
-    //     .then((res) => {
-    //         console.log(res);
-
-    //         cutOuts.value = res;
-
-    //     })
-    //     .catch((err) => {
-    //         console.log(err);
-    //     });
-}
-
 
 const switchDevice = () => {
     cp.switchVideoDevice();
+}
+
+
+const takePhoto = () => {
+    console.log('take photo');
+
+    console.log(cp.boundingBoxes);
+    emit('pictureTaken', cp.boundingBoxes);
 }
 
 </script>
@@ -87,6 +75,8 @@ const switchDevice = () => {
     <div ref="div_render" class="div-render"></div>
 
     <button class="switch-device-button" @click="switchDevice">Switch Device</button>
+
+    <div class="take-photo-button" @click="takePhoto">Take Photo</div>
 
     <div v-for="cutOut in cutOuts" :key="cutOut.part">
         <img :src="cutOut.img" :alt="cutOut.part" />

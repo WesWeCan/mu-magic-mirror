@@ -110,7 +110,12 @@ body.mirror {
     }
 
 
-    .collage-button, .list-button, .redo-button, .start-over-button, .switch-device-button {
+    .collage-button, 
+    .list-button, 
+    .redo-button, 
+    .start-over-button, 
+    .switch-device-button, 
+    .take-photo-button {
         position: absolute;
         bottom: calc(20% + 0rem);
         right: 0;
@@ -140,6 +145,12 @@ body.mirror {
         right: unset;
         top: 0;
         bottom: unset;
+    }
+
+    .take-photo-button {
+        left: 0;
+        bottom: 0;
+        right: unset;
     }
 
 

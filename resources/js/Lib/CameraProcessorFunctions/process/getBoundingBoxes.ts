@@ -44,23 +44,23 @@ export const getBoundingBox = async (context: CameraProcessor, keypoints: poseDe
 
         const blazePoseLabel = label as keyof typeof blazePosePoseBodyParts;
 
-        const partPoints: poseDetection.Keypoint[] = [];
+        // const partPoints: poseDetection.Keypoint[] = [];
 
-        for (const part of blazePosePoseBodyParts[blazePoseLabel]) {
-            partPoints.push(keypoints[part]);
-        }
+        // for (const part of blazePosePoseBodyParts[blazePoseLabel]) {
+        //     partPoints.push(keypoints[part]);
+        // }
 
-        const partMinX = Math.min(...partPoints.map(point => point.x));
-        const partMinY = Math.min(...partPoints.map(point => point.y));
-        const partMaxX = Math.max(...partPoints.map(point => point.x));
-        const partMaxY = Math.max(...partPoints.map(point => point.y));
+        // const partMinX = Math.min(...partPoints.map(point => point.x));
+        // const partMinY = Math.min(...partPoints.map(point => point.y));
+        // const partMaxX = Math.max(...partPoints.map(point => point.x));
+        // const partMaxY = Math.max(...partPoints.map(point => point.y));
 
-        const partWidth = partMaxX - partMinX;
-        const partHeight = partMaxY - partMinY;
+        // const partWidth = partMaxX - partMinX;
+        // const partHeight = partMaxY - partMinY;
 
-        const boundingBox = { x: partMinX, y: partMinY, width: partWidth, height: partHeight, label: `${blazePoseLabel}_pose` };
+        // const boundingBox = { x: partMinX, y: partMinY, width: partWidth, height: partHeight, label: `${blazePoseLabel}_pose` };
 
-        context.boundingBoxes.push(boundingBox);
+        // context.boundingBoxes.push(boundingBox);
 
         // ----------------------------
 
@@ -83,7 +83,7 @@ export const getBoundingBox = async (context: CameraProcessor, keypoints: poseDe
 
         const maskBoundingBox = { x: partBoundingBox.x, y: partBoundingBox.y, width: partBoundingBox.width, height: partBoundingBox.height, label: `${blazePoseLabel}_mask` };
 
-        // context.boundingBoxes.push(maskBoundingBox);
+        context.boundingBoxes.push(maskBoundingBox);
 
 
         // ----------------------------
@@ -114,74 +114,48 @@ export const getBoundingBox = async (context: CameraProcessor, keypoints: poseDe
         // first I probably have to make a binary image of the mask
         // then I can use the findContours method to get the bounding box
 
-        const mask = Array(imageHeight).fill(0).map(() => Array(imageWidth).fill(0));
+        // const mask = Array(imageHeight).fill(0).map(() => Array(imageWidth).fill(0));
 
-        for (let pixel of pixels) {
-            if (bodyPixCombination[bodyPixLabel].includes(pixel.color.r)) {
-                mask[pixel.y][pixel.x] = 1;
-            }
-        }
+        // for (let pixel of pixels) {
+        //     if (bodyPixCombination[bodyPixLabel].includes(pixel.color.r)) {
+        //         mask[pixel.y][pixel.x] = 1;
+        //     }
+        // }
 
-        const cvCanvas = document.createElement('canvas');
-        cvCanvas.width = imageWidth;
-        cvCanvas.height = imageHeight;
+        // const cvCanvas = document.createElement('canvas');
+        // cvCanvas.width = imageWidth;
+        // cvCanvas.height = imageHeight;
 
-        const cvContext = cvCanvas.getContext('2d');
+        // const cvContext = cvCanvas.getContext('2d');
 
-        if (!cvContext) {
-            console.error('No context');
-            return;
-        }
+        // if (!cvContext) {
+        //     console.error('No context');
+        //     return;
+        // }
 
-        const cvImageData = cvContext.createImageData(imageWidth, imageHeight);
+        // const cvImageData = cvContext.createImageData(imageWidth, imageHeight);
 
-        let data = cvImageData.data;
+        // let data = cvImageData.data;
 
-        for (let i = 0; i < data.length; i += 4) {
-            let x = (i / 4) % imageWidth;
-            let y = Math.floor((i / 4) / imageWidth);
+        // for (let i = 0; i < data.length; i += 4) {
+        //     let x = (i / 4) % imageWidth;
+        //     let y = Math.floor((i / 4) / imageWidth);
 
-            let value = mask[y][x] * 255;
+        //     let value = mask[y][x] * 255;
 
-            data[i] = value;
-            data[i + 1] = value;
-            data[i + 2] = value;
-            data[i + 3] = 255;
-        }
+        //     data[i] = value;
+        //     data[i + 1] = value;
+        //     data[i + 2] = value;
+        //     data[i + 3] = 255;
+        // }
 
-
-        // download the image
-        // let downloadCanvas = document.createElement('canvas');
-        // downloadCanvas.width = imageWidth;
-        // downloadCanvas.height = imageHeight;
-        // let downloadContext = downloadCanvas.getContext('2d');
-        // downloadContext?.putImageData(cvImageData, 0, 0);
-        // let downloadImage = downloadCanvas.toDataURL('image/png');
-        // let downloadLink = document.createElement('a');
-        // downloadLink.href = downloadImage;
-        // downloadLink.download = `mask_${label}.png`;
-        // // downloadLink.click();
-
-
-        cvContext.putImageData(cvImageData, 0, 0);
+        // cvContext.putImageData(cvImageData, 0, 0);
 
         // let src = cv.imread(cvCanvas);
         
         
         // ----------------------------
 
-
-
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
         continue;
 
         // Bounding Box based on combined mask

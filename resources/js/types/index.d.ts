@@ -32,3 +32,13 @@ type cutOut = {
     part: string,
     img: string
 }
+
+type BoundingBox = {
+
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    label: string
+
+}

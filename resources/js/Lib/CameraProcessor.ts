@@ -1,5 +1,5 @@
 
-import { Pixel, cutOut } from '@/types';
+import { BoundingBox, Pixel, cutOut } from '@/types';
 
 import '@tensorflow/tfjs';
 
@@ -29,6 +29,7 @@ import { drawBoundingBoxes } from './CameraProcessorFunctions/draw/drawBoundingb
 import { detectHumans } from './CameraProcessorFunctions/process/detectHumans';
 import { drawObjects } from './CameraProcessorFunctions/draw/drawObjects';
 import { process } from './CameraProcessorFunctions/process/process';
+import { draw } from './CameraProcessorFunctions/draw/draw';
 
 
 export class CameraProcessor {
@@ -88,7 +89,7 @@ export class CameraProcessor {
         };
 
 
-    boundingBoxes: { x: number, y: number, width: number, height: number, label: string }[] = [];
+    boundingBoxes: BoundingBox[] = [];
 
     constructor() {
         console.log("ImageProcessor constructor");
@@ -165,39 +166,13 @@ export class CameraProcessor {
     // --------------------------------------------------
 
     async draw() {
-        console.log('draw');
-
-        await clearCanvas(this);
-        await drawVideo(this);
-
-        await drawSegmentation(this);
-
-        return;
-        await drawPose(this);
-
-        await drawObjects(this);
-
-        await drawBoundingBoxes(this);
-
-        //wait 1 second
-        // await new Promise((resolve) => {
-        //     setTimeout(() => {
-        //         resolve(true);
-        //     }, 1000);
-        // });
+        
+        await draw(this);
     }
-
-    
-
-
-
-
-
-
 
     async render() {
 
-        console.log('render');
+        // console.log('render');
 
         // render the processed canvas to the rendering canvas
         // fill the rendering canvas with the processed canvas, make it responsive

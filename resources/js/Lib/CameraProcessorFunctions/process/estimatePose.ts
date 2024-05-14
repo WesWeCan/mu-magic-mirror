@@ -9,8 +9,9 @@ export const estimatePose = async (context: CameraProcessor, input: PixelInput) 
         return;
     }
 
-    const estimationConfig = {
+    const estimationConfig :poseDetection.BlazePoseMediaPipeEstimationConfig = {
         flipHorizontal: false,
+        maxPoses: 1, // in blaze pose, only single pose is supported
     }
 
     const timestamp = performance.now();

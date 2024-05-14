@@ -14,6 +14,8 @@ const collage_container = ref<HTMLDivElement | null>(null);
 
 import { CreateCollage } from '@/Lib/CreateCollage';
 import { CutoutRaw } from '@/types/PoolTypes';
+import { BoundingBox } from '@/types';
+import { createCollageBoundingBoxes } from '@/Lib/createCollageBoundingBoxes';
 
 
 const page = usePage();
@@ -102,6 +104,46 @@ const reload = () => {
 
 
 
+const pictureTaken = async (boundingBoxes : BoundingBox[]) => {
+
+    console.log('picture taken', event);
+
+    if (collageProcessing.value) {
+        return;
+    }
+
+    collageProcessing.value = true;
+
+    if (!collage_container.value) {
+        console.error('no collage container');
+        return;
+    }
+
+    if (!page.props.corpse) {
+        console.error('no corpse');
+        return;
+    }
+
+
+    let container = document.getElementById('canvas_process');
+
+    if (!container) {
+        console.error('no container');
+        return;
+    }
+
+    let startingSize = {
+        x: container.offsetWidth,
+        y: container.offsetHeight
+    }
+
+    await createCollageBoundingBoxes(page.props.corpse, collage_container.value, boundingBoxes, startingSize);
+    currentScreen.value = 'collage';
+
+    collageProcessing.value = false;
+
+}
+
 
 </script>
 
@@ -121,7 +163,7 @@ const reload = () => {
                     Click on the video to capture a slice
                 </span>
 
-                <Camera @new-slice="addSlice"></Camera>
+                <Camera @new-slice="addSlice" @picture-taken="pictureTaken"></Camera>
 
                 <div class="slices" v-if="slices.length">
                     <div v-for="slice in slices" :key="slice.part" class="slice"
@@ -132,6 +174,10 @@ const reload = () => {
                 <button v-if="slices.length" class="collage-button" @click="makeCollage">Make Collage</button>
 
             </div>
+
+
+
+
             <div class="screen" :hidden="currentScreen != 'collage'">
                 <div ref="collage_container" class="collage collage-container"></div>
 
