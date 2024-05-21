@@ -13,12 +13,17 @@ use Inertia\Inertia;
 
 Route::get('/', [FrontController::class, 'index'])->name('mirror');
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// Route::get('/dashboard', function () {
+//     return Inertia::render('Dashboard');
+// })->middleware(['auth', 'verified'])->name('dashboard');
 
 
 Route::prefix('/pool')->middleware(['auth', 'verified'])->group(function () {
+
+    Route::get('/', function(){
+        return redirect()->route('pool.manage');
+    });
+
     Route::get('/upload', function () {
         return Inertia::render('PoolUploader');
     })->name('pool.upload');

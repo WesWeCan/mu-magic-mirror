@@ -20,7 +20,17 @@ import axios from 'axios';
 const page = usePage();
 
 
-const allowedLabels = ['background', 'top', 'middle', 'low', 'lowlow', 'left', 'right'];
+const allowedLabels = [
+            "head",
+            "torso",
+            "right_arm",
+            "left_arm",
+            "right_leg",
+            "left_leg",
+            "right_hand",
+            "left_hand",
+            "right_foot",
+            "left_foot",];
 
 
 const procesImages = ref<ProcesImage[]>([]);

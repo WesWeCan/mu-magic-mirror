@@ -22,7 +22,7 @@ import * as cocoSsd from '@tensorflow-models/coco-ssd';
 import '@mediapipe/selfie_segmentation';
 import * as poseDetection from '@tensorflow-models/pose-detection';
 import { Segmentation } from '@tensorflow-models/body-segmentation/dist/shared/calculators/interfaces/common_interfaces';
-import { labelTable, labelTableCombinations } from './Tables';
+import { blazePosePoseLandmarks, blazePosePoseBodyParts } from './Tables';
 
 
 export class ImageProcessor {
