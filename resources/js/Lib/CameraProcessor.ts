@@ -15,7 +15,7 @@ import * as poseDetection from '@tensorflow-models/pose-detection';
 // Register WebGL backend.
 import '@tensorflow/tfjs-backend-webgl';
 import { setupInferences } from './CameraProcessorFunctions/setup/setupInferences'
-import { getAvailableVideoDevices, getMediaStream } from './CameraProcessorFunctions/setup/setupVideo'
+import { getAvailableVideoDevices, getMediaStream, switchVideoDevice } from './CameraProcessorFunctions/setup/setupVideo'
 import { createCanvasses } from './CameraProcessorFunctions/setup/setupCanvasses'
 import { segmentBodyPix } from './CameraProcessorFunctions/process/segmentBodyPix';
 import { estimatePose } from './CameraProcessorFunctions/process/estimatePose';
@@ -53,8 +53,12 @@ export class CameraProcessor {
     mousePos: { x: number, y: number } = { x: 0, y: 0 };
 
 
-    availableVideoDevices: MediaDeviceInfo[] = [];
-    currentVideoDevice: MediaDeviceInfo | undefined;
+    availableVideoDevices: {
+        device: InputDeviceInfo,
+        capabilities: MediaTrackCapabilities
+    }[] = [];
+
+    currentVideoDeviceId: string | undefined = undefined;
 
 
     inference:
@@ -104,7 +108,7 @@ export class CameraProcessor {
 
         await getAvailableVideoDevices(this);
         console.log('Got available video devices');
-        this.currentVideoDevice = this.availableVideoDevices[0];
+        
 
         await getMediaStream(this, videoDiv);
         console.log('Got media stream');
@@ -121,26 +125,7 @@ export class CameraProcessor {
 
     async switchVideoDevice() {
 
-        if (!this.currentVideoDevice) {
-            console.error('No current video device');
-            return;
-        }
-
-        const currentDevice = this.currentVideoDevice;
-
-        // get index of current device
-        const currentIndex = this.availableVideoDevices.indexOf(currentDevice);
-
-        // get next device
-        const nextIndex = (currentIndex + 1) % this.availableVideoDevices.length;
-        const nextDevice = this.availableVideoDevices[nextIndex];
-
-        // set next device
-        this.currentVideoDevice = nextDevice;
-        console.log('Switching video device to: ' + nextDevice.label);
-
-        getMediaStream(this, this.div_video as HTMLDivElement);
-        // createCanvasses(this, this.div_process as HTMLDivElement, this.div_render as HTMLDivElement);
+        await switchVideoDevice(this);
 
     }
 
