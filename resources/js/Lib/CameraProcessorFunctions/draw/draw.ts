@@ -14,7 +14,7 @@ export const draw = async (context: CameraProcessor) => {
         await drawVideo(context);
         // await drawSegmentation(context);
         await drawPose(context);
-        await drawObjects(context);
+        // await drawObjects(context);
         // await drawBoundingBoxes(context);
-        await drawBoundingBoxesProcessed(context);
+        // await drawBoundingBoxesProcessed(context);
 }

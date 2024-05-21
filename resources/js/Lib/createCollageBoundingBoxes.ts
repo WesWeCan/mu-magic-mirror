@@ -32,6 +32,10 @@ export const createCollageBoundingBoxes = async (corpse : CorpseObject, collage_
 
     console.log('collage_container', collage_container);
 
+    console.log('boundingBoxes', boundingBoxes);
+
+    console.log('startingSize', startingSize);
+
     const canvas = document.createElement('canvas');
     canvas.width = startingSize.x;
     canvas.height = startingSize.y;
@@ -83,8 +87,6 @@ export const createCollageBoundingBoxes = async (corpse : CorpseObject, collage_
 
     // shuffle pieces
     pieces = pieces.sort(() => Math.random() - 0.5);
-
-
     console.log('pieces', pieces);
 
     // filter out the bounding boxes
@@ -96,38 +98,6 @@ export const createCollageBoundingBoxes = async (corpse : CorpseObject, collage_
 
     console.log('filteredBoundingBoxes', filteredBoundingBoxes);
 
-    // map the labels of the bounding boxes to the pieces
-    const pieceLabels = filteredBoundingBoxes.map((box) => {
-
-        switch (box.label) {
-
-            case 'head_mask':
-                return 'top';
-
-            case 'torso_mask':
-                return 'middle';
-
-            case 'right_arm_mask':
-                return 'right';
-
-            case 'left_arm_mask':
-                return 'left';
-
-            case 'left_leg_mask':
-            case 'right_leg_mask':
-            case 'left_foot_mask':
-            case 'right_foot_mask':
-            case 'left_hand_mask':
-            case 'right_hand_mask':
-                return false;
-
-            default:
-                return false;
-        }
-    });
-
-    console.log('pieceLabels', pieceLabels);
-
     // draw the bounding boxes on the canvas
     for (let i = 0; i < filteredBoundingBoxes.length; i++) {
         const box = filteredBoundingBoxes[i];
@@ -138,12 +108,12 @@ export const createCollageBoundingBoxes = async (corpse : CorpseObject, collage_
         ctx.strokeStyle = 'blue';
         ctx.strokeRect(box.x, box.y, box.width, box.height);
 
-
+     
         // paste the image on the canvas
         switch (box.label) {
 
-            case 'head_mask':
-                pieceLabel = 'top';
+            case 'head_processed':
+                pieceLabel = 'head';
 
                 piece = pieces.find((p) => p.label === pieceLabel);
 
@@ -152,7 +122,7 @@ export const createCollageBoundingBoxes = async (corpse : CorpseObject, collage_
                     const pieceWidth = piece.width * scale;
                     const pieceHeight = piece.height * scale;
                     const pieceX = box.x + (box.width - pieceWidth) / 2;
-                    const pieceY = box.y + (box.height - pieceHeight) / 2;
+                    const pieceY = box.y + box.height - pieceHeight;
 
                     ctx.drawImage(piece.img, pieceX, pieceY, pieceWidth, pieceHeight);
                 }
@@ -160,8 +130,125 @@ export const createCollageBoundingBoxes = async (corpse : CorpseObject, collage_
 
 
 
-            case 'torso_mask':
-                pieceLabel = 'middle';
+            case 'torso_processed':
+                pieceLabel = 'torso';
+
+                piece = pieces.find((p) => p.label === pieceLabel);
+
+                if (piece) {
+                    const scale = Math.min(box.width / piece.width, box.height / piece.height);
+                    const pieceWidth = piece.width * scale;
+                    const pieceHeight = piece.height * scale;
+                    const pieceX = box.x + (box.width - pieceWidth) / 2;
+                    const pieceY = box.y + (box.height - pieceHeight) / 2;
+
+                    ctx.drawImage(piece.img, pieceX, pieceY, pieceWidth, pieceHeight);
+                }
+                break;
+
+            
+            case 'right_arm_processed':
+                pieceLabel = 'right_arm';
+
+                piece = pieces.find((p) => p.label === pieceLabel);
+
+                if (piece) {
+                    const scale = Math.min(box.width / piece.width, box.height / piece.height);
+                    const pieceWidth = piece.width * scale;
+                    const pieceHeight = piece.height * scale;
+                    const pieceX = box.x + box.width - pieceWidth;
+                    const pieceY = box.y + (box.height - pieceHeight) / 2;
+
+                    ctx.drawImage(piece.img, pieceX, pieceY, pieceWidth, pieceHeight);
+                }
+                break;
+
+
+            case 'left_arm_processed':
+                pieceLabel = 'left_arm';
+
+                piece = pieces.find((p) => p.label === pieceLabel);
+
+                if (piece) {
+                    const scale = Math.min(box.width / piece.width, box.height / piece.height);
+                    const pieceWidth = piece.width * scale;
+                    const pieceHeight = piece.height * scale;
+                    const pieceX = box.x;
+                    const pieceY = box.y + (box.height - pieceHeight) / 2;
+
+                    ctx.drawImage(piece.img, pieceX, pieceY, pieceWidth, pieceHeight);
+                }
+                break;
+
+        
+            case 'right_leg_processed':
+                pieceLabel = 'right_leg';
+
+                piece = pieces.find((p) => p.label === pieceLabel);
+
+                if (piece) {
+                    const scale = Math.min(box.width / piece.width, box.height / piece.height);
+                    const pieceWidth = piece.width * scale;
+                    const pieceHeight = piece.height * scale;
+                    const pieceX = box.x + box.width - pieceWidth;
+                    const pieceY = box.y;
+
+                    ctx.drawImage(piece.img, pieceX, pieceY, pieceWidth, pieceHeight);
+                }
+                break;
+
+            case 'left_leg_processed':
+                pieceLabel = 'left_leg';
+
+                piece = pieces.find((p) => p.label === pieceLabel);
+
+                if (piece) {
+                    const scale = Math.min(box.width / piece.width, box.height / piece.height);
+                    const pieceWidth = piece.width * scale;
+                    const pieceHeight = piece.height * scale;
+                    const pieceX = box.x;
+                    const pieceY = box.y;
+
+                    ctx.drawImage(piece.img, pieceX, pieceY, pieceWidth, pieceHeight);
+                }
+                break;
+
+
+            case 'right_foot_processed':
+                pieceLabel = 'right_foot';
+
+                piece = pieces.find((p) => p.label === pieceLabel);
+
+                if (piece) {
+                    const scale = Math.min(box.width / piece.width, box.height / piece.height);
+                    const pieceWidth = piece.width * scale;
+                    const pieceHeight = piece.height * scale;
+                    const pieceX = box.x + (box.width - pieceWidth) / 2;
+                    const pieceY = box.y + (box.height - pieceHeight) / 2;
+
+                    ctx.drawImage(piece.img, pieceX, pieceY, pieceWidth, pieceHeight);
+                }
+                break;
+
+            case 'left_foot_processed':
+                pieceLabel = 'left_foot';
+
+                piece = pieces.find((p) => p.label === pieceLabel);
+
+                if (piece) {
+                    const scale = Math.min(box.width / piece.width, box.height / piece.height);
+                    const pieceWidth = piece.width * scale;
+                    const pieceHeight = piece.height * scale;
+                    const pieceX = box.x + (box.width - pieceWidth) / 2;
+                    const pieceY = box.y + (box.height - pieceHeight) / 2;
+
+                    ctx.drawImage(piece.img, pieceX, pieceY, pieceWidth, pieceHeight);
+                }
+                break;
+
+            
+            case 'right_hand_processed':
+                pieceLabel = 'right_hand';
 
                 piece = pieces.find((p) => p.label === pieceLabel);
 
@@ -177,10 +264,8 @@ export const createCollageBoundingBoxes = async (corpse : CorpseObject, collage_
                 break;
 
 
-
-            case 'right_arm_mask':
-                pieceLabel = 'right';
-
+            case 'left_hand_processed':
+                pieceLabel = 'left_hand';
 
                 piece = pieces.find((p) => p.label === pieceLabel);
 
@@ -193,34 +278,7 @@ export const createCollageBoundingBoxes = async (corpse : CorpseObject, collage_
 
                     ctx.drawImage(piece.img, pieceX, pieceY, pieceWidth, pieceHeight);
                 }
-                break;
-
-                break;
-
-            case 'left_arm_mask':
-                pieceLabel = 'left';
-
-                piece = pieces.find((p) => p.label === pieceLabel);
-
-                if (piece) {
-                    const scale = Math.min(box.width / piece.width, box.height / piece.height);
-                    const pieceWidth = piece.width * scale;
-                    const pieceHeight = piece.height * scale;
-                    const pieceX = box.x + (box.width - pieceWidth) / 2;
-                    const pieceY = box.y + (box.height - pieceHeight) / 2;
-
-                    ctx.drawImage(piece.img, pieceX, pieceY, pieceWidth, pieceHeight);
-                }
-                break;
-                
-
-            case 'left_leg_mask':
-            case 'right_leg_mask':
-            case 'left_foot_mask':
-            case 'right_foot_mask':
-            case 'left_hand_mask':
-            case 'right_hand_mask':
-                pieceLabel = false;
+                break;          
 
             default:
                 pieceLabel = false;
