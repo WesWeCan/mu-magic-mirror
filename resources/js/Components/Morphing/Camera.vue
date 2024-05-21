@@ -60,8 +60,8 @@ const switchDevice = () => {
 const takePhoto = () => {
     console.log('take photo');
 
-    console.log(cp.boundingBoxes);
-    emit('pictureTaken', cp.boundingBoxes);
+    console.log('making collage with ', cp.boundingBoxesProcessed);
+    emit('pictureTaken', cp.boundingBoxesProcessed);
 }
 
 </script>

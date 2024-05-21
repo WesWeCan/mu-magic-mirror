@@ -39,6 +39,8 @@ type BoundingBox = {
     y: number,
     width: number,
     height: number,
-    label: string
+    label: string,
+    keypoints: poseDetection.Keypoint[],
+    keypoints3D: poseDetection.Keypoint[]
 
 }

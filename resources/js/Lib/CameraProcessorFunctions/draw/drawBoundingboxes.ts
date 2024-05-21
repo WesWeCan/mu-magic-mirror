@@ -30,3 +30,33 @@ export const drawBoundingBoxes = async (context: CameraProcessor) => {
 
 
 }
+
+
+export const drawBoundingBoxesProcessed = async (context: CameraProcessor) => {
+
+    if (!context.canvas_process || !context.boundingBoxesProcessed) {
+        console.error('No canvas or bounding boxes');
+        return;
+    }
+
+    const canvas = context.canvas_process as HTMLCanvasElement;
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+        console.error('No context');
+        return;
+    }
+
+    for (const boundingBox of context.boundingBoxesProcessed) {
+        ctx.beginPath();
+        ctx.rect(boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height);
+        ctx.strokeStyle = 'blue';
+        ctx.lineWidth = 5;
+        ctx.stroke();
+
+        ctx.font = '20px Arial';
+        ctx.fillStyle = 'blue';
+        ctx.fillText(boundingBox.label, boundingBox.x, boundingBox.y - 10);
+
+    }
+}

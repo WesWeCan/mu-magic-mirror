@@ -94,6 +94,7 @@ export class CameraProcessor {
 
 
     boundingBoxes: BoundingBox[] = [];
+    boundingBoxesProcessed: BoundingBox[] = [];
 
     constructor() {
         console.log("ImageProcessor constructor");

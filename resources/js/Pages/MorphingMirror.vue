@@ -181,7 +181,7 @@ const pictureTaken = async (boundingBoxes : BoundingBox[]) => {
             <div class="screen" :hidden="currentScreen != 'collage'">
                 <div ref="collage_container" class="collage collage-container"></div>
 
-                <!-- <button v-if="slices.length" class="redo-button" @click="currentScreen = 'camera'">Start Over</button> -->
+                <button v-if="slices.length" class="redo-button" @click="currentScreen = 'camera'">Start Over</button>
 
                 <button v-if="slices.length" class="redo-button" @click="currentScreen = 'camera'">Go back</button>
 
