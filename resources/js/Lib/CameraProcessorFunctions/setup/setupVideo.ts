@@ -64,32 +64,28 @@ export const getMediaStream = async (context: CameraProcessor, videoDiv: HTMLDiv
         return;
     }
 
-    if(context.video) {
-
+    // Stop existing video if any
+    if (context.video) {
         const stream = context.video.srcObject as MediaStream;
-        const tracks = stream.getTracks();
-
-        tracks.forEach(track => track.stop());
-
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
         context.video.pause();
-
         context.video.srcObject = null;
         context.video = null;
-
         videoDiv.innerHTML = '';
     }
 
-
-
-
+    // Assign new video div to context
     context.div_video = videoDiv;
 
+    // Create new video element
     const video = document.createElement('video');
     video.width = 640;
     video.height = 480;
-
     video.muted = true;
-
+    video.setAttribute('playsinline', 'true'); // Prevent fullscreen on iPhone
+    video.style.objectFit = 'cover'; // Ensure the video covers the div area without stretching
 
     videoDiv.innerHTML = '';
     videoDiv.appendChild(video);
@@ -97,22 +93,22 @@ export const getMediaStream = async (context: CameraProcessor, videoDiv: HTMLDiv
     console.log('Getting media stream');
     console.log(context.availableVideoDevices);
 
-    
-
-
+    // Set media constraints with the current video device
     const constraints = {
         video: {
             deviceId: context.currentVideoDeviceId ? { exact: context.currentVideoDeviceId } : undefined,
-            // width: { ideal: 640 },
-            // height: { ideal: 480 }
+            width: { ideal: 640 },
+            height: { ideal: 480 }
         }
     };
 
-
-    navigator.mediaDevices.getUserMedia(constraints)
-        .then((stream) => {
-            video.srcObject = stream;
-        });
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        video.srcObject = stream;
+    } catch (error) {
+        console.error('Error accessing media devices.', error);
+        return;
+    }
 
     await new Promise((resolve) => {
         video.onloadedmetadata = () => {
@@ -124,9 +120,10 @@ export const getMediaStream = async (context: CameraProcessor, videoDiv: HTMLDiv
     video.play();
 
     if (!video) {
-        console.error('No video');
+        console.error('No video element available');
         return;
     }
+
     context.video = video;
 
     await new Promise((resolve) => {
