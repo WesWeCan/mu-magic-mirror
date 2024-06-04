@@ -24,6 +24,8 @@ class FrontController extends Controller
             "left_hand",
             "right_foot",
             "left_foot",
+            "hair",
+            "legs"
         ];
 
 

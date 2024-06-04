@@ -30,7 +30,10 @@ const allowedLabels = [
             "right_hand",
             "left_hand",
             "right_foot",
-            "left_foot",];
+            "left_foot",
+            "legs",
+            "hair"
+        ];
 
 
 const procesImages = ref<ProcesImage[]>([]);
