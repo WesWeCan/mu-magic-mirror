@@ -22,9 +22,9 @@ const page = usePage();
 
 const maxSlices = 3;
 const slices = ref<CutoutRaw[]>([]);
-const currentScreen = ref("camera")
+const currentScreen = ref("welcome")
 
-
+const cameraRef = ref<null | InstanceType<typeof Camera>>(null);
 
 
 onMounted(async () => {
@@ -145,6 +145,31 @@ const pictureTaken = async (boundingBoxes : BoundingBox[]) => {
 }
 
 
+
+
+const takePicture = () => {
+    console.log('take picture');
+    
+
+    if (cameraRef.value) {
+        cameraRef.value.takePhoto();
+    }
+    
+}
+
+const switchDevice = () => {
+    console.log('switch device');
+    
+    if (cameraRef.value) {
+        cameraRef.value.switchDevice();
+    }
+}
+
+
+const start = () => {
+    currentScreen.value = 'camera';
+}
+
 </script>
 
 
@@ -153,17 +178,24 @@ const pictureTaken = async (boundingBoxes : BoundingBox[]) => {
     <div class="morphing-mirror-layout">
 
         <header>
-            <h1>MU - Morphing Mirror</h1>
+            <!-- <h1>MU - Morphing Mirror</h1> -->
         </header>
 
         <main>
-            <div class="screen" :hidden="currentScreen != 'camera'">
+            <div class="screen welcome" :hidden="currentScreen != 'welcome'">
+                
+                <p>Welcome!</p>
+                <p>Use your body to explore our archive.</p>
+                <p>The Magic MUrror will match your pose with images of our archive</p>
+                <p>Love, MU.</p>
 
-                <span class="hint">
-                    Click on the video to capture a slice
-                </span>
+                <button @click="start">Start</button>
+            </div>
 
-                <Camera @new-slice="addSlice" @picture-taken="pictureTaken"></Camera>
+
+            <div class="screen" :hidden="currentScreen != 'camera'" v-if="currentScreen == 'camera'">
+
+                <Camera ref="cameraRef" @new-slice="addSlice" @picture-taken="pictureTaken"></Camera>
 
                 <div class="slices" v-if="slices.length">
                     <div v-for="slice in slices" :key="slice.part" class="slice"
@@ -216,7 +248,29 @@ const pictureTaken = async (boundingBoxes : BoundingBox[]) => {
 
 
 
-        <footer>(alpha test)</footer>
+        <footer>
+
+            <div class="nav">
+                <div class="group" v-if="currentScreen != 'welcome'">
+                    <button @click="takePicture">pht</button>
+                    <button @click="switchDevice">swtch</button>                    
+                </div>
+                <div class="group" v-if="currentScreen != 'welcome'">
+                    <button>img</button>
+                    <button>lst</button>
+                </div>
+                <div class="group" v-if="currentScreen != 'welcome'">
+                    <button>down</button>
+                    <button>up</button>
+                </div>
+            </div>
+            
+            <span class="title">
+                <strong>Magical Morphing MUrror</strong>
+                <span>Monday 5 February 16:53</span>
+            </span>
+
+        </footer>
 
     </div>
 

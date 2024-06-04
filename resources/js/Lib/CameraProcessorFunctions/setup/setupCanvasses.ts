@@ -21,6 +21,12 @@ export const createCanvasses = async (context: CameraProcessor, div_process: HTM
 
 
 
+    
+
+
+
+
+
 
     if (!div_render) {
         console.error('No div render');
@@ -40,6 +46,13 @@ export const createCanvasses = async (context: CameraProcessor, div_process: HTM
     context.div_render.appendChild(canvas_render);
 
 
+
+    // put in the center "loading..." of the canvas
+    const ctx_process = canvas_render.getContext('2d');
+    if (!ctx_process) {
+        console.error('No context');
+        return;
+    }
 
     return new Promise((resolve) => {
         resolve(true);

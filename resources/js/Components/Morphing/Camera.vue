@@ -68,6 +68,13 @@ const takePhoto = () => {
     // emit('pictureTaken', cp.boundingBoxesProcessed);
 }
 
+
+defineExpose({
+    takePhoto,
+    switchDevice
+});
+
+
 </script>
 
 
@@ -76,11 +83,13 @@ const takePhoto = () => {
     <div ref="video_container" class="video-container"></div>
     <div ref="div_process" class="div-process"></div>
 
-    <div ref="div_render" class="div-render"></div>
+    <div ref="div_render" class="div-render">
+        <span class="loading">Loading...</span>
+    </div>
 
-    <button class="switch-device-button" @click="switchDevice">Switch Device</button>
+    <!-- <button class="switch-device-button" @click="switchDevice">Switch Device</button> -->
 
-    <div class="take-photo-button" @click="takePhoto">Take Photo</div>
+    <!-- <div class="take-photo-button" @click="takePhoto">Take Photo</div> -->
 
     <div v-for="cutOut in cutOuts" :key="cutOut.part">
         <img :src="cutOut.img" :alt="cutOut.part" />
