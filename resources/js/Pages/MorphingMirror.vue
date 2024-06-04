@@ -166,6 +166,23 @@ const switchDevice = () => {
 }
 
 
+const downloadImage = () => {
+    console.log('download image');
+
+    if (cameraRef.value) {
+        cameraRef.value.downloadImage();
+    }
+}
+
+const shareImage = () => {
+    console.log('share image');
+
+    if (cameraRef.value) {
+        cameraRef.value.shareImage();
+    }
+}
+
+
 const start = () => {
     currentScreen.value = 'camera';
 }
@@ -295,8 +312,8 @@ setInterval(() => {
                     <button @click="showList = !showList" >lst</button>
                 </div>
                 <div class="group" v-if="currentScreen != 'welcome'">
-                    <button>down</button>
-                    <button>up</button>
+                    <button @click="downloadImage">down</button>
+                    <button @click="shareImage">up</button>
                 </div>
             </div>
 

@@ -266,4 +266,75 @@ export class CameraProcessor {
 
 
 
+
+
+
+    async downloadImage() {
+
+        this.running = false;
+
+        if (!this.canvas_render) {
+            console.error('No rendering canvas');
+            return;
+        }
+
+        const canvas_render = this.canvas_render as HTMLCanvasElement;
+
+        const a = document.createElement('a');
+        a.href = canvas_render.toDataURL();
+
+        const options = { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' };
+
+        const currentTime = new Date().toLocaleString('en-GB', options);
+
+        a.download = `image ${currentTime}.png`;
+        a.click();
+
+        // TODO: upload to server also, with recipe
+    }
+
+
+    async shareImage() {
+
+        // use navigator.share
+        this.running = false;
+
+        if (!this.canvas_render) {
+            console.error('No rendering canvas');
+            return;
+        }
+
+        const canvas_render = this.canvas_render as HTMLCanvasElement;
+
+        const dataUrl = canvas_render.toDataURL();
+
+        const options = { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' };
+
+        const currentTime = new Date().toLocaleString('en-GB', options);
+
+        // share as file
+        const blob = await fetch(dataUrl).then(res => res.blob());
+        const filesArray = [new File([blob], `image ${currentTime}.png`, { type: 'image/png' })];
+
+        const shareData = {
+            files: filesArray,
+            title: `image ${currentTime}`,
+            text: `image ${currentTime}`,
+        };       
+
+        try {
+            await navigator.share(shareData);
+            console.log('Shared successfully');
+        } catch (err) {
+            console.error('Error sharing', err);
+        }
+
+        
+
+
+
+    }
+
+
+
 }

@@ -51,7 +51,7 @@ const loop = async () => {
         if(cp.running){
             emit('updateList', cp.currentlyShownPieces);
         }
-        
+
         requestAnimationFrame(loop);
     }
 }
@@ -74,9 +74,20 @@ const takePhoto = () => {
 }
 
 
+const downloadImage = () => {
+    cp.downloadImage();
+}
+
+const shareImage = () => {
+    cp.shareImage();
+}
+
+
 defineExpose({
     takePhoto,
-    switchDevice
+    switchDevice,
+    downloadImage,
+    shareImage
 });
 
 
