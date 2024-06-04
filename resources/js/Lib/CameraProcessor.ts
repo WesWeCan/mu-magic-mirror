@@ -103,6 +103,7 @@ export class CameraProcessor {
 
 
     pieces: any = [];
+    currentlyShownPieces: any = {};
 
     constructor() {
         console.log("ImageProcessor constructor");
@@ -170,7 +171,8 @@ export class CameraProcessor {
                     img: img,
                     width: width,
                     height: height,
-                    label: label
+                    label: label,
+                    baseImage: corpsePart.base_image
                 });
 
             }

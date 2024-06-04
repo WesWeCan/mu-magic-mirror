@@ -1,4 +1,5 @@
 import { CameraProcessor } from "@/Lib/CameraProcessor";
+import { BoundingBox } from "@/types";
 
 import { BaseImage, CutoutRaw } from "@/types/PoolTypes";
 
@@ -88,6 +89,12 @@ export const drawMorph = async (context: CameraProcessor) => {
 
     let positions : any = {};
 
+    let tempPiece = {
+        img: new Image(),
+        baseImage: { name: 'YOU!', link: '#' },
+        width: 0,
+        height: 0
+    };
 
     // draw the bounding boxes on the canvas
     for (let i = 0; i < filteredBoundingBoxes.length; i++) {
@@ -105,15 +112,31 @@ export const drawMorph = async (context: CameraProcessor) => {
         // get the piece
         piece = pieces.find((p: any) => p.label === pieceLabel);
 
-        console.log('piece', piece, box.label);
 
         // based on the label, get the alignment and fill the positions object
-        if (piece) {
+        if (piece) {           
+
+            let usingTempPiece = false;
+
+            // there is a X% chance that the piece is not drawn
+            // but a cutout from the video is drawn instead
+            // get the cutout and replace the piece img with the cutout
+            // for this loop only
+            // make sure that the piece is not the torso
+            // also make sure the bounding box is not outside the canvas
+            if (Math.random() < 0.05 && piece && pieceLabel !== 'torso') {
+                usingTempPiece = true;
+
+                const cutout = await cutOutFromVideo(context, box);
+
+                if (cutout) {
+                    tempPiece.img = cutout;
+                    tempPiece.width = box.width;
+                    tempPiece.height = box.height;
+                }
+            }
 
             let alignment : string = alignments[box.label];
-            console.log('alignment', alignment);
-
-
 
             switch (alignment) {
 
@@ -163,11 +186,20 @@ export const drawMorph = async (context: CameraProcessor) => {
                     break;
             }
 
-            positions[box.label].img = piece.img;
+            if(usingTempPiece) {
+                positions[box.label].img = tempPiece.img;
+                positions[box.label].baseImage = tempPiece.baseImage;
+            } else {
+                positions[box.label].img = piece.img;
+                positions[box.label].baseImage = piece.baseImage;
+            }          
+           
         }
     }
 
 
+
+    context.currentlyShownPieces = positions;
 
     // draw the bounding boxes and images on the canvas
     Object.keys(positions).forEach((key) => {
@@ -177,19 +209,22 @@ export const drawMorph = async (context: CameraProcessor) => {
         const pieceWidth = piece.width;
         const pieceHeight = piece.height;
 
-        ctx.drawImage(positions[key].img, pieceX, pieceY, pieceWidth, pieceHeight);
+        ctx.drawImage(piece.img, pieceX, pieceY, pieceWidth, pieceHeight);
         drawDash(ctx, pieceX, pieceY, pieceWidth, pieceHeight);
-
     });
 
+    Object.keys(positions).forEach((key) => {
+        const piece = positions[key];
 
-
-
-
-
-
-
-
+        const pieceX = piece.x;
+        const pieceY = piece.y;
+        const pieceWidth = piece.width;
+        const pieceHeight = piece.height;
+        
+        ctx.font = '12px Arial';
+        ctx.fillStyle = 'blue';
+        ctx.fillText(piece.baseImage.name, pieceX, pieceY + pieceHeight + 15);
+    });
 
 
 }
@@ -207,4 +242,67 @@ const drawDash = (ctx: CanvasRenderingContext2D, x: number, y: number, width: nu
     ctx.rect(x, y, width, height);
     ctx.stroke();
     ctx.setLineDash([]);
+}
+
+
+const cutOutFromVideo = async (context: CameraProcessor, boundingBox : BoundingBox) => {
+
+
+    if (!context.video || !context.canvas_process) {
+        console.error('No video or canvas');
+        return;
+    }
+
+    const canvas = context.canvas_process as HTMLCanvasElement;
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+        console.error('No context');
+        return;
+    }
+
+const video = context.video as HTMLVideoElement;
+
+// check if the bounding box is outside the canvas
+if (boundingBox.x < 0 || boundingBox.y < 0 || boundingBox.width < 0 || boundingBox.height < 0) {
+    return;
+}
+
+let imgCanvas = document.createElement('canvas');
+imgCanvas.width = boundingBox.width;
+imgCanvas.height = boundingBox.height;
+
+let imgContext = imgCanvas.getContext('2d');
+
+if (!imgContext) {
+    console.error('No context');
+    return;
+}
+
+// Draw the current frame of the video onto the canvas
+imgContext.drawImage(video, boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height, 0, 0, boundingBox.width, boundingBox.height);
+
+// Get the image data from the canvas
+const imageData = imgContext.getImageData(0, 0, boundingBox.width, boundingBox.height);
+
+let img = new Image();
+img.src = imgCanvas.toDataURL();
+
+await new Promise((resolve) => {
+    img.onload = () => {
+        resolve(true);
+    }
+});
+
+
+// destroy the canvas to free up memory
+imgCanvas = null;
+imgContext = null;
+
+
+
+
+
+    return img;
+
 }

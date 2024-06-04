@@ -104,7 +104,7 @@ const reload = () => {
 
 
 
-const pictureTaken = async (boundingBoxes : BoundingBox[]) => {
+const pictureTaken = async (boundingBoxes: BoundingBox[]) => {
 
     console.log('picture taken', boundingBoxes);
 
@@ -149,17 +149,17 @@ const pictureTaken = async (boundingBoxes : BoundingBox[]) => {
 
 const takePicture = () => {
     console.log('take picture');
-    
+
 
     if (cameraRef.value) {
         cameraRef.value.takePhoto();
     }
-    
+
 }
 
 const switchDevice = () => {
     console.log('switch device');
-    
+
     if (cameraRef.value) {
         cameraRef.value.switchDevice();
     }
@@ -169,6 +169,46 @@ const switchDevice = () => {
 const start = () => {
     currentScreen.value = 'camera';
 }
+
+
+const showList = ref(false);
+
+interface listItem {
+    id: number;
+    random: number;
+    name: string;
+    link: string;
+}
+
+const piecesList = ref<listItem[]>([]);
+
+const updateList = (list: any) => {
+    piecesList.value = [];
+
+    Object.keys(list).forEach((key) => {
+        let item = list[key].baseImage;
+
+        let randomId = Math.floor(Math.random() * 1000000);
+
+        piecesList.value.push({
+            id: item.id,
+            random: randomId,
+            name: item.name,
+            link: item.link
+        });
+    });
+}
+
+
+
+const options = { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' };
+
+const currentTime = ref(new Date().toLocaleString('en-GB', options));
+
+setInterval(() => {
+    currentTime.value = new Date().toLocaleString('en-GB', options);
+}, 1000);
+
 
 </script>
 
@@ -183,7 +223,7 @@ const start = () => {
 
         <main>
             <div class="screen welcome" :hidden="currentScreen != 'welcome'">
-                
+
                 <p>Welcome!</p>
                 <p>Use your body to explore our archive.</p>
                 <p>The Magic MUrror will match your pose with images of our archive</p>
@@ -195,7 +235,7 @@ const start = () => {
 
             <div class="screen" :hidden="currentScreen != 'camera'" v-if="currentScreen == 'camera'">
 
-                <Camera ref="cameraRef" @new-slice="addSlice" @picture-taken="pictureTaken"></Camera>
+                <Camera ref="cameraRef" @update-list="updateList" @picture-taken="pictureTaken"></Camera>
 
                 <div class="slices" v-if="slices.length">
                     <div v-for="slice in slices" :key="slice.part" class="slice"
@@ -217,24 +257,19 @@ const start = () => {
 
                 <button v-if="slices.length" class="redo-button" @click="currentScreen = 'camera'">Go back</button>
 
-                <button v-if="slices.length" class="start-over-button" @click="reload()">Start over with new corpse</button>
+                <button v-if="slices.length" class="start-over-button" @click="reload()">Start over with new
+                    corpse</button>
 
                 <button v-if="slices.length" class="list-button" @click="currentScreen = 'list'">List</button>
             </div>
-            <div class="screen" :hidden="currentScreen != 'list'">
+
+
+            <div class="screen" :hidden="!showList">
 
                 <div class="list-container">
-                    <h2>Used slices</h2>
-
-                    <div v-for="corpse in page.props.corpse" :key="corpse.id" v-if="page.props.corpse" class="list-item">
-                        <span>
-                            Name:<br />
-                            {{ corpse.base_image.name ?? 'no name' }}
-                        </span>
-                        <span>
-                            Link:
-                            {{ corpse.base_image.link ?? 'no link' }}
-                        </span>
+                    
+                    <div v-for="listItem in piecesList" :key="listItem.random" v-if="piecesList">
+                        <a :href="listItem.link" target="_blank">{{ listItem.name }} {{ listItem.random }}</a>
                     </div>
                 </div>
 
@@ -253,21 +288,21 @@ const start = () => {
             <div class="nav">
                 <div class="group" v-if="currentScreen != 'welcome'">
                     <button @click="takePicture">pht</button>
-                    <button @click="switchDevice">swtch</button>                    
+                    <button @click="switchDevice">swtch</button>
                 </div>
                 <div class="group" v-if="currentScreen != 'welcome'">
-                    <button>img</button>
-                    <button>lst</button>
+                    <button @click="showList = false">img</button>
+                    <button @click="showList = !showList" >lst</button>
                 </div>
                 <div class="group" v-if="currentScreen != 'welcome'">
                     <button>down</button>
                     <button>up</button>
                 </div>
             </div>
-            
+
             <span class="title">
                 <strong>Magical Morphing MUrror</strong>
-                <span>Monday 5 February 16:53</span>
+                <span>{{ currentTime }}</span>
             </span>
 
         </footer>

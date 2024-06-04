@@ -15,7 +15,7 @@ const div_process = ref<HTMLDivElement | null>(null);
 const div_render= ref<HTMLDivElement | null>(null);
 
 
-const emit = defineEmits(['newSlice', 'pictureTaken']);
+const emit = defineEmits(['newSlice', 'pictureTaken', "updateList"]);
 
 
 onMounted(async () => {
@@ -47,6 +47,11 @@ onMounted(async () => {
 const loop = async () => {
     if (video_container.value && div_process.value) {
         await cp.loop();
+
+        if(cp.running){
+            emit('updateList', cp.currentlyShownPieces);
+        }
+        
         requestAnimationFrame(loop);
     }
 }
