@@ -195,10 +195,6 @@ export const getBoundingBox = async (context: CameraProcessor, keypoints: poseDe
 
 
 export const processBoundingBoxes = async (context: CameraProcessor) => {
-
-    console.log('Processing bounding boxes');
-
-
     context.boundingBoxesProcessed = [];
     
     const head_pose = context.boundingBoxes.find(boundingBox => boundingBox.label === 'head_pose');
@@ -222,8 +218,8 @@ export const processBoundingBoxes = async (context: CameraProcessor) => {
 
     // Head
     // Estimate the size of the head based on the torso
-    const head_width = torso_pose.width * 0.75;
-    const head_height = head_width * 1.15;
+    const head_width = torso_pose.width * 0.70;
+    const head_height = head_width * 1.05;
 
     const head_x = head_pose.x - (head_width - head_pose.width) / 2;
     const head_y = head_pose.y - (head_height - head_pose.height) / 2;
@@ -235,8 +231,20 @@ export const processBoundingBoxes = async (context: CameraProcessor) => {
     context.boundingBoxesProcessed.push(head_processed);
 
 
+    // Hair
+    const hair_width = head_width * 0.90;
+    const hair_height = head_height * 0.55;
+
+    const hair_x = head_x - (hair_width - head_width) / 2;
+    const hair_y = head_y - (head_height * 0.35);
+
+    const hair_processed = { x: hair_x, y: hair_y, width: hair_width, height: hair_height, keypoints: head_pose.keypoints, keypoints3D: head_pose.keypoints3D, label: 'hair_processed' };
+
+    context.boundingBoxesProcessed.push(hair_processed);
+
+
     // Torso
-    const torso_width = head_height * 1.65;
+    const torso_width = head_height * 1.25;
     const torso_height = torso_pose.height * 1.25;
 
     const torso_x = torso_pose.x - (torso_width - torso_pose.width) / 2;
@@ -254,11 +262,30 @@ export const processBoundingBoxes = async (context: CameraProcessor) => {
     const keypoints_right_arm_wrist = right_arm_pose.keypoints.find(keypoint => keypoint.name === 'right_wrist');
     const keypoints_right_arm_thumb = right_arm_pose.keypoints.find(keypoint => keypoint.name === 'right_thumb');
 
-    const right_arm_width = right_arm_pose.width * 1.45;
+
+    
+
+    let right_arm_width = right_arm_pose.width * 1.05;
     
     // Calculate the height of the arm based on the distance between shoulder, elbow, and wrist keypoints
-    const right_arm_height = Math.abs(keypoints_right_arm_shoulder.y - keypoints_right_arm_elbow.y) +
+    let right_arm_height = Math.abs(keypoints_right_arm_shoulder.y - keypoints_right_arm_elbow.y) +
         Math.abs(keypoints_right_arm_elbow.y - keypoints_right_arm_wrist.y) * 1.35;
+
+
+    const minimumArmHeight = 0.50;
+    const minimumArmWidth = 0.50;
+
+    // height of the arm should be at least 15% of the head height
+    // width of the arm should be at least 5% of the head width
+
+    if (right_arm_height < head_height * minimumArmHeight) {
+        right_arm_height = head_height * minimumArmHeight;
+    }
+
+    if (right_arm_width < head_width * minimumArmWidth) {
+        right_arm_width = head_width * minimumArmWidth;
+    }
+
 
     const right_arm_x = right_arm_pose.x - (right_arm_width - right_arm_pose.width) / 2;
     const right_arm_y = right_arm_pose.y - (right_arm_height - right_arm_pose.height) / 2;
@@ -276,11 +303,21 @@ export const processBoundingBoxes = async (context: CameraProcessor) => {
     const keypoints_left_arm_wrist = left_arm_pose.keypoints.find(keypoint => keypoint.name === 'left_wrist');
     const keypoints_left_arm_thumb = left_arm_pose.keypoints.find(keypoint => keypoint.name === 'left_thumb');
     
-    const left_arm_width = left_arm_pose.width * 1.45;
+    let left_arm_width = left_arm_pose.width * 1.45;
 
     // Calculate the height of the arm based on the distance between shoulder, elbow, and wrist keypoints
-    const left_arm_height = Math.abs(keypoints_left_arm_shoulder.y - keypoints_left_arm_elbow.y) +
+    let left_arm_height = Math.abs(keypoints_left_arm_shoulder.y - keypoints_left_arm_elbow.y) +
         Math.abs(keypoints_left_arm_elbow.y - keypoints_left_arm_wrist.y) * 1.35;
+
+
+        if (left_arm_height < head_height * minimumArmHeight) {
+            left_arm_height = head_height * minimumArmHeight;
+        }
+    
+        if (left_arm_width < head_width * minimumArmWidth) {
+            left_arm_width = head_width * minimumArmWidth;
+        }
+
 
     const left_arm_x = left_arm_pose.x - (left_arm_width - left_arm_pose.width) / 2;
     const left_arm_y = left_arm_pose.y - (left_arm_height - left_arm_pose.height) / 2;
@@ -292,9 +329,20 @@ export const processBoundingBoxes = async (context: CameraProcessor) => {
     context.boundingBoxesProcessed.push(left_arm_processed);
 
 
+    const percentageOfHeadWidth = 0.50;
+
     // Right hand
-    const right_hand_width = right_hand_pose.width * 3;
-    const right_hand_height = right_hand_pose.height * 1.5;
+    let right_hand_width = right_hand_pose.width * 3;
+    let right_hand_height = right_hand_pose.height * 1.5;
+
+    // make sure the hand width and heigt is minimal 10% of the head width
+    if (right_hand_width < head_width * percentageOfHeadWidth) {
+        right_hand_width = head_width * percentageOfHeadWidth;
+    }
+
+    if (right_hand_height < head_width * percentageOfHeadWidth) {
+        right_hand_height = head_width * percentageOfHeadWidth;
+    }
 
     const right_hand_x = right_hand_pose.x - (right_hand_width - right_hand_pose.width) / 2;
     const right_hand_y = right_hand_pose.y - (right_hand_height - right_hand_pose.height) / 2;
@@ -307,8 +355,17 @@ export const processBoundingBoxes = async (context: CameraProcessor) => {
 
 
     // Left hand
-    const left_hand_width = left_hand_pose.width * 3;
-    const left_hand_height = left_hand_pose.height * 1.5;
+    let left_hand_width = left_hand_pose.width * 3;
+    let left_hand_height = left_hand_pose.height * 1.5;
+
+    // make sure the hand width and heigt is minimal 10% of the head width
+    if (left_hand_width < head_width * percentageOfHeadWidth) {
+        left_hand_width = head_width * percentageOfHeadWidth;
+    }
+
+    if (left_hand_height < head_width * percentageOfHeadWidth) {
+        left_hand_height = head_width * percentageOfHeadWidth;
+    }
 
     const left_hand_x = left_hand_pose.x - (left_hand_width - left_hand_pose.width) / 2;
     const left_hand_y = left_hand_pose.y - (left_hand_height - left_hand_pose.height) / 2;
@@ -326,8 +383,19 @@ export const processBoundingBoxes = async (context: CameraProcessor) => {
     const keypoints_right_leg_ankle = right_leg_pose.keypoints.find(keypoint => keypoint.name === 'right_ankle');
     const keypoints_right_leg_foot_index = right_leg_pose.keypoints.find(keypoint => keypoint.name === 'right_foot_index');
 
-    const right_leg_width = right_leg_pose.width * 1.35;
-    const right_leg_height = Math.abs(keypoints_right_leg_hip.y - keypoints_right_leg_knee.y) + Math.abs(keypoints_right_leg_knee.y - keypoints_right_leg_ankle.y) * 1.35;
+    let right_leg_width = right_leg_pose.width * 1.35;
+    let right_leg_height = Math.abs(keypoints_right_leg_hip.y - keypoints_right_leg_knee.y) + Math.abs(keypoints_right_leg_knee.y - keypoints_right_leg_ankle.y) * 1.35;
+
+
+    // make sure the leg width and heigt is minimal 10% of the head width
+    if (right_leg_width < head_width * percentageOfHeadWidth) {
+        right_leg_width = head_width * percentageOfHeadWidth;
+    }
+
+    if (right_leg_height < head_width * percentageOfHeadWidth) {
+        right_leg_height = head_width * percentageOfHeadWidth;
+    }
+
 
     const right_leg_x = right_leg_pose.x - (right_leg_width - right_leg_pose.width) / 2;
     const right_leg_y = right_leg_pose.y - (right_leg_height - right_leg_pose.height) / 2;
@@ -345,11 +413,25 @@ export const processBoundingBoxes = async (context: CameraProcessor) => {
     const keypoints_left_leg_ankle = left_leg_pose.keypoints.find(keypoint => keypoint.name === 'left_ankle');
     const keypoints_left_leg_foot_index = left_leg_pose.keypoints.find(keypoint => keypoint.name === 'left_foot_index');
 
-    const left_leg_width = left_leg_pose.width * 1.35;
-    const left_leg_height = Math.abs(keypoints_left_leg_hip.y - keypoints_left_leg_knee.y) + Math.abs(keypoints_left_leg_knee.y - keypoints_left_leg_ankle.y) * 1.35;
+    let left_leg_width = left_leg_pose.width * 1.35;
+    let left_leg_height = Math.abs(keypoints_left_leg_hip.y - keypoints_left_leg_knee.y) + Math.abs(keypoints_left_leg_knee.y - keypoints_left_leg_ankle.y) * 1.35;
 
+    
+    // make sure the leg width and heigt is minimal 10% of the head width
+    if (left_leg_width < head_width * percentageOfHeadWidth) {
+        left_leg_width = head_width * percentageOfHeadWidth;
+    }
+
+    if (left_leg_height < head_width * percentageOfHeadWidth) {
+        left_leg_height = head_width * percentageOfHeadWidth;
+    }
+    
+    
     const left_leg_x = left_leg_pose.x - (left_leg_width - left_leg_pose.width) / 2;
     const left_leg_y = left_leg_pose.y - (left_leg_height - left_leg_pose.height) / 2;
+
+
+
 
     const left_leg_processed = { x: left_leg_x, y: left_leg_y, width: left_leg_width, height: left_leg_height, keypoints: left_leg_pose.keypoints,
         keypoints3D: left_leg_pose.keypoints3D,
@@ -360,8 +442,18 @@ export const processBoundingBoxes = async (context: CameraProcessor) => {
 
 
     // right foot
-    const right_foot_width = right_foot_pose.width * 1.5;
-    const right_foot_height = right_foot_pose.height * 1.5;
+    let right_foot_width = right_foot_pose.width * 1.5;
+    let right_foot_height = right_foot_pose.height * 1.5;
+
+    // make sure the foot width and heigt is minimal 10% of the head width
+    if (right_foot_width < head_width * percentageOfHeadWidth) {
+        right_foot_width = head_width * percentageOfHeadWidth;
+    }
+
+    if (right_foot_height < head_width * percentageOfHeadWidth) {
+        right_foot_height = head_width * percentageOfHeadWidth;
+    }
+
 
     const right_foot_x = right_foot_pose.x - (right_foot_width - right_foot_pose.width) / 2;
     const right_foot_y = right_foot_pose.y - (right_foot_height - right_foot_pose.height) / 2;
@@ -373,8 +465,17 @@ export const processBoundingBoxes = async (context: CameraProcessor) => {
     context.boundingBoxesProcessed.push(right_foot_processed);
 
     // left foot
-    const left_foot_width = left_foot_pose.width * 1.5;
-    const left_foot_height = left_foot_pose.height * 1.5;
+    let left_foot_width = left_foot_pose.width * 1.5;
+    let left_foot_height = left_foot_pose.height * 1.5;
+
+    // make sure the foot width and heigt is minimal 10% of the head width
+    if (left_foot_width < head_width * percentageOfHeadWidth) {
+        left_foot_width = head_width * percentageOfHeadWidth;
+    }
+
+    if (left_foot_height < head_width * percentageOfHeadWidth) {
+        left_foot_height = head_width * percentageOfHeadWidth;
+    }
 
     const left_foot_x = left_foot_pose.x - (left_foot_width - left_foot_pose.width) / 2;
     const left_foot_y = left_foot_pose.y - (left_foot_height - left_foot_pose.height) / 2;
@@ -384,6 +485,25 @@ export const processBoundingBoxes = async (context: CameraProcessor) => {
         label: 'left_foot_processed' };
 
     context.boundingBoxesProcessed.push(left_foot_processed);
+
+
+
+    // legs combined
+    const legs_combined_x = Math.min(left_leg_x, right_leg_x);
+    const legs_combined_y = Math.min(left_leg_y, right_leg_y);
+    const legs_combined_width = Math.max(left_leg_x + left_leg_width, right_leg_x + right_leg_width) - legs_combined_x;
+
+    let legs_combined_height = Math.max(left_leg_y + left_leg_height, right_leg_y + right_leg_height) - legs_combined_y;
+
+    // legs should be height minus the feet
+    legs_combined_height = legs_combined_height - (left_foot_height + right_foot_height) / 2;
+    
+    const legs_combined = { x: legs_combined_x, y: legs_combined_y, width: legs_combined_width, height: legs_combined_height, keypoints: [...left_leg_pose.keypoints, ...right_leg_pose.keypoints],
+        keypoints3D: [...left_leg_pose.keypoints3D, ...right_leg_pose.keypoints3D],
+        label: 'legs' };
+
+    context.boundingBoxesProcessed.push(legs_combined);
+
 
 
 

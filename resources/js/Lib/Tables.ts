@@ -37,14 +37,15 @@ export const blazePosePoseLandmarks = {
 export const blazePosePoseBodyParts = {
     "head": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
     "torso": [11, 12, 24, 23],
-    "right_arm": [12, 14, 16, 22],
-    "left_arm": [11, 13, 15, 21],
+    "right_arm": [12, 14, 16],
+    "left_arm": [11, 13, 15],
     "right_leg": [24, 26, 28, 32],
     "left_leg": [23, 25, 27, 31],
     "right_hand": [16, 18, 20, 22],
     "left_hand": [15, 17, 19, 21],
     "right_foot": [28, 30, 32],
-    "left_foot": [27, 29, 31]
+    "left_foot": [27, 29, 31],
+    "legs": [23, 24, 25, 26, 27, 28, 29, 30, 31, 32],
 }
 
 

@@ -30,13 +30,15 @@ import { detectHumans } from './CameraProcessorFunctions/process/detectHumans';
 import { drawObjects } from './CameraProcessorFunctions/draw/drawObjects';
 import { process } from './CameraProcessorFunctions/process/process';
 import { draw } from './CameraProcessorFunctions/draw/draw';
-import { CorpseObject } from './CreateCollage';
+
+import { CorpsesObject } from '@/types';
 
 
 export class CameraProcessor {
 
 
-    drawCanvas: boolean = false;
+    // drawCanvas: boolean = false;
+    running: boolean = true;
 
     canvasses: HTMLCanvasElement | null = null;
 
@@ -60,6 +62,8 @@ export class CameraProcessor {
     }[] = [];
 
     currentVideoDeviceId: string | undefined = undefined;
+
+    lastDraw : number = 0;
 
 
     inference:
@@ -105,7 +109,7 @@ export class CameraProcessor {
     }
 
 
-    async init(videoDiv: HTMLDivElement, div_process: HTMLDivElement, div_render: HTMLDivElement, corpse: CorpseObject) {
+    async init(videoDiv: HTMLDivElement, div_process: HTMLDivElement, div_render: HTMLDivElement, corpse: CorpsesObject) {
         console.log("init");
 
         await setupInferences(this);
@@ -129,42 +133,49 @@ export class CameraProcessor {
         });
     }
 
-    async loadPieces(corpse: CorpseObject) {
+    async loadPieces(corpses: CorpsesObject) {
 
         let start = performance.now();
-        let keys = Object.keys(corpse);
+        let keys = Object.keys(corpses);
 
         console.log('keys', keys);
+        console.log('corpse', corpses);
 
         let pieces = [];
 
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const corpsePart = corpse[key];
+            const corpseParts = corpses[key];
 
-            const img = new Image();
-            img.src = corpsePart.path;
 
-            // wait until image is loaded
-            await new Promise<void>((resolve) => {
-                img.onload = () => {
-                    resolve();
-                }
-            });
 
-            const width = img.width;
-            const height = img.height;
-            const label = key;
+            for(let j = 0; j < corpseParts.length; j++) {
+                const corpsePart = corpseParts[j];
 
-            pieces.push({
-                img: img,
-                width: width,
-                height: height,
-                label: label
-            });
+                const img = new Image();
+                img.src = corpsePart.path;
 
+                // wait until image is loaded
+                await new Promise<void>((resolve) => {
+                    img.onload = () => {
+                        resolve();
+                    }
+                });
+
+                const width = img.width;
+                const height = img.height;
+                const label = key;
+
+                pieces.push({
+                    img: img,
+                    width: width,
+                    height: height,
+                    label: label
+                });
+
+            }
         }
-        
+
         let end = performance.now();
 
         console.log(`${pieces.length} pieces loaded in ${end - start} ms`);
@@ -183,6 +194,11 @@ export class CameraProcessor {
     // --------------------------------------------------
 
     async loop() {
+
+        if (!this.running) {
+            return;
+        }
+
 
         if (!this.video || !this.canvas_process) {
             console.error('No video or canvas');

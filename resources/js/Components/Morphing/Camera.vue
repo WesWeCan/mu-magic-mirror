@@ -20,11 +20,11 @@ const emit = defineEmits(['newSlice', 'pictureTaken']);
 
 onMounted(async () => {
 
-    console.log('mounted Camera.vue', page.props.corpse);
+    console.log('mounted Camera.vue', page.props.corpses);
 
 
-    if (video_container.value && div_process.value && div_render.value && page.props.corpse) {
-        await cp.init(video_container.value, div_process.value, div_render.value, page.props.corpse);
+    if (video_container.value && div_process.value && div_render.value && page.props.corpses) {
+        await cp.init(video_container.value, div_process.value, div_render.value, page.props.corpses);
 
         // div_process.value.addEventListener('click', (e) => {
         //     const slice = cp.takePictureAndSlice()
@@ -61,8 +61,11 @@ const switchDevice = () => {
 const takePhoto = () => {
     console.log('take photo');
 
-    console.log('making collage with ', cp.boundingBoxesProcessed);
-    emit('pictureTaken', cp.boundingBoxesProcessed);
+
+    cp.running = !cp.running;
+
+    // console.log('making collage with ', cp.boundingBoxesProcessed);
+    // emit('pictureTaken', cp.boundingBoxesProcessed);
 }
 
 </script>

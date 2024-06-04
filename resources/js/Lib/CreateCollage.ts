@@ -1,25 +1,6 @@
 import { BaseImage, CutoutRaw } from "@/types/PoolTypes";
 
-export interface CorpsPart {
-
-    base_image_id: number;
-    base_image: BaseImage;
-    created_at: string;
-    id: number;
-    included: boolean;
-    label: string;
-    path: string;
-    updated_at: string;
-
-}
-
-
-export interface CorpseObject {
-
-
-    [key: string]: CorpsPart;
-
-}
+import { CorpsPart, CorpseObject } from "@/types";
 
 
 

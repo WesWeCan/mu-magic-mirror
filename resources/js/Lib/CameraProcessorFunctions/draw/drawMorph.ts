@@ -41,16 +41,20 @@ export const drawMorph = async (context: CameraProcessor) => {
     let boundingBoxes = context.boundingBoxesProcessed;
     let pieces = context.pieces;
 
-    // shuffle pieces
-    pieces = pieces.sort(() => Math.random() - 0.5);
+    const timeInterval = 100; // change order every milliseconds
+    const now = new Date().getTime();
+    const timeDifference = now - context.lastDraw;
 
-    const timeInterval = 500; // change order every milliseconds
+    if (timeDifference > timeInterval) {
+        pieces = pieces.sort(() => Math.random() - 0.5);
+        context.lastDraw = now;
+        context.lastDraw = now;
+    }
 
     boundingBoxes = boundingBoxes.sort(() => {
         const now = performance.now();
         return Math.sin(now / timeInterval) - 0.5;
     });
-
 
     // filter out the bounding boxes
     // if one of the x, y wid or heigt is infinity (or -infinity), it means that the bounding box is not set

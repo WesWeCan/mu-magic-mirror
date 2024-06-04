@@ -14,6 +14,7 @@ export type PageProps<T extends Record<string, unknown> = Record<string, unknown
     };
     baseImages?: BaseImage[];
     corpse? : CorpseObject;
+    corpses? : CorpsesObject;
 };
 
 
@@ -43,4 +44,27 @@ type BoundingBox = {
     keypoints: poseDetection.Keypoint[],
     keypoints3D: poseDetection.Keypoint[]
 
+}
+
+
+export interface CorpsPart {
+
+    base_image_id: number;
+    base_image: BaseImage;
+    created_at: string;
+    id: number;
+    included: boolean;
+    label: string;
+    path: string;
+    updated_at: string;
+
+}
+
+
+export interface CorpseObject {
+    [key: string]: CorpsPart;
+}
+
+export interface CorpsesObject {
+    [key: string]: CorpsPart[];
 }
