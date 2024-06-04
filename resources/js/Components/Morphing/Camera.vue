@@ -2,12 +2,11 @@
 
 import { CameraProcessor } from '@/Lib/CameraProcessor';
 import { CutoutRaw } from '@/types/PoolTypes';
-
-
-
-
+import { usePage } from '@inertiajs/vue3';
 import { onMounted, ref } from 'vue';
 
+
+const page = usePage();
 const cp = new CameraProcessor();
 
 
@@ -21,9 +20,11 @@ const emit = defineEmits(['newSlice', 'pictureTaken']);
 
 onMounted(async () => {
 
+    console.log('mounted Camera.vue', page.props.corpse);
 
-    if (video_container.value && div_process.value && div_render.value) {
-        await cp.init(video_container.value, div_process.value, div_render.value);
+
+    if (video_container.value && div_process.value && div_render.value && page.props.corpse) {
+        await cp.init(video_container.value, div_process.value, div_render.value, page.props.corpse);
 
         // div_process.value.addEventListener('click', (e) => {
         //     const slice = cp.takePictureAndSlice()

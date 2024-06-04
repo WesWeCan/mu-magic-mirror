@@ -15,6 +15,8 @@ export const clearCanvas = async (context: CameraProcessor) => {
     }
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = 'rgb(255, 255, 255)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 
 }

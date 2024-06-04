@@ -34,6 +34,8 @@ export const drawBoundingBoxes = async (context: CameraProcessor) => {
 
 export const drawBoundingBoxesProcessed = async (context: CameraProcessor) => {
 
+    
+
     if (!context.canvas_process || !context.boundingBoxesProcessed) {
         console.error('No canvas or bounding boxes');
         return;
@@ -59,4 +61,6 @@ export const drawBoundingBoxesProcessed = async (context: CameraProcessor) => {
         ctx.fillText(boundingBox.label, boundingBox.x, boundingBox.y - 10);
 
     }
+
+    // console.log('drawBoundingBoxesProcessed', context.boundingBoxesProcessed);
 }

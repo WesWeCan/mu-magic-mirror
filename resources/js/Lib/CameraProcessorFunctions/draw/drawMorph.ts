@@ -1,5 +1,5 @@
+import { CameraProcessor } from "@/Lib/CameraProcessor";
 
-import { BoundingBox } from "@/types";
 import { BaseImage, CutoutRaw } from "@/types/PoolTypes";
 
 export interface CorpsPart {
@@ -20,28 +20,16 @@ export interface CorpseObject {
     [key: string]: CorpsPart;
 }
 
-export const createCollageBoundingBoxes = async (corpse : CorpseObject, collage_container : HTMLDivElement, boundingBoxes : BoundingBox[], startingSize : {x: number, y : number}) => {
+
+export const drawMorph = async (context: CameraProcessor) => {
 
 
-    console.log('createCollageBoundingBoxes');
+    if (!context.canvas_process || !context.boundingBoxesProcessed) {
+        console.error('No canvas or bounding boxes');
+        return;
+    }
 
-    console.log('corpse', corpse);
-
-    console.log('collage_container', collage_container);
-
-    console.log('boundingBoxes', boundingBoxes);
-
-    console.log('startingSize', startingSize);
-
-    const canvas = document.createElement('canvas');
-    canvas.width = startingSize.x;
-    canvas.height = startingSize.y;
-    canvas.id = 'collage-canvas';
-
-    // empty the container
-    collage_container.innerHTML = '';
-    collage_container.appendChild(canvas);
-
+    const canvas = context.canvas_process as HTMLCanvasElement;
     const ctx = canvas.getContext('2d');
 
     if (!ctx) {
@@ -49,42 +37,20 @@ export const createCollageBoundingBoxes = async (corpse : CorpseObject, collage_
         return;
     }
 
-    let keys = Object.keys(corpse);
 
-    console.log('keys', keys);
-
-    let pieces = [];
-
-    for (let i = 0; i < keys.length; i++) {
-        const key = keys[i];
-        const corpsePart = corpse[key];
-
-        const img = new Image();
-        img.src = corpsePart.path;
-
-        // wait until image is loaded
-        await new Promise<void>((resolve) => {
-            img.onload = () => {
-                resolve();
-            }
-        });
-
-        const width = img.width;
-        const height = img.height;
-        const label = key;
-
-        pieces.push({
-            img: img,
-            width: width,
-            height: height,
-            label: label
-        });
-
-    }
+    let boundingBoxes = context.boundingBoxesProcessed;
+    let pieces = context.pieces;
 
     // shuffle pieces
     pieces = pieces.sort(() => Math.random() - 0.5);
-    console.log('pieces', pieces);
+
+    const timeInterval = 500; // change order every milliseconds
+
+    boundingBoxes = boundingBoxes.sort(() => {
+        const now = performance.now();
+        return Math.sin(now / timeInterval) - 0.5;
+    });
+
 
     // filter out the bounding boxes
     // if one of the x, y wid or heigt is infinity (or -infinity), it means that the bounding box is not set
@@ -92,7 +58,9 @@ export const createCollageBoundingBoxes = async (corpse : CorpseObject, collage_
         return box.x !== Infinity && box.y !== Infinity && box.width !== Infinity && box.height !== Infinity;
     });
 
-    console.log('filteredBoundingBoxes', filteredBoundingBoxes);
+    // console.log('filteredBoundingBoxes', filteredBoundingBoxes);
+
+
 
     // draw the bounding boxes on the canvas
     for (let i = 0; i < filteredBoundingBoxes.length; i++) {
@@ -102,7 +70,7 @@ export const createCollageBoundingBoxes = async (corpse : CorpseObject, collage_
         let piece = null;
 
         ctx.strokeStyle = 'blue';
-        ctx.strokeRect(box.x, box.y, box.width, box.height);
+        // ctx.strokeRect(box.x, box.y, box.width, box.height);
 
      
         // paste the image on the canvas
@@ -111,7 +79,7 @@ export const createCollageBoundingBoxes = async (corpse : CorpseObject, collage_
             case 'head_processed':
                 pieceLabel = 'head';
 
-                piece = pieces.find((p) => p.label === pieceLabel);
+                piece = pieces.find((p : any) => p.label === pieceLabel);
 
                 if (piece) {
                     const scale = Math.min(box.width / piece.width, box.height / piece.height);
@@ -121,6 +89,7 @@ export const createCollageBoundingBoxes = async (corpse : CorpseObject, collage_
                     const pieceY = box.y + box.height - pieceHeight;
 
                     ctx.drawImage(piece.img, pieceX, pieceY, pieceWidth, pieceHeight);
+                    drawDash(ctx, pieceX, pieceY, pieceWidth, pieceHeight);
                 }
             break;
 
@@ -129,7 +98,7 @@ export const createCollageBoundingBoxes = async (corpse : CorpseObject, collage_
             case 'torso_processed':
                 pieceLabel = 'torso';
 
-                piece = pieces.find((p) => p.label === pieceLabel);
+                piece = pieces.find((p : any) => p.label === pieceLabel);
 
                 if (piece) {
                     const scale = Math.min(box.width / piece.width, box.height / piece.height);
@@ -139,6 +108,7 @@ export const createCollageBoundingBoxes = async (corpse : CorpseObject, collage_
                     const pieceY = box.y + (box.height - pieceHeight) / 2;
 
                     ctx.drawImage(piece.img, pieceX, pieceY, pieceWidth, pieceHeight);
+                    drawDash(ctx, pieceX, pieceY, pieceWidth, pieceHeight);
                 }
                 break;
 
@@ -146,7 +116,7 @@ export const createCollageBoundingBoxes = async (corpse : CorpseObject, collage_
             case 'right_arm_processed':
                 pieceLabel = 'right_arm';
 
-                piece = pieces.find((p) => p.label === pieceLabel);
+                piece = pieces.find((p : any) => p.label === pieceLabel);
 
                 if (piece) {
                     const scale = Math.min(box.width / piece.width, box.height / piece.height);
@@ -156,6 +126,7 @@ export const createCollageBoundingBoxes = async (corpse : CorpseObject, collage_
                     const pieceY = box.y + (box.height - pieceHeight) / 2;
 
                     ctx.drawImage(piece.img, pieceX, pieceY, pieceWidth, pieceHeight);
+                    drawDash(ctx, pieceX, pieceY, pieceWidth, pieceHeight);
                 }
                 break;
 
@@ -163,7 +134,7 @@ export const createCollageBoundingBoxes = async (corpse : CorpseObject, collage_
             case 'left_arm_processed':
                 pieceLabel = 'left_arm';
 
-                piece = pieces.find((p) => p.label === pieceLabel);
+                piece = pieces.find((p : any) => p.label === pieceLabel);
 
                 if (piece) {
                     const scale = Math.min(box.width / piece.width, box.height / piece.height);
@@ -173,6 +144,7 @@ export const createCollageBoundingBoxes = async (corpse : CorpseObject, collage_
                     const pieceY = box.y + (box.height - pieceHeight) / 2;
 
                     ctx.drawImage(piece.img, pieceX, pieceY, pieceWidth, pieceHeight);
+                    drawDash(ctx, pieceX, pieceY, pieceWidth, pieceHeight);
                 }
                 break;
 
@@ -180,7 +152,7 @@ export const createCollageBoundingBoxes = async (corpse : CorpseObject, collage_
             case 'right_leg_processed':
                 pieceLabel = 'right_leg';
 
-                piece = pieces.find((p) => p.label === pieceLabel);
+                piece = pieces.find((p : any) => p.label === pieceLabel);
 
                 if (piece) {
                     const scale = Math.min(box.width / piece.width, box.height / piece.height);
@@ -190,13 +162,14 @@ export const createCollageBoundingBoxes = async (corpse : CorpseObject, collage_
                     const pieceY = box.y;
 
                     ctx.drawImage(piece.img, pieceX, pieceY, pieceWidth, pieceHeight);
+                    drawDash(ctx, pieceX, pieceY, pieceWidth, pieceHeight);
                 }
                 break;
 
             case 'left_leg_processed':
                 pieceLabel = 'left_leg';
 
-                piece = pieces.find((p) => p.label === pieceLabel);
+                piece = pieces.find((p : any) => p.label === pieceLabel);
 
                 if (piece) {
                     const scale = Math.min(box.width / piece.width, box.height / piece.height);
@@ -206,6 +179,7 @@ export const createCollageBoundingBoxes = async (corpse : CorpseObject, collage_
                     const pieceY = box.y;
 
                     ctx.drawImage(piece.img, pieceX, pieceY, pieceWidth, pieceHeight);
+                    drawDash(ctx, pieceX, pieceY, pieceWidth, pieceHeight);
                 }
                 break;
 
@@ -213,7 +187,7 @@ export const createCollageBoundingBoxes = async (corpse : CorpseObject, collage_
             case 'right_foot_processed':
                 pieceLabel = 'right_foot';
 
-                piece = pieces.find((p) => p.label === pieceLabel);
+                piece = pieces.find((p : any) => p.label === pieceLabel);
 
                 if (piece) {
                     const scale = Math.min(box.width / piece.width, box.height / piece.height);
@@ -223,13 +197,14 @@ export const createCollageBoundingBoxes = async (corpse : CorpseObject, collage_
                     const pieceY = box.y + (box.height - pieceHeight) / 2;
 
                     ctx.drawImage(piece.img, pieceX, pieceY, pieceWidth, pieceHeight);
+                    drawDash(ctx, pieceX, pieceY, pieceWidth, pieceHeight);
                 }
                 break;
 
             case 'left_foot_processed':
                 pieceLabel = 'left_foot';
 
-                piece = pieces.find((p) => p.label === pieceLabel);
+                piece = pieces.find((p : any) => p.label === pieceLabel);
 
                 if (piece) {
                     const scale = Math.min(box.width / piece.width, box.height / piece.height);
@@ -239,6 +214,7 @@ export const createCollageBoundingBoxes = async (corpse : CorpseObject, collage_
                     const pieceY = box.y + (box.height - pieceHeight) / 2;
 
                     ctx.drawImage(piece.img, pieceX, pieceY, pieceWidth, pieceHeight);
+                    drawDash(ctx, pieceX, pieceY, pieceWidth, pieceHeight);
                 }
                 break;
 
@@ -246,7 +222,7 @@ export const createCollageBoundingBoxes = async (corpse : CorpseObject, collage_
             case 'right_hand_processed':
                 pieceLabel = 'right_hand';
 
-                piece = pieces.find((p) => p.label === pieceLabel);
+                piece = pieces.find((p : any) => p.label === pieceLabel);
 
                 if (piece) {
                     const scale = Math.min(box.width / piece.width, box.height / piece.height);
@@ -256,6 +232,7 @@ export const createCollageBoundingBoxes = async (corpse : CorpseObject, collage_
                     const pieceY = box.y + (box.height - pieceHeight) / 2;
 
                     ctx.drawImage(piece.img, pieceX, pieceY, pieceWidth, pieceHeight);
+                    drawDash(ctx, pieceX, pieceY, pieceWidth, pieceHeight);
                 }
                 break;
 
@@ -263,7 +240,7 @@ export const createCollageBoundingBoxes = async (corpse : CorpseObject, collage_
             case 'left_hand_processed':
                 pieceLabel = 'left_hand';
 
-                piece = pieces.find((p) => p.label === pieceLabel);
+                piece = pieces.find((p : any) => p.label === pieceLabel);
 
                 if (piece) {
                     const scale = Math.min(box.width / piece.width, box.height / piece.height);
@@ -273,6 +250,12 @@ export const createCollageBoundingBoxes = async (corpse : CorpseObject, collage_
                     const pieceY = box.y + (box.height - pieceHeight) / 2;
 
                     ctx.drawImage(piece.img, pieceX, pieceY, pieceWidth, pieceHeight);
+                    drawDash(ctx, pieceX, pieceY, pieceWidth, pieceHeight);
+
+
+                    
+
+
                 }
                 break;          
 
@@ -284,6 +267,28 @@ export const createCollageBoundingBoxes = async (corpse : CorpseObject, collage_
     }
 
 
+    
+    
+   
 
 
+
+
+
+
+}
+
+
+
+
+const drawDash = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number) => {
+    const lineWidth = 2;
+    const lineDash = [2, 4];
+    ctx.beginPath();
+    ctx.setLineDash(lineDash);
+    ctx.strokeStyle = 'blue';
+    ctx.lineWidth = lineWidth;
+    ctx.rect(x, y, width, height);
+    ctx.stroke();
+    ctx.setLineDash([]);
 }

@@ -8,7 +8,7 @@ import * as poseDetection from '@tensorflow-models/pose-detection';
 import * as cocoSsd from '@tensorflow-models/coco-ssd';
 
 
-export const getBoundingBoxes = async (context: CameraProcessor, poses: poseDetection.Pose[], input: PixelInput) => {
+export const getBoundingBoxes = async (context: CameraProcessor, poses: poseDetection.Pose[], input: PixelInput | undefined = undefined) => {
 
 
     // from the poses, get the bounding boxes based on the coloredPartImage
@@ -23,7 +23,7 @@ export const getBoundingBoxes = async (context: CameraProcessor, poses: poseDete
 
 }
 
-export const getBoundingBox = async (context: CameraProcessor, keypoints: poseDetection.Keypoint[], keypoints3D: poseDetection.Keypoint[], input: PixelInput) => {    
+export const getBoundingBox = async (context: CameraProcessor, keypoints: poseDetection.Keypoint[], keypoints3D: poseDetection.Keypoint[], input: PixelInput | undefined = undefined) => {    
 
     context.boundingBoxes = [];
     const pixels = context.inferenceData.pixels as Pixel[];
@@ -42,7 +42,6 @@ export const getBoundingBox = async (context: CameraProcessor, keypoints: poseDe
     for(let label of labels) {
 
         // General Bounding Box based on only keypoints
-
         const blazePoseLabel = label as keyof typeof blazePosePoseBodyParts;
 
         const partPoints: poseDetection.Keypoint[] = [];
@@ -68,8 +67,7 @@ export const getBoundingBox = async (context: CameraProcessor, keypoints: poseDe
         continue;
 
         // ----------------------------
-
-        // Bounding Box based on BodyPix mask
+        // OLD: Bounding Box based on BodyPix mask
 
         // let partBoundingBox = {
         //     x: -1,
@@ -89,79 +87,10 @@ export const getBoundingBox = async (context: CameraProcessor, keypoints: poseDe
         // const maskBoundingBox = { x: partBoundingBox.x, y: partBoundingBox.y, width: partBoundingBox.width, height: partBoundingBox.height, label: `${blazePoseLabel}_mask` };
 
         // context.boundingBoxes.push(maskBoundingBox);
-
-
-        // ----------------------------
-        
-
-        // EXAMPLE CODE FROM OPENCV
-        // let src = cv.imread('canvasInput');
-        // let dst = cv.Mat.zeros(src.rows, src.cols, cv.CV_8UC3);
-        // cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
-        // cv.threshold(src, src, 177, 200, cv.THRESH_BINARY);
-        // let contours = new cv.MatVector();
-        // let hierarchy = new cv.Mat();
-        // cv.findContours(src, contours, hierarchy, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE);
-        // let cnt = contours.get(0);
-        // // You can try more different parameters
-        // let rect = cv.boundingRect(cnt);
-        // let contoursColor = new cv.Scalar(255, 255, 255);
-        // let rectangleColor = new cv.Scalar(255, 0, 0);
-        // cv.drawContours(dst, contours, 0, contoursColor, 1, 8, hierarchy, 100);
-        // let point1 = new cv.Point(rect.x, rect.y);
-        // let point2 = new cv.Point(rect.x + rect.width, rect.y + rect.height);
-        // cv.rectangle(dst, point1, point2, rectangleColor, 2, cv.LINE_AA, 0);
-        // cv.imshow('canvasOutput', dst);
-        // src.delete(); dst.delete(); contours.delete(); hierarchy.delete(); cnt.delete();
-
-
-        // Based on the mask, get the bounding box of this label
-        // first I probably have to make a binary image of the mask
-        // then I can use the findContours method to get the bounding box
-
-        // const mask = Array(imageHeight).fill(0).map(() => Array(imageWidth).fill(0));
-
-        // for (let pixel of pixels) {
-        //     if (bodyPixCombination[bodyPixLabel].includes(pixel.color.r)) {
-        //         mask[pixel.y][pixel.x] = 1;
-        //     }
-        // }
-
-        // const cvCanvas = document.createElement('canvas');
-        // cvCanvas.width = imageWidth;
-        // cvCanvas.height = imageHeight;
-
-        // const cvContext = cvCanvas.getContext('2d');
-
-        // if (!cvContext) {
-        //     console.error('No context');
-        //     return;
-        // }
-
-        // const cvImageData = cvContext.createImageData(imageWidth, imageHeight);
-
-        // let data = cvImageData.data;
-
-        // for (let i = 0; i < data.length; i += 4) {
-        //     let x = (i / 4) % imageWidth;
-        //     let y = Math.floor((i / 4) / imageWidth);
-
-        //     let value = mask[y][x] * 255;
-
-        //     data[i] = value;
-        //     data[i + 1] = value;
-        //     data[i + 2] = value;
-        //     data[i + 3] = 255;
-        // }
-
-        // cvContext.putImageData(cvImageData, 0, 0);
-
-        // let src = cv.imread(cvCanvas);
-        
+     
         
         // ----------------------------
-
-        continue;
+        // OLD: Raycasting to get the bounding box based on the mask
 
         // Bounding Box based on combined mask
         // let centerX = Math.floor((partBoundingBox.x + partBoundingBox.width / 2));
@@ -267,6 +196,9 @@ export const getBoundingBox = async (context: CameraProcessor, keypoints: poseDe
 
 export const processBoundingBoxes = async (context: CameraProcessor) => {
 
+    console.log('Processing bounding boxes');
+
+
     context.boundingBoxesProcessed = [];
     
     const head_pose = context.boundingBoxes.find(boundingBox => boundingBox.label === 'head_pose');
@@ -286,6 +218,7 @@ export const processBoundingBoxes = async (context: CameraProcessor) => {
         return;
     }
 
+  
 
     // Head
     // Estimate the size of the head based on the torso

@@ -17,7 +17,7 @@ export const setupInferences = async (context: CameraProcessor) => {
     await tf.ready();
     console.log('Tensorflow ready');
 
-    console.log('Setting up inferences')
+    // console.log('Setting up inferences')
 
     // console.log(cv.getBuildInformation());
 
@@ -46,14 +46,11 @@ export const setupInferences = async (context: CameraProcessor) => {
     // context.inference.selfieSegmentation = selfieSegmentation;
     // console.log('SelfieSegmentation ready');
 
-
-
-
-    // BodyPix Segmentation
-    context.inference.bodyPix = undefined;
-    const bodyPixSegmenter = await bodySegmentation.createSegmenter(bodySegmentation.SupportedModels.BodyPix);
-    context.inference.bodyPix = bodyPixSegmenter;
-    console.log('BodyPix ready');
+    // // BodyPix Segmentation
+    // context.inference.bodyPix = undefined;
+    // const bodyPixSegmenter = await bodySegmentation.createSegmenter(bodySegmentation.SupportedModels.BodyPix);
+    // context.inference.bodyPix = bodyPixSegmenter;
+    // console.log('BodyPix ready');
 
     // BlazePose
     context.inference.blazePose = undefined;

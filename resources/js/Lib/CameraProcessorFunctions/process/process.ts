@@ -15,12 +15,12 @@ export const process = async (context: CameraProcessor, input: PixelInput) => {
 
     // await detectHumans(context, input as ImageData | HTMLImageElement | HTMLCanvasElement | HTMLVideoElement);
     
-    await segmentBodyPix(context, input);
+    // await segmentBodyPix(context, input);
     await estimatePose(context, input);
-    await convertImageDataToPixels(context, context.inferenceData.maskData as ImageData);
+    // await convertImageDataToPixels(context, context.inferenceData.maskData as ImageData);
 
-    if (context.inferenceData.poses && context.inferenceData.coloredPartImage) {
-        await getBoundingBoxes(context, context.inferenceData.poses, context.inferenceData.coloredPartImage);
+    if (context.inferenceData.poses)  {
+        await getBoundingBoxes(context, context.inferenceData.poses);
         await processBoundingBoxes(context);
     }
 

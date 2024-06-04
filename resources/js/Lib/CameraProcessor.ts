@@ -30,6 +30,7 @@ import { detectHumans } from './CameraProcessorFunctions/process/detectHumans';
 import { drawObjects } from './CameraProcessorFunctions/draw/drawObjects';
 import { process } from './CameraProcessorFunctions/process/process';
 import { draw } from './CameraProcessorFunctions/draw/draw';
+import { CorpseObject } from './CreateCollage';
 
 
 export class CameraProcessor {
@@ -96,12 +97,15 @@ export class CameraProcessor {
     boundingBoxes: BoundingBox[] = [];
     boundingBoxesProcessed: BoundingBox[] = [];
 
+
+    pieces: any = [];
+
     constructor() {
         console.log("ImageProcessor constructor");
     }
 
 
-    async init(videoDiv: HTMLDivElement, div_process: HTMLDivElement, div_render: HTMLDivElement) {
+    async init(videoDiv: HTMLDivElement, div_process: HTMLDivElement, div_render: HTMLDivElement, corpse: CorpseObject) {
         console.log("init");
 
         await setupInferences(this);
@@ -109,7 +113,7 @@ export class CameraProcessor {
 
         await getAvailableVideoDevices(this);
         console.log('Got available video devices');
-        
+
 
         await getMediaStream(this, videoDiv);
         console.log('Got media stream');
@@ -117,12 +121,57 @@ export class CameraProcessor {
         await createCanvasses(this, div_process, div_render);
         console.log('Canvasses created');
 
+        await this.loadPieces(corpse);
+        console.log('Pieces loaded');
+
         return new Promise<boolean>((resolve, reject) => {
             resolve(true);
         });
     }
 
-    
+    async loadPieces(corpse: CorpseObject) {
+
+        let start = performance.now();
+        let keys = Object.keys(corpse);
+
+        console.log('keys', keys);
+
+        let pieces = [];
+
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const corpsePart = corpse[key];
+
+            const img = new Image();
+            img.src = corpsePart.path;
+
+            // wait until image is loaded
+            await new Promise<void>((resolve) => {
+                img.onload = () => {
+                    resolve();
+                }
+            });
+
+            const width = img.width;
+            const height = img.height;
+            const label = key;
+
+            pieces.push({
+                img: img,
+                width: width,
+                height: height,
+                label: label
+            });
+
+        }
+        
+        let end = performance.now();
+
+        console.log(`${pieces.length} pieces loaded in ${end - start} ms`);
+
+        this.pieces = pieces;
+
+    }
 
     async switchVideoDevice() {
 
@@ -147,12 +196,12 @@ export class CameraProcessor {
 
     // --------------------------------------------------
 
-    
+
 
     // --------------------------------------------------
 
     async draw() {
-        
+
         await draw(this);
     }
 
@@ -162,6 +211,8 @@ export class CameraProcessor {
 
         // render the processed canvas to the rendering canvas
         // fill the rendering canvas with the processed canvas, make it responsive
+
+        
 
         if (!this.canvas_process || !this.canvas_render) {
             console.error('No canvas or rendering canvas');
@@ -180,7 +231,7 @@ export class CameraProcessor {
         }
 
         // draw processed canvas, make it responsive and scale proportionally, but cover the whole rendering canvas
-       
+
 
         const aspectRatio = canvas_process.width / canvas_process.height;
 
@@ -192,7 +243,7 @@ export class CameraProcessor {
 
         ctx_render.drawImage(canvas_process, renderX, renderY, renderWidth, renderHeight);
 
-    
+
     }
 
 
