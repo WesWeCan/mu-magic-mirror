@@ -63,7 +63,11 @@ export class CameraProcessor {
 
     currentVideoDeviceId: string | undefined = undefined;
 
-    lastDraw : number = 0;
+    lastDraws = {
+        shufflePieces: 0,
+        shuffleBoundingBoxes: 0,
+        shuffleYou: 0
+    };
 
 
     inference:
@@ -106,7 +110,7 @@ export class CameraProcessor {
     currentlyShownPieces: any = {};
 
 
-    resolutionScaling: number = 2;
+    resolutionScaling: number = 1;
 
     constructor() {
         console.log("ImageProcessor constructor");
