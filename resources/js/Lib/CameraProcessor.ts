@@ -105,6 +105,9 @@ export class CameraProcessor {
     pieces: any = [];
     currentlyShownPieces: any = {};
 
+
+    resolutionScaling: number = 2;
+
     constructor() {
         console.log("ImageProcessor constructor");
     }

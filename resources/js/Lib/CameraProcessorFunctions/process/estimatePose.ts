@@ -18,6 +18,17 @@ export const estimatePose = async (context: CameraProcessor, input: PixelInput) 
     const blazePose = context.inference.blazePose as poseDetection.PoseDetector;
 
     const poses = await blazePose.estimatePoses(input, estimationConfig, timestamp);
+
+    // scale the poses based on the resolutionScaling
+    poses.forEach(pose => {
+        pose.keypoints.forEach(keypoint => {
+            keypoint.x = keypoint.x * context.resolutionScaling;
+            keypoint.y = keypoint.y * context.resolutionScaling;
+        })
+    });
+
+
+
     context.inferenceData.poses = poses;
 
     return poses;

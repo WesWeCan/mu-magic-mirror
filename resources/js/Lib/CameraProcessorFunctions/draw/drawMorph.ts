@@ -42,7 +42,7 @@ export const drawMorph = async (context: CameraProcessor) => {
     let boundingBoxes = context.boundingBoxesProcessed;
     let pieces = context.pieces;
 
-    const timeInterval = 100; // change order every milliseconds
+    const timeInterval = 500; // change order every milliseconds
     const now = new Date().getTime();
     const timeDifference = now - context.lastDraw;
 
@@ -220,10 +220,12 @@ export const drawMorph = async (context: CameraProcessor) => {
         const pieceY = piece.y;
         const pieceWidth = piece.width;
         const pieceHeight = piece.height;
+
+        let fontSize = 12 * context.resolutionScaling;
         
-        ctx.font = '12px Arial';
+        ctx.font = `${fontSize}px Arial`;
         ctx.fillStyle = 'blue';
-        ctx.fillText(piece.baseImage.name, pieceX, pieceY + pieceHeight + 15);
+        ctx.fillText(piece.baseImage.name, pieceX, pieceY + pieceHeight + (fontSize * 1.01));
     });
 
 

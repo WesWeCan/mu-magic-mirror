@@ -12,9 +12,9 @@ import { drawMorph } from "./drawMorph";
 export const draw = async (context: CameraProcessor) => {
     // console.log('draw');
         await clearCanvas(context);
-        // await drawVideo(context);
+        await drawVideo(context);
         // await drawSegmentation(context);
-        // await drawPose(context);
+        await drawPose(context);
         // await drawObjects(context);
         // await drawBoundingBoxes(context);
         // await drawBoundingBoxesProcessed(context);

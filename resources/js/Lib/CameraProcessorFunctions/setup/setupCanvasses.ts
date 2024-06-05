@@ -12,8 +12,13 @@ export const createCanvasses = async (context: CameraProcessor, div_process: HTM
     const canvas_process = document.createElement('canvas');
     canvas_process.id = 'canvas_process';
 
-    canvas_process.width = context.video?.videoWidth || 0;
-    canvas_process.height = context.video?.videoHeight || 0;
+    if (!context.video?.videoWidth || !context.video?.videoHeight) {
+        console.error('No video width or height');
+        return;
+    }
+
+    canvas_process.width = context.video.videoWidth * context.resolutionScaling;
+    canvas_process.height = context.video.videoHeight * context.resolutionScaling;
 
     context.canvas_process = canvas_process;
 

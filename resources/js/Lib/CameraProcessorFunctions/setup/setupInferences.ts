@@ -1,27 +1,27 @@
 import { CameraProcessor } from "@/Lib/CameraProcessor";
 
-import * as bodySegmentation from '@tensorflow-models/body-segmentation';
+
+
+
+// NOTE: I am keeping the previous inference models commented out for now, so the CameraProcessor class can be easily reused if needed.
+
+// import * as bodySegmentation from '@tensorflow-models/body-segmentation';
 import * as poseDetection from '@tensorflow-models/pose-detection';
-import * as cocoSsd from '@tensorflow-models/coco-ssd';
+// import * as cocoSsd from '@tensorflow-models/coco-ssd';
 // Register WebGL backend.
 import '@tensorflow/tfjs-backend-webgl';
 import * as tf from '@tensorflow/tfjs';
-import '@tensorflow/tfjs-backend-webgl';
-
-
-
-
 
 export const setupInferences = async (context: CameraProcessor) => {
 
+    console.info('Setting up inferences')
+
     await tf.ready();
-    console.log('Tensorflow ready');
+    console.info('Tensorflow ready');
 
-    // console.log('Setting up inferences')
-
-    // console.log(cv.getBuildInformation());
-
-
+    
+    // // OpenCV
+    // console.info(cv.getBuildInformation());
 
 
     // // COCO-SSD
@@ -32,7 +32,7 @@ export const setupInferences = async (context: CameraProcessor) => {
     // }
     // const cocoSsdModel = await cocoSsd.load(modelConfig);
     // context.inference.cocoSsd = cocoSsdModel;
-    // console.log('CocoSsd ready');
+    // console.info('CocoSsd ready');
 
 
 
@@ -44,13 +44,13 @@ export const setupInferences = async (context: CameraProcessor) => {
     // }
     // const selfieSegmentation = await bodySegmentation.createSegmenter(bodySegmentation.SupportedModels.MediaPipeSelfieSegmentation, selfieSegmenterConfig);
     // context.inference.selfieSegmentation = selfieSegmentation;
-    // console.log('SelfieSegmentation ready');
+    // console.info('SelfieSegmentation ready');
 
     // // BodyPix Segmentation
     // context.inference.bodyPix = undefined;
     // const bodyPixSegmenter = await bodySegmentation.createSegmenter(bodySegmentation.SupportedModels.BodyPix);
     // context.inference.bodyPix = bodyPixSegmenter;
-    // console.log('BodyPix ready');
+    // console.info('BodyPix ready');
 
     // BlazePose
     context.inference.blazePose = undefined;
@@ -61,6 +61,6 @@ export const setupInferences = async (context: CameraProcessor) => {
     };
     const blazePose = await poseDetection.createDetector(poseDetection.SupportedModels.BlazePose, detectorConfig);
     context.inference.blazePose = blazePose;
-    console.log('BlazePose ready');
+    console.info('BlazePose ready');
 
 }
