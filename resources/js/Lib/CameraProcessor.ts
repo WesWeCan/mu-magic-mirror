@@ -110,7 +110,7 @@ export class CameraProcessor {
     currentlyShownPieces: any = {};
 
 
-    resolutionScaling: number = 1;
+    resolutionScaling: number = 2;
 
     processingDownload: boolean = false;
 

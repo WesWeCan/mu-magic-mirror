@@ -35,7 +35,7 @@ export const drawMorph = async (context: CameraProcessor) => {
 
     const now = new Date().getTime();
 
-    const timeIntervalPieces = 1000;
+    const timeIntervalPieces = 100;
     const timeDifferencePieces = now - context.lastDraws.shufflePieces;
 
     if (timeDifferencePieces > timeIntervalPieces) {
@@ -208,29 +208,49 @@ async function cutOutFromVideo(context: CameraProcessor, boundingBox: BoundingBo
 
     const video = context.video;
 
-    const scaledBoundingBox = {
-        x: boundingBox.x * context.resolutionScaling,
-        y: boundingBox.y * context.resolutionScaling,
-        width: boundingBox.width * context.resolutionScaling,
-        height: boundingBox.height * context.resolutionScaling
-    };
-
-    if (scaledBoundingBox.x < 0 || scaledBoundingBox.y < 0 || scaledBoundingBox.width <= 0 || scaledBoundingBox.height <= 0) {
+    if (boundingBox.x < 0 || boundingBox.y < 0 || boundingBox.width <= 0 || boundingBox.height <= 0) {
         return null;
     }
 
-    const imgCanvas = document.createElement('canvas');
-    imgCanvas.width = scaledBoundingBox.width;
-    imgCanvas.height = scaledBoundingBox.height;
+    // Create a temporary canvas to draw the scaled video
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = video.videoWidth * context.resolutionScaling;
+    tempCanvas.height = video.videoHeight * context.resolutionScaling;
 
-    const imgContext = imgCanvas.getContext('2d');
+    const tempContext = tempCanvas.getContext('2d');
 
-    if (!imgContext) {
+    if (!tempContext) {
         console.error('No context');
         return null;
     }
 
-    imgContext.drawImage(video, scaledBoundingBox.x, scaledBoundingBox.y, scaledBoundingBox.width, scaledBoundingBox.height, 0, 0, scaledBoundingBox.width, scaledBoundingBox.height);
+    tempContext.drawImage(video, 0, 0, video.videoWidth, video.videoHeight, 0, 0, tempCanvas.width, tempCanvas.height);
+
+// Create imgCanvas to draw the bounding box from the scaled video
+const imgCanvas = document.createElement('canvas');
+imgCanvas.id = 'imgCanvas';
+imgCanvas.width = boundingBox.width;
+imgCanvas.height = boundingBox.height;
+
+const imgContext = imgCanvas.getContext('2d');
+
+if (!imgContext) {
+    console.error('No context');
+    return null;
+}
+
+/// Draw the bounding box from the scaled video onto imgCanvas
+imgContext.drawImage(
+    tempCanvas,
+    boundingBox.x,
+    boundingBox.y,
+    boundingBox.width,
+    boundingBox.height,
+    0,
+    0,
+    imgCanvas.width,
+    imgCanvas.height
+);
 
     const img = new Image();
     img.src = imgCanvas.toDataURL();
@@ -239,6 +259,21 @@ async function cutOutFromVideo(context: CameraProcessor, boundingBox: BoundingBo
         img.onload = () => resolve(true);
         img.onerror = () => resolve(false); // Handle image loading error
     });
+
+
+
+    // // For debugging purposes
+    // // remove the canvas if it exists
+    // const existingCanvas = document.getElementById('imgCanvas');
+    // if (existingCanvas) {
+    //     existingCanvas.remove();
+    // }
+
+    // // append the canvas to the body and draw the image on it
+    // document.body.appendChild(imgCanvas);
+    // imgContext.drawImage(img, 0, 0);
+
+
 
     // Clean up the canvas to free up memory
     imgCanvas.width = 0;
@@ -252,7 +287,7 @@ async function insertYouPiece(context: CameraProcessor, boundingBoxes: BoundingB
     const currentFirstPiece = context.pieces[0];
     const currentFirstPieceLabel = currentFirstPiece.label;
 
-    const boundingBox = boundingBoxes.find((box) => box.label === currentFirstPieceLabel+"_processed");
+    const boundingBox = boundingBoxes.find((box) => box.label === currentFirstPieceLabel + "_processed");
 
     if (!boundingBox) {
         console.error('No bounding box');
@@ -265,7 +300,7 @@ async function insertYouPiece(context: CameraProcessor, boundingBoxes: BoundingB
 
     // Limit the number of pieces to avoid memory issues
 
-    context.pieces = context.pieces.filter((p : any) => p.baseImage.name !== "YOU!");
+    context.pieces = context.pieces.filter((p: any) => p.baseImage.name !== "YOU!");
 
     const tempPiece = {
         img: cutout,
