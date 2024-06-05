@@ -150,7 +150,29 @@ export const drawMorph = async (context: CameraProcessor) => {
         }
     }
 
-    context.currentlyShownPieces = positions;
+    const canvasWidth = canvas.width;
+    const canvasHeight = canvas.height;
+
+    const filteredPositions = Object.keys(positions).reduce((acc, key) => {
+        const piece = positions[key];
+        const pieceX = piece.x;
+        const pieceY = piece.y;
+        const pieceWidth = piece.width;
+        const pieceHeight = piece.height;
+
+        if (
+            pieceX + pieceWidth >= 0 &&
+            pieceY + pieceHeight >= 0 &&
+            pieceX <= canvasWidth &&
+            pieceY <= canvasHeight
+        ) {
+            acc[key] = piece;
+        }
+
+        return acc;
+    }, {});
+
+    context.currentlyShownPieces = filteredPositions;
 
     // Draw the bounding boxes and images on the canvas
     Object.keys(positions).forEach((key) => {
