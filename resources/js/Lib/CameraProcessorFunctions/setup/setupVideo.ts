@@ -5,7 +5,16 @@ import { CameraProcessor } from "@/Lib/CameraProcessor";
 export const getAvailableVideoDevices = async (context : CameraProcessor) => {
 
     // ask for permission to use the camera first so enumeration goes correctly
-    const stream = await navigator.mediaDevices.getUserMedia({video: true});
+    const stream = await navigator.mediaDevices.getUserMedia({video: true}).catch(error => {
+        console.error('Error accessing media devices.', error);
+        return;
+    });
+
+    if (!stream) {
+        console.error('No stream');
+        return;
+    }
+    
     stream.getTracks().forEach(track => track.stop());
 
     const devices = await navigator.mediaDevices.enumerateDevices();
@@ -29,7 +38,8 @@ export const getAvailableVideoDevices = async (context : CameraProcessor) => {
     context.currentVideoDeviceId = environmentDevice.device.deviceId;
     console.log('Current video device: ' + environmentDevice.device.label);
 
-
+    // Update video permission in context
+    context.videoPermission = true;
 }
 
 export const switchVideoDevice = async (context : CameraProcessor) => {

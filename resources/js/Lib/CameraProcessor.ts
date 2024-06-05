@@ -46,6 +46,7 @@ export class CameraProcessor {
 
     div_video: HTMLDivElement | null = null;
     video: HTMLVideoElement | null = null;
+    videoPermission: boolean = false;
 
     div_process: HTMLDivElement | null = null;
     canvas_process: HTMLCanvasElement | null = null;
@@ -122,12 +123,17 @@ export class CameraProcessor {
     async init(videoDiv: HTMLDivElement, div_process: HTMLDivElement, div_render: HTMLDivElement, corpse: CorpsesObject) {
         console.log("init");
 
-        await setupInferences(this);
-        console.log('Inferences setup');
-
         await getAvailableVideoDevices(this);
         console.log('Got available video devices');
 
+
+        if(this.videoPermission === false) {
+            console.error('No video permission');
+            return;
+        }
+
+        await setupInferences(this);
+        console.log('Inferences setup');
 
         await getMediaStream(this, videoDiv);
         console.log('Got media stream');

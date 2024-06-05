@@ -12,6 +12,14 @@ import { drawMorph } from "./drawMorph";
 export const draw = async (context: CameraProcessor) => {
     // console.log('draw');
     await clearCanvas(context);
+
+    if(context.videoPermission === false) {
+        await drawNoPermission(context);
+        return;
+    }
+
+
+
     await drawVideo(context);
     // await drawSegmentation(context);
     // await drawPose(context);
@@ -76,6 +84,33 @@ const drawNoPosesDetected = async (context: CameraProcessor) => {
     ctx_process.fillStyle = 'blue';
 
     const text = '[I do not see you]';
+    const textWidth = ctx_process.measureText(text).width;
+    const x = (context.canvas_process.width - textWidth) / 2;
+    const y = context.canvas_process.height / 2;
+    ctx_process.fillText(text, x, y);
+
+}
+
+
+
+const drawNoPermission = async (context: CameraProcessor) => {
+
+    const ctx_process = context.canvas_process?.getContext('2d');
+    if (!ctx_process) {
+        console.error('No context');
+        return;
+    }
+
+    if (!context.canvas_process) {
+        console.error('No canvas');
+        return;
+    }
+
+    let fontSize = 9 * (context.resolutionScaling);
+    ctx_process.font = `${fontSize}px Arial`;
+    ctx_process.fillStyle = 'blue';
+
+    const text = '[No permission to use camera, check your browser settings]';
     const textWidth = ctx_process.measureText(text).width;
     const x = (context.canvas_process.width - textWidth) / 2;
     const y = context.canvas_process.height / 2;

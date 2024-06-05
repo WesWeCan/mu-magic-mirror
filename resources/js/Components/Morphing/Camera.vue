@@ -17,6 +17,8 @@ const div_render= ref<HTMLDivElement | null>(null);
 
 const emit = defineEmits(['newSlice', 'pictureTaken', "updateList"]);
 
+const loadingText = ref('Loading...');
+
 
 onMounted(async () => {
 
@@ -46,6 +48,13 @@ onMounted(async () => {
 
 const loop = async () => {
     if (video_container.value && div_process.value) {
+
+        if(!cp.videoPermission){
+        loadingText.value = 'No permission to use camera, check your settings and refresh the page.';
+        console.error('No video permission');
+        return;
+    }
+
         await cp.loop();
 
         if(cp.running){
@@ -100,7 +109,7 @@ defineExpose({
     <div ref="div_process" class="div-process"></div>
 
     <div ref="div_render" class="div-render">
-        <span class="loading">Loading...</span>
+        <span class="loading">{{loadingText}}</span>
     </div>
 
     <!-- <button class="switch-device-button" @click="switchDevice">Switch Device</button> -->
