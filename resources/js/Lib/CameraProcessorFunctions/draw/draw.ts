@@ -79,7 +79,7 @@ const drawNoPosesDetected = async (context: CameraProcessor) => {
         return;
     }
 
-    let fontSize = 9 * (context.resolutionScaling);
+    let fontSize = 18;
     ctx_process.font = `${fontSize}px Arial`;
     ctx_process.fillStyle = 'blue';
 
@@ -106,7 +106,7 @@ const drawNoPermission = async (context: CameraProcessor) => {
         return;
     }
 
-    let fontSize = 9 * (context.resolutionScaling);
+    let fontSize = 18;
     ctx_process.font = `${fontSize}px Arial`;
     ctx_process.fillStyle = 'blue';
 

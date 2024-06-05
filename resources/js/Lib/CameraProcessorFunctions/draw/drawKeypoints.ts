@@ -9,16 +9,11 @@ export const drawKeypoints = async (context: CameraProcessor, ctx: CanvasRenderi
         return;
     }
 
-
-
     const keypointInd =
         poseDetection.util.getKeypointIndexBySide(poseDetection.SupportedModels.BlazePose);
     ctx.fillStyle = 'Red';
 
     ctx.lineWidth = 5;
-
-
-
 
     for (const i of keypointInd.middle) {
         ctx.strokeStyle = (keypoints[i].score ?? 0 >= .5) ? 'rgba(0,255,0,1)' : 'rgba(0,0,255)';

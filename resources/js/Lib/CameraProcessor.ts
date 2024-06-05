@@ -265,8 +265,6 @@ export class CameraProcessor {
         }
 
         // draw processed canvas, make it responsive and scale proportionally, but cover the whole rendering canvas
-
-
         const aspectRatio = canvas_process.width / canvas_process.height;
 
         const renderHeight = canvas_render.height;
@@ -276,7 +274,6 @@ export class CameraProcessor {
         const renderY = 0;
 
         ctx_render.drawImage(canvas_process, renderX, renderY, renderWidth, renderHeight);
-
 
     }
 

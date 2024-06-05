@@ -194,7 +194,7 @@ export const drawMorph = async (context: CameraProcessor) => {
         const pieceWidth = piece.width;
         const pieceHeight = piece.height;
 
-        let fontSize = 12 * context.resolutionScaling;
+        let fontSize = 18;
 
         ctx.font = `${fontSize}px Arial`;
         ctx.fillStyle = 'blue';
@@ -236,8 +236,10 @@ async function cutOutFromVideo(context: CameraProcessor, boundingBox: BoundingBo
 
     // Create a temporary canvas to draw the scaled video
     const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = video.videoWidth * context.resolutionScaling;
-    tempCanvas.height = video.videoHeight * context.resolutionScaling;
+    // tempCanvas.width = video.videoWidth * context.resolutionScaling;
+    // tempCanvas.height = video.videoHeight * context.resolutionScaling;
+    tempCanvas.width = video.videoWidth;
+    tempCanvas.height = video.videoHeight;
 
     const tempContext = tempCanvas.getContext('2d');
 

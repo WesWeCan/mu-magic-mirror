@@ -4,7 +4,7 @@ import { PixelInput } from '@tensorflow-models/body-segmentation/dist/shared/cal
 import * as poseDetection from '@tensorflow-models/pose-detection';
 
 export const estimatePose = async (context: CameraProcessor, input: PixelInput) => {
-    if (!input || !context.inference.blazePose) {
+    if (!input || !context.inference.blazePose || !context.video) {
         console.error('No video or inference');
         return;
     }
@@ -17,15 +17,31 @@ export const estimatePose = async (context: CameraProcessor, input: PixelInput) 
     const timestamp = performance.now();
     const blazePose = context.inference.blazePose as poseDetection.PoseDetector;
 
-    const poses = await blazePose.estimatePoses(input, estimationConfig, timestamp);
+    const poses = await blazePose.estimatePoses(context.video, estimationConfig, timestamp);
 
-    // scale the poses based on the resolutionScaling
-    poses.forEach(pose => {
-        pose.keypoints.forEach(keypoint => {
-            keypoint.x = keypoint.x * context.resolutionScaling;
-            keypoint.y = keypoint.y * context.resolutionScaling;
-        })
-    });
+
+    const userUsesMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    if (userUsesMobile) {
+        
+        // shift all keypoints a bit to the left and down
+        // base it on the width and height of the video
+
+        if (!context.video) {
+            console.error('No video');
+            return;
+        }
+
+        const shiftLeft = (context.video?.videoWidth || 0) * .19;
+        const shiftDown = (context.video?.videoHeight || 0) * .09;
+
+        for (const pose of poses) {
+            for (const keypoint of pose.keypoints) {
+                keypoint.x -= shiftLeft;
+                keypoint.y += shiftDown;
+            }
+        }
+    }
 
 
 
