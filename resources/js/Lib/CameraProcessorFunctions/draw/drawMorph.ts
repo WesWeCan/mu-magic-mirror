@@ -306,6 +306,12 @@ imgContext.drawImage(
 
 async function insertYouPiece(context: CameraProcessor, boundingBoxes: BoundingBox[]) {
 
+
+    if (!context.pieces || context.pieces.length === 0) {
+        console.error('No pieces');
+        return;
+    }
+
     const currentFirstPiece = context.pieces[0];
     const currentFirstPieceLabel = currentFirstPiece.label;
 

@@ -10,6 +10,7 @@ import * as poseDetection from '@tensorflow-models/pose-detection';
 // import * as cocoSsd from '@tensorflow-models/coco-ssd';
 // Register WebGL backend.
 import '@tensorflow/tfjs-backend-webgl';
+import '@tensorflow/tfjs-backend-cpu';
 import * as tf from '@tensorflow/tfjs';
 
 export const setupInferences = async (context: CameraProcessor) => {
@@ -17,6 +18,10 @@ export const setupInferences = async (context: CameraProcessor) => {
     console.info('Setting up inferences')
 
     await tf.ready();
+
+    // check what is best, webgl or cpu
+    const backend = tf.getBackend();
+    console.info('Tensorflow backend:', backend);
     console.info('Tensorflow ready');
 
     
