@@ -205,7 +205,7 @@ const updateList = (list: any) => {
     Object.keys(list).forEach((key) => {
         let item = list[key].baseImage;
 
-        let randomId = Math.floor(Math.random() * 1000000);
+        let randomId = Math.floor(Math.random() * 10000000);
 
         piecesList.value.push({
             id: item.id,
@@ -308,8 +308,8 @@ setInterval(() => {
                     <button @click="switchDevice">swtch</button>
                 </div>
                 <div class="group" v-if="currentScreen != 'welcome'">
-                    <button @click="showList = false">img</button>
-                    <button @click="showList = !showList" >lst</button>
+                    <button @click="showList = false" :class="{'light' : showList}">img</button>
+                    <button @click="showList = !showList" :class="{'light' : !showList}">lst</button>
                 </div>
                 <div class="group" v-if="currentScreen != 'welcome'">
                     <button @click="downloadImage">down</button>

@@ -14,13 +14,13 @@ export const draw = async (context: CameraProcessor) => {
     await clearCanvas(context);
     await drawVideo(context);
     // await drawSegmentation(context);
-    await drawPose(context);
+    // await drawPose(context);
     // await drawObjects(context);
     // await drawBoundingBoxes(context);
     // await drawBoundingBoxesProcessed(context);
 
     if ((context.inferenceData.poses?.length ?? 0) > 0) {
-        await drawSheet(context, .90);
+        await drawSheet(context, .93);
         await drawMorph(context);
     }
     else {
@@ -33,6 +33,10 @@ export const draw = async (context: CameraProcessor) => {
 
 
 const drawSheet = async (context: CameraProcessor, opacity: number) => {
+
+    if(context.running === false) {
+        opacity = 1;
+    }
 
 
     // draw a transparent white sheet over the canvas

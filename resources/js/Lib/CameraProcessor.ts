@@ -112,6 +112,8 @@ export class CameraProcessor {
 
     resolutionScaling: number = 1;
 
+    processingDownload: boolean = false;
+
     constructor() {
         console.log("ImageProcessor constructor");
     }
@@ -217,6 +219,7 @@ export class CameraProcessor {
         await process(this, this.video);
         await this.draw();
         await this.render();
+
     }
 
     // --------------------------------------------------
@@ -271,14 +274,32 @@ export class CameraProcessor {
 
     }
 
-
-
-
-
+    async togglePicture() {
+        this.running = !this.running;
+        this.loop();
+    }
 
     async downloadImage() {
 
-        this.running = false;
+        if(this.processingDownload) {
+            return;
+        }
+        this.processingDownload = true;
+
+        if(this.running) {
+            this.running = false;
+            await this.loop();
+            await this.draw();
+            // wait for the last draw to finish
+            await new Promise((resolve) => {
+                setTimeout(() => {
+                    resolve(true);
+                }, 2000);
+            });
+
+        }
+
+        
 
         if (!this.canvas_render) {
             console.error('No rendering canvas');
@@ -297,14 +318,40 @@ export class CameraProcessor {
         a.download = `image ${currentTime}.png`;
         a.click();
 
+        this.processingDownload = false;
+
         // TODO: upload to server also, with recipe
     }
 
 
     async shareImage() {
 
-        // use navigator.share
-        this.running = false;
+
+        const userUsesMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+        if(!userUsesMobile) {
+            this.downloadImage();
+            return;
+        }
+
+        if(this.processingDownload) {
+            return;
+        }
+        this.processingDownload = true;
+
+        if(this.running) {
+            this.running = false;
+            await this.loop();
+            await this.draw();
+            // wait for the last draw to finish
+            await new Promise((resolve) => {
+                setTimeout(() => {
+                    resolve(true);
+                }, 2000);
+            });
+
+        }
+
 
         if (!this.canvas_render) {
             console.error('No rendering canvas');
@@ -330,15 +377,18 @@ export class CameraProcessor {
         };       
 
         try {
-            await navigator.share(shareData);
-            console.log('Shared successfully');
+            if (navigator.share && userUsesMobile) {
+                await navigator.share(shareData);
+                console.log('Shared successfully');
+            } else {
+                console.error('Sharing is not supported (on desktop)');
+                this.downloadImage();
+            }
         } catch (err) {
             console.error('Error sharing', err);
         }
 
-        
-
-
+        this.processingDownload = false;
 
     }
 

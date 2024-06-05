@@ -35,7 +35,7 @@ export const drawMorph = async (context: CameraProcessor) => {
 
     const now = new Date().getTime();
 
-    const timeIntervalPieces = 100;
+    const timeIntervalPieces = 1000;
     const timeDifferencePieces = now - context.lastDraws.shufflePieces;
 
     if (timeDifferencePieces > timeIntervalPieces) {
@@ -208,13 +208,20 @@ async function cutOutFromVideo(context: CameraProcessor, boundingBox: BoundingBo
 
     const video = context.video;
 
-    if (boundingBox.x < 0 || boundingBox.y < 0 || boundingBox.width <= 0 || boundingBox.height <= 0) {
+    const scaledBoundingBox = {
+        x: boundingBox.x * context.resolutionScaling,
+        y: boundingBox.y * context.resolutionScaling,
+        width: boundingBox.width * context.resolutionScaling,
+        height: boundingBox.height * context.resolutionScaling
+    };
+
+    if (scaledBoundingBox.x < 0 || scaledBoundingBox.y < 0 || scaledBoundingBox.width <= 0 || scaledBoundingBox.height <= 0) {
         return null;
     }
 
     const imgCanvas = document.createElement('canvas');
-    imgCanvas.width = boundingBox.width;
-    imgCanvas.height = boundingBox.height;
+    imgCanvas.width = scaledBoundingBox.width;
+    imgCanvas.height = scaledBoundingBox.height;
 
     const imgContext = imgCanvas.getContext('2d');
 
@@ -223,7 +230,7 @@ async function cutOutFromVideo(context: CameraProcessor, boundingBox: BoundingBo
         return null;
     }
 
-    imgContext.drawImage(video, boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height, 0, 0, boundingBox.width, boundingBox.height);
+    imgContext.drawImage(video, scaledBoundingBox.x, scaledBoundingBox.y, scaledBoundingBox.width, scaledBoundingBox.height, 0, 0, scaledBoundingBox.width, scaledBoundingBox.height);
 
     const img = new Image();
     img.src = imgCanvas.toDataURL();
@@ -255,8 +262,6 @@ async function insertYouPiece(context: CameraProcessor, boundingBoxes: BoundingB
     const cutout = await cutOutFromVideo(context, boundingBox);
 
     if (!cutout) return;
-
-    
 
     // Limit the number of pieces to avoid memory issues
 

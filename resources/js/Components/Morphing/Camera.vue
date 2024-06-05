@@ -67,7 +67,7 @@ const takePhoto = () => {
     console.log('take photo');
 
 
-    cp.running = !cp.running;
+    cp.togglePicture();
 
     // console.log('making collage with ', cp.boundingBoxesProcessed);
     // emit('pictureTaken', cp.boundingBoxesProcessed);
