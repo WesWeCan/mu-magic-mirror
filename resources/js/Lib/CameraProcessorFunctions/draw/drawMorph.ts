@@ -1,6 +1,7 @@
 import { CameraProcessor } from "@/Lib/CameraProcessor";
 import { BoundingBox } from "@/types";
 import { BaseImage, CutoutRaw } from "@/types/PoolTypes";
+import { Mat } from "mirada";
 
 export interface CorpsPart {
     base_image_id: number;
@@ -35,13 +36,20 @@ export const drawMorph = async (context: CameraProcessor) => {
 
     const now = new Date().getTime();
 
-    const timeIntervalPieces = 100;
+
+
+    const timeIntervalPieces = 1000;
     const timeDifferencePieces = now - context.lastDraws.shufflePieces;
 
     if (timeDifferencePieces > timeIntervalPieces) {
         context.pieces = context.pieces.sort(() => Math.random() - 0.5);
         context.lastDraws.shufflePieces = now;
+
+        context.showLegsSeparately = Math.random() > 0.5;
     }
+
+
+    console.info("context.showLegsSeparately", context.showLegsSeparately);
 
     const timeIntervalBox = timeIntervalPieces / 2;
     const timeDifferenceBoundingBoxes = now - context.lastDraws.shuffleBoundingBoxes;
@@ -94,6 +102,15 @@ export const drawMorph = async (context: CameraProcessor) => {
         ctx.strokeStyle = 'blue';
 
         pieceLabel = box.label.replace('_processed', '');
+
+
+        if(context.showLegsSeparately && pieceLabel === 'legs') {
+            continue;
+        }
+
+        if(!context.showLegsSeparately && (pieceLabel === 'right_leg' || pieceLabel === 'left_leg')) {
+            continue;
+        }
 
         // Get the piece
         piece = context.pieces.find((p: any) => p.label === pieceLabel);

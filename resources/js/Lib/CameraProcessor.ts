@@ -115,6 +115,8 @@ export class CameraProcessor {
 
     processingDownload: boolean = false;
 
+    showLegsSeparately: boolean = false;
+
     constructor() {
         console.log("ImageProcessor constructor");
     }
