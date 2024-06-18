@@ -68,29 +68,29 @@ body.mirror {
                 width: 33px;
                 height: 33px;
 
-                background-image: url("./image/icons/icons__photo.svg");
+                background-image: url("/image/icons/icons__photo.svg");
                 background-size: contain;
                 background-repeat: no-repeat;
                 background-position: center;
                 stroke-width: 0;
 
                 &.icon_photo {
-                    background-image: url("./image/icons/icons__photo.svg")
+                    background-image: url("/image/icons/icons__photo.svg")
                 }
                 &.icon_switch {
-                    background-image: url("./image/icons/icons__switch.svg")
+                    background-image: url("/image/icons/icons__switch.svg")
                 }
                 &.icon_image {
-                    background-image: url("./image/icons/icons__image.svg")
+                    background-image: url("/image/icons/icons__image.svg")
                 }
                 &.icon_list {
-                    background-image: url("./image/icons/icons__list_list_outline.svg")
+                    background-image: url("/image/icons/icons__list_list_outline.svg")
                 }
                 &.icon_download {
-                    background-image: url("./image/icons/icons__download.svg")
+                    background-image: url("/image/icons/icons__download.svg")
                 }
                 &.icon_share {
-                    background-image: url("./image/icons/icons__share.svg")
+                    background-image: url("/image/icons/icons__share.svg")
                 }
                 
 
@@ -190,7 +190,7 @@ body.mirror {
                     background-position: center;
                     stroke-width: 0;
 
-                    animation: spin 1s linear infinite;
+                    animation: spin 1s ease-in-out infinite;
                 
                
             }
