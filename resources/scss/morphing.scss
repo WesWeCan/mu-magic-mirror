@@ -65,32 +65,32 @@ body.mirror {
 
             button {
                 // background-color: green;
-                width: 30px;
-                height: 30px;
+                width: 33px;
+                height: 33px;
 
-                background-image: url("./image/icons/Icon_photo.svg");
+                background-image: url("./image/icons/icons__photo.svg");
                 background-size: contain;
                 background-repeat: no-repeat;
                 background-position: center;
                 stroke-width: 0;
 
                 &.icon_photo {
-                    background-image: url("./image/icons/Icon_photo.svg")
+                    background-image: url("./image/icons/icons__photo.svg")
                 }
                 &.icon_switch {
-                    background-image: url("./image/icons/Icon_switch.svg")
+                    background-image: url("./image/icons/icons__switch.svg")
                 }
                 &.icon_image {
-                    background-image: url("./image/icons/Icon_image.svg")
+                    background-image: url("./image/icons/icons__image.svg")
                 }
                 &.icon_list {
-                    background-image: url("./image/icons/Icon_list.svg")
+                    background-image: url("./image/icons/icons__list_list_outline.svg")
                 }
                 &.icon_download {
-                    background-image: url("./image/icons/Icon_download.svg")
+                    background-image: url("./image/icons/icons__download.svg")
                 }
                 &.icon_share {
-                    background-image: url("./image/icons/Icon_share.svg")
+                    background-image: url("./image/icons/icons__share.svg")
                 }
                 
 
@@ -167,6 +167,46 @@ body.mirror {
             background-color: #f0f0f057;
             padding: 1rem;
             border-radius: 0.5rem;
+
+            &::before {
+                content: "";
+                display: block;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+
+                width: 50px;
+                height: 50px;
+
+                
+                
+
+                    display: block;
+                    
+                 
+                    background-image: url("./image/icons/icons__switch.svg");
+                    background-size: contain;
+                    background-repeat: no-repeat;
+                    background-position: center;
+                    stroke-width: 0;
+
+                    animation: spin 1s linear infinite;
+                
+               
+            }
+
+            
+
+            @keyframes spin {
+                0% { transform: translate(-50%, 75%) rotate(0deg); }
+                100% { transform: translate(-50%, 75%) rotate(-360deg); }
+            }
+
+
+            .loading-text {
+                font-size: 1.5rem;
+                font-weight: bold;
+            }
         }
     }
 

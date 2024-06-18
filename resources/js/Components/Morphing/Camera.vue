@@ -24,7 +24,6 @@ onMounted(async () => {
 
     console.log('mounted Camera.vue', page.props.corpses);
 
-
     if (video_container.value && div_process.value && div_render.value && page.props.corpses) {
         await cp.init(video_container.value, div_process.value, div_render.value, page.props.corpses);
 
