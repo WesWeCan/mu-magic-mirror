@@ -59,10 +59,13 @@ export const setupInferences = async (context: CameraProcessor) => {
 
     // BlazePose
     context.inference.blazePose = undefined;
-    const detectorConfig = {
+    const detectorConfig : poseDetection.BlazePoseTfjsModelConfig = {
         runtime: 'tfjs',
         enableSmoothing: true,
-        modelType: "lite",
+        // modelType: "lite",
+        detectorModelUrl: '/models/blazepose/detector/blazepose-3d-tfjs-detector-v1/model.json',       
+        landmarkModelUrl: '/models/blazepose/landmark/blazepose-3d-tfjs-landmark-lite-v2/model.json',
+        
     };
     const blazePose = await poseDetection.createDetector(poseDetection.SupportedModels.BlazePose, detectorConfig);
     context.inference.blazePose = blazePose;

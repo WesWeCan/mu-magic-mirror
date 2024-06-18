@@ -48,9 +48,6 @@ export const drawMorph = async (context: CameraProcessor) => {
         context.showLegsSeparately = Math.random() > 0.5;
     }
 
-
-    console.info("context.showLegsSeparately", context.showLegsSeparately);
-
     const timeIntervalBox = timeIntervalPieces / 2;
     const timeDifferenceBoundingBoxes = now - context.lastDraws.shuffleBoundingBoxes;
 
