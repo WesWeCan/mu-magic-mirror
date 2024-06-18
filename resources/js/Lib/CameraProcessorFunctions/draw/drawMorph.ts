@@ -38,7 +38,7 @@ export const drawMorph = async (context: CameraProcessor) => {
 
 
 
-    const timeIntervalPieces = 1000;
+    const timeIntervalPieces = 100;
     const timeDifferencePieces = now - context.lastDraws.shufflePieces;
 
     if (timeDifferencePieces > timeIntervalPieces) {
