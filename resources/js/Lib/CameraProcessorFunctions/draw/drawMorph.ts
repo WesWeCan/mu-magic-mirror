@@ -197,23 +197,23 @@ export const drawMorph = async (context: CameraProcessor) => {
         const pieceHeight = piece.height;
 
         ctx.drawImage(piece.img, pieceX, pieceY, pieceWidth, pieceHeight);
-        drawDash(ctx, pieceX, pieceY, pieceWidth, pieceHeight);
+        // drawDash(ctx, pieceX, pieceY, pieceWidth, pieceHeight);
     });
 
-    Object.keys(positions).forEach((key) => {
-        const piece = positions[key];
+    // Object.keys(positions).forEach((key) => {
+    //     const piece = positions[key];
 
-        const pieceX = piece.x;
-        const pieceY = piece.y;
-        const pieceWidth = piece.width;
-        const pieceHeight = piece.height;
+    //     const pieceX = piece.x;
+    //     const pieceY = piece.y;
+    //     const pieceWidth = piece.width;
+    //     const pieceHeight = piece.height;
 
-        let fontSize = 18;
+    //     let fontSize = 18;
 
-        ctx.font = `${fontSize}px Arial`;
-        ctx.fillStyle = 'blue';
-        ctx.fillText(piece.baseImage.name, pieceX, pieceY + pieceHeight + (fontSize * 1.01));
-    });
+    //     ctx.font = `${fontSize}px Arial`;
+    //     ctx.fillStyle = 'blue';
+    //     ctx.fillText(piece.baseImage.name, pieceX, pieceY + pieceHeight + (fontSize * 1.01));
+    // });
 }
 
 const drawDash = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number) => {

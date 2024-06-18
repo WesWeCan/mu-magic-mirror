@@ -15,6 +15,7 @@ export type PageProps<T extends Record<string, unknown> = Record<string, unknown
     baseImages?: BaseImage[];
     corpse? : CorpseObject;
     corpses? : CorpsesObject;
+    corpseArchive? : CorpseArchive[];
 };
 
 
@@ -67,4 +68,13 @@ export interface CorpseObject {
 
 export interface CorpsesObject {
     [key: string]: CorpsPart[];
+}
+
+
+export interface CorpseArchive {
+    path: string;
+    base_images: {
+        name: string,
+        link: string
+    };
 }

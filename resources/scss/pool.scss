@@ -385,3 +385,28 @@ body.pool {
 
 
 }
+
+
+
+
+
+.gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    flex-direction: column;
+
+    .corpse_image {
+        background-color: #eeeeee;
+        padding: .5rem
+    }
+
+    a[download] {
+        text-decoration: underline;
+    }
+
+    .corpse_image_details {
+        display: flex;
+        flex-direction: column;
+    }
+}

@@ -247,6 +247,11 @@ setInterval(() => {
                 <p>Love, MU.</p>
 
                 <button @click="start">Start</button>
+
+                <br/><br/>
+                <small>
+                    We won't store any images of you without your permission.
+                </small>
             </div>
 
 
@@ -286,7 +291,7 @@ setInterval(() => {
                 <div class="list-container">
                     
                     <div v-for="listItem in piecesList" :key="listItem.random" v-if="piecesList">
-                        <a :href="listItem.link" target="_blank">{{ listItem.name }} {{ listItem.random }}</a>
+                        <a :href="listItem.link" target="_blank">{{ listItem.name }}</a>
                     </div>
                 </div>
 
@@ -304,16 +309,16 @@ setInterval(() => {
 
             <div class="nav">
                 <div class="group" v-if="currentScreen != 'welcome'">
-                    <button @click="takePicture">pht</button>
-                    <button @click="switchDevice">swtch</button>
+                    <button @click="takePicture" class="icon_photo">&nbsp;</button>
+                    <button @click="switchDevice" class="icon_switch">&nbsp;</button>
                 </div>
                 <div class="group" v-if="currentScreen != 'welcome'">
-                    <button @click="showList = false" :class="{'light' : showList}">img</button>
-                    <button @click="showList = !showList" :class="{'light' : !showList}">lst</button>
+                    <button @click="showList = false" class="icon_image" :class="{'light' : showList}">&nbsp;</button>
+                    <button @click="showList = !showList" class="icon_list" :class="{'light' : !showList}">&nbsp;</button>
                 </div>
                 <div class="group" v-if="currentScreen != 'welcome'">
-                    <button @click="downloadImage">down</button>
-                    <button @click="shareImage">up</button>
+                    <button @click="downloadImage" class="icon_download">&nbsp;</button>
+                    <button @click="shareImage" class="icon_share">&nbsp;</button>
                 </div>
             </div>
 

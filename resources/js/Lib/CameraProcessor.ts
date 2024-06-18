@@ -33,6 +33,8 @@ import { draw } from './CameraProcessorFunctions/draw/draw';
 
 import { CorpsesObject } from '@/types';
 
+import axios from 'axios';
+
 
 export class CameraProcessor {
 
@@ -284,48 +286,56 @@ export class CameraProcessor {
         this.loop();
     }
 
-    async downloadImage() {
 
-        if(this.processingDownload) {
+    getCurrentTime() {
+
+        const options: DateTimeFormatOptions = { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' };
+        const currentTime: string = new Intl.DateTimeFormat('en-GB', options).format(new Date()).replace(/[:\s]/g, '_');
+
+        return currentTime;
+
+    }
+
+    async downloadImage(isSharing = false) {
+        if (this.processingDownload) {
             return;
         }
         this.processingDownload = true;
+    
+        try {
+            if (this.running) {
+                this.running = false;
+                await this.loop();
+                await this.draw();
+                // Wait for the last draw to finish if necessary
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+    
+            if (!this.canvas_render) {
+                console.error('No rendering canvas');
+                this.processingDownload = false;
+                return;
+            }
+    
+            const canvas_render = this.canvas_render as HTMLCanvasElement;
+            const dataUrl = canvas_render.toDataURL();
+    
+            const a = document.createElement('a');
+            a.href = dataUrl;
+    
 
-        if(this.running) {
-            this.running = false;
-            await this.loop();
-            await this.draw();
-            // wait for the last draw to finish
-            await new Promise((resolve) => {
-                setTimeout(() => {
-                    resolve(true);
-                }, 2000);
-            });
-
+    
+            a.download = `Corpse_Image_${this.getCurrentTime()}.png`;
+            a.click();
+    
+            if (isSharing) {
+                await this.archiveImage(dataUrl);
+            }
+        } catch (error) {
+            console.error('Error downloading or archiving image', error);
+        } finally {
+            this.processingDownload = false;
         }
-
-        
-
-        if (!this.canvas_render) {
-            console.error('No rendering canvas');
-            return;
-        }
-
-        const canvas_render = this.canvas_render as HTMLCanvasElement;
-
-        const a = document.createElement('a');
-        a.href = canvas_render.toDataURL();
-
-        const options = { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' };
-
-        const currentTime = new Date().toLocaleString('en-GB', options);
-
-        a.download = `image ${currentTime}.png`;
-        a.click();
-
-        this.processingDownload = false;
-
-        // TODO: upload to server also, with recipe
     }
 
 
@@ -335,7 +345,7 @@ export class CameraProcessor {
         const userUsesMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
         if(!userUsesMobile) {
-            this.downloadImage();
+            this.downloadImage(true);
             return;
         }
 
@@ -367,9 +377,7 @@ export class CameraProcessor {
 
         const dataUrl = canvas_render.toDataURL();
 
-        const options = { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' };
-
-        const currentTime = new Date().toLocaleString('en-GB', options);
+       const currentTime = this.getCurrentTime();
 
         // share as file
         const blob = await fetch(dataUrl).then(res => res.blob());
@@ -379,6 +387,7 @@ export class CameraProcessor {
             files: filesArray,
             title: `image ${currentTime}`,
             text: `image ${currentTime}`,
+            url: import.meta.env.VITE_APP_URL
         };       
 
         try {
@@ -396,6 +405,56 @@ export class CameraProcessor {
         this.processingDownload = false;
 
     }
+
+
+    async archiveImage(dataUrl: string) {
+
+    if(confirm('Do you consent that we archive this image?')) {
+
+        // console.log('Archiving image');
+        console.log('Archiving image');
+        const formData = new FormData();
+
+        const currentTime = this.getCurrentTime();
+
+        const file = await fetch(dataUrl).then(res => res.blob())
+            .then(blob => new File([blob], `image ${currentTime}.png`, { type: 'image/png' }));
+            
+    
+        // Append the File to FormData
+        formData.append('image', file);
+
+
+
+        const usedPiecesList = Object.keys(this.currentlyShownPieces).map((key) => {
+            const piece = this.currentlyShownPieces[key];
+
+            if(piece.baseImage.name === 'YOU!') {
+                return -1;
+            }
+            else {
+                return piece.baseImage.id;
+            }
+        });
+
+        formData.append('usedPieces', JSON.stringify(usedPiecesList));
+
+        // get the list of used pieces
+        console.log('Used pieces', usedPiecesList);
+
+        try {
+            const response = await axios.post('/archive', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+
+            console.log('Image archived', response);
+        } catch (error) {
+            console.error('Error archiving image', error);
+        } 
+    }
+}
 
 
 

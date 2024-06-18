@@ -92,23 +92,15 @@ class PoolController extends Controller
         $baseImage->processed = true;
         $baseImage->save();
 
-        
-
+    
         return response()->json(['success'=>'You have successfully uploaded an image.']);
-
     }
 
-
-
     public function poolProcessor(){
-
-
         $baseImages = BaseImage::where('processed', false)->get();
-
         return Inertia::render('PoolSlicer', [
             'baseImages' => $baseImages
         ]);
-        
     }
 
 
@@ -121,6 +113,9 @@ class PoolController extends Controller
         ]);
 
     }
+
+
+   
 
 
 

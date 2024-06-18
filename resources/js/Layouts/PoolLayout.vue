@@ -36,6 +36,9 @@ onUnmounted(() => {
         <li>
             <Link :href="route('pool.manage')">Manage</Link>
         </li>
+        <li>
+            <Link :href="route('pool.gallery')">Gallery</Link>
+        </li>
     </ul>
 </nav>
 

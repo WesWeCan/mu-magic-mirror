@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Corpse;
 use App\Models\MaskImage;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -60,4 +61,39 @@ class FrontController extends Controller
             "corpses" => $corpse
         ]);
     }
+
+
+
+    public function archive(Request $request)
+    {
+
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'usedPieces' => 'required|string',
+        ]);
+
+        $usedPieces = json_decode($request->usedPieces);
+    
+        $imageName = time() . "_" . $request->image->getClientOriginalName();
+
+        // Ensure the file extension is correct
+        $extension = $request->image->extension();
+        $imageNameWithExtension = $imageName . '.' . $extension;
+    
+        // Store the image
+        $request->image->storeAs('corpseImages', $imageNameWithExtension, 'public');
+
+        $path = '/storage/corpseImages/' . $imageNameWithExtension;
+
+
+        $corpse = new Corpse();
+        $corpse->path = $path;
+        $corpse->base_images = $usedPieces;
+        $corpse->save();
+
+
+        return response()->json(['success'=>'You have successfully uploaded an image.']);
+    }
+
+
 }

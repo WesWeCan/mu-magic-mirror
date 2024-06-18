@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ArchiveController;
 use App\Http\Controllers\BaseImageController;
 use App\Http\Controllers\FrontController;
 use App\Http\Controllers\MaskImageController;
@@ -12,6 +13,7 @@ use Inertia\Inertia;
 
 
 Route::get('/', [FrontController::class, 'index'])->name('mirror');
+Route::post('/archive', [FrontController::class, 'archive'])->name('upload');
 
 // Route::get('/dashboard', function () {
 //     return Inertia::render('Dashboard');
@@ -37,6 +39,8 @@ Route::prefix('/pool')->middleware(['auth', 'verified'])->group(function () {
     Route::post('/markasprocessed/{id}', [PoolController::class, 'markAsProcessed'])->name('pool.markasprocessed');
 
     Route::get('/manager', [PoolController::class, "poolManager"])->name('pool.manage');
+
+    Route::get("/gallery", [ArchiveController::class, "gallery"])->name('pool.gallery');
 });
 
 
@@ -52,8 +56,6 @@ Route::prefix('/maskimage')->middleware(['auth', 'verified'])->group(function ()
     Route::delete('/{id}', [MaskImageController::class, 'destroy'])->name('maskimage.destroy');
     Route::patch('/set-label', [MaskImageController::class, 'setLabel'])->name('maskimage.setlabel');
 });
-
-
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

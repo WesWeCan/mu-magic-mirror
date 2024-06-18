@@ -110,7 +110,6 @@ const upload = async (processedImage: ProcesImage) => {
                 });
             });
 
-
         formData.append('image', file);
         formData.append('included', cutout.included ? '1' : '0');
 
