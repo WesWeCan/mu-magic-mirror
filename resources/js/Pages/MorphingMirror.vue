@@ -207,7 +207,9 @@ const updateList = (list: any) => {
 
         let randomId = Math.floor(Math.random() * 10000000);
 
-        if (item.name.length <= 0) {
+       
+
+        if (item.name == null || item.name.length <= 0) {
             item.name = "[Unknown Base Image]";
         }
 
