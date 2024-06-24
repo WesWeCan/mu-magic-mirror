@@ -1,46 +1,52 @@
 import { CameraProcessor } from "@/Lib/CameraProcessor";
 
-
-
 export const getAvailableVideoDevices = async (context : CameraProcessor) => {
-
-    // ask for permission to use the camera first so enumeration goes correctly
-    const stream = await navigator.mediaDevices.getUserMedia({video: true}).catch(error => {
+    try {
+        // Ask for permission to use the camera first so enumeration goes correctly
+        const stream = await navigator.mediaDevices.getUserMedia({video: true});
+        stream.getTracks().forEach(track => track.stop());
+    } catch (error) {
         console.error('Error accessing media devices.', error);
         return;
-    });
-
-    if (!stream) {
-        console.error('No stream');
-        return;
     }
-    
-    stream.getTracks().forEach(track => track.stop());
 
     const devices = await navigator.mediaDevices.enumerateDevices();
-
     const availableVideoDevices = devices.filter(device => device.kind === 'videoinput') as InputDeviceInfo[];
 
-    const withCapabilities = availableVideoDevices.map(device => ({
-        device: device,
-        capabilities: device.getCapabilities()
+    const withCapabilities = await Promise.all(availableVideoDevices.map(async (device) => {
+        let capabilities;
+        try {
+            // Create a temporary stream to access capabilities if not Firefox
+            const stream = await navigator.mediaDevices.getUserMedia({video: {deviceId: device.deviceId}});
+            const track = stream.getVideoTracks()[0];
+            capabilities = track.getCapabilities ? track.getCapabilities() : {};
+            track.stop();
+        } catch (error) {
+            console.error('Error getting capabilities for device:', device.label, error);
+            capabilities = {};
+        }
+        return {
+            device: device,
+            capabilities: capabilities
+        };
     }));
 
-    console.log(withCapabilities);  
+    console.log(withCapabilities);
 
-    // Find a device with the label a capability of facingMode of 'environment'
-    // make sure this works on all devices
-    // if none found, use the first device
-    const environmentDevice = withCapabilities.find(device => device.device.label.includes('back')) || withCapabilities[0];
+    // Find a device with the label or capability of facingMode of 'environment'
+    const environmentDevice = withCapabilities.find(device => 
+        device.device.label.toLowerCase().includes('back') || 
+        (device.capabilities.facingMode && device.capabilities.facingMode.includes('environment'))
+    ) || withCapabilities[0];
 
     context.availableVideoDevices = withCapabilities;
-
     context.currentVideoDeviceId = environmentDevice.device.deviceId;
     console.log('Current video device: ' + environmentDevice.device.label);
 
     // Update video permission in context
     context.videoPermission = true;
 }
+
 
 export const switchVideoDevice = async (context : CameraProcessor) => {
 
