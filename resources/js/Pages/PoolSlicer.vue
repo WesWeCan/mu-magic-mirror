@@ -15,24 +15,28 @@ import { usePage } from '@inertiajs/vue3';
 
 import axios from 'axios';
 
+import { Head } from "@inertiajs/vue3";
 
 
 const page = usePage();
 
 
 const allowedLabels = [
+            "hair",
             "head",
             "torso",
-            "right_arm",
             "left_arm",
-            "right_leg",
-            "left_leg",
-            "right_hand",
             "left_hand",
+            "right_arm",
+            "right_hand",
+            
+            "right_leg",
             "right_foot",
+            "left_leg",
             "left_foot",
+
             "legs",
-            "hair"
+            
         ];
 
 
@@ -216,6 +220,9 @@ const canProcessBecauseOfCutouts = computed(() => {
 
 <template>
 
+    <Head title="Pool Slicer"></Head>
+
+
     <PoolLayout>
 
         <div>
@@ -245,7 +252,8 @@ const canProcessBecauseOfCutouts = computed(() => {
                         ></baseImageDetails>
 
                         <div class="cutouts">
-                            <h2>Cutouts</h2>
+                            <h2>Slices</h2>
+                            <small>Remember: when selecting "right_x" or "left_x", this needs to correspond to the right or left side of the subject. So if you have a right arm of the human, select "right_arm".</small>
                             <div v-for="cutout in image.cutouts" :key="cutout.part" class="cutout"
                                 :class="{ 'included': cutout.included }"
                                 :hint="`${cutout.included ? 'Included' : 'Not Included'}`"

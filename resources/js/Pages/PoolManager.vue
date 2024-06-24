@@ -10,7 +10,7 @@ import { ImageProcessor } from '@/Lib/Processor';
 import { usePage } from '@inertiajs/vue3';
 
 import axios from 'axios';
-
+import { Head } from "@inertiajs/vue3";
 
 import { BaseImage, Cutout, CutoutRaw, ProcesImage, MaskImage } from '@/types/PoolTypes';
 
@@ -256,6 +256,8 @@ const loadMore = () => {
 </script>
 
 <template>
+
+    <Head title="Pool Manager"></Head>
 
     <PoolLayout>
 

@@ -28,6 +28,9 @@ onUnmounted(() => {
     <nav>
     <ul>
         <li>
+            <Link :href="route('mirror')" >App</Link>
+        </li>
+        <li>
             <Link :href="route('pool.upload')">Upload</Link>
         </li>
         <li>

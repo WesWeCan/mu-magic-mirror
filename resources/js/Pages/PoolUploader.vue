@@ -5,7 +5,7 @@ import { nextTick, onMounted, onUnmounted, ref } from 'vue';
 
 import PoolLayout from '@/Layouts/PoolLayout.vue';
 import axios from 'axios';
-
+import { Head } from "@inertiajs/vue3";
 
 interface Image {
     url: string;
@@ -142,6 +142,8 @@ const uploadAll = async () => {
 </script>
 
 <template>
+
+<Head title="Pool Uploader"></Head>
 
     <PoolLayout>
 

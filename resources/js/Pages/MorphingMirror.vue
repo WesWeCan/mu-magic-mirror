@@ -16,7 +16,7 @@ import { CreateCollage } from '@/Lib/CreateCollage';
 import { CutoutRaw } from '@/types/PoolTypes';
 import { BoundingBox } from '@/types';
 import { createCollageBoundingBoxes } from '@/Lib/createCollageBoundingBoxes';
-
+import { Head } from "@inertiajs/vue3";
 
 const page = usePage();
 
@@ -207,6 +207,10 @@ const updateList = (list: any) => {
 
         let randomId = Math.floor(Math.random() * 10000000);
 
+        if (item.name.length <= 0) {
+            item.name = "[Unknown Base Image]";
+        }
+
         piecesList.value.push({
             id: item.id,
             random: randomId,
@@ -231,6 +235,8 @@ setInterval(() => {
 
 
 <template>
+
+    <Head title="Morphing Mirror"></Head>
 
     <div class="morphing-mirror-layout">
 
