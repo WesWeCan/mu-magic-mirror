@@ -73,6 +73,7 @@ export interface CorpsesObject {
 
 export interface CorpseArchive {
     path: string;
+    id: number;
     base_images: {
         name: string,
         link: string

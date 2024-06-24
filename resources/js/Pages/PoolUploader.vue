@@ -6,6 +6,7 @@ import { nextTick, onMounted, onUnmounted, ref } from 'vue';
 import PoolLayout from '@/Layouts/PoolLayout.vue';
 import axios from 'axios';
 import { Head } from "@inertiajs/vue3";
+import { toast } from 'vue3-toastify';
 
 interface Image {
     url: string;
@@ -137,6 +138,12 @@ const uploadAll = async () => {
             uploadAll();
         });
     }
+    else {
+        console.info('uploaded all images');
+        toast.success('All images uploaded, go to 2) Slice to create the pool.');
+    }
+
+    
 };
 
 </script>
@@ -150,7 +157,7 @@ const uploadAll = async () => {
 
         <div class="upload-form">
             <h1>Upload New Batch</h1>
-            <span>Select multiple images for upload</span>
+            <span>Select multiple images for upload.</span>
             <input type="file" multiple @change="onFileChange" />
         </div>
 

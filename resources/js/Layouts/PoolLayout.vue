@@ -28,19 +28,19 @@ onUnmounted(() => {
     <nav>
     <ul>
         <li>
-            <Link :href="route('mirror')" >App</Link>
+            <Link :href="route('mirror')" >APP</Link>
         </li>
         <li>
-            <Link :href="route('pool.upload')">Upload</Link>
+            <Link :href="route('pool.upload')">1) Upload</Link>
         </li>
         <li>
-            <Link :href="route('pool.process')">Slicer</Link>
+            <Link :href="route('pool.process')">2) Slice</Link>
         </li>
         <li>
-            <Link :href="route('pool.manage')">Manage</Link>
+            <Link :href="route('pool.manage')">3) Manage</Link>
         </li>
         <li>
-            <Link :href="route('pool.gallery')">Gallery</Link>
+            <Link :href="route('pool.gallery')">4) Archive</Link>
         </li>
     </ul>
 </nav>

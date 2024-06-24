@@ -275,7 +275,7 @@ const loadMore = () => {
                 <div  class="manager-image" v-if="index < maxLoaded">
 
                     <template v-if="image.processed">
-                    <baseImageDetails :baseImage="image" @deleted="($page.props.baseImages ?? []).splice(index, 1)"></baseImageDetails>
+                    <baseImageDetails :showReprocess="true" :baseImage="image" @deleted="($page.props.baseImages ?? []).splice(index, 1)"></baseImageDetails>
                 
                     <div class="masks">
                         <div v-for="mask in image.mask_images" :key="mask.id + mask.label" class="mask"

@@ -17,6 +17,11 @@ const props = defineProps({
     baseImage: {
         type: Object as PropType<BaseImage>,
         required: true
+    },
+
+    showReprocess: {
+        type: Boolean,
+        default: false
     }
 
 });
@@ -103,7 +108,7 @@ const setLink = (event : Event) => {
 
     <div class="base-img-details">
         <img :src="props.baseImage.path" alt="props.baseImage.title" loading="lazy">
-        <em>{{ fileName(props.baseImage.path) }}</em>
+        <small><em>{{ fileName(props.baseImage.path) }}</em></small>
        
        
         <label for="title">Title</label>
@@ -112,9 +117,7 @@ const setLink = (event : Event) => {
         <label for="link">Link</label>
         <input v-model="props.baseImage.link" :placeholder="props.baseImage.link ?? 'No Link'" @change="($e) => setLink($e)"></input>
 
-
-
-        <button @click="setProcessed(false)">Reset for slicer</button>
+        <button @click="setProcessed(false)" v-if="props.showReprocess">Reprocess in slicer</button>
         <button class="danger" @click="destroy">Delete</button>
     </div>
 

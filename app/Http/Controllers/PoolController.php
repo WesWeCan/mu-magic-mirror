@@ -13,14 +13,12 @@ use Inertia\Inertia;
 class PoolController extends Controller
 {
     
-
-
     public function uploadBase(Request $request)
     {
 
         $request->validate([
-            'title' => 'nullable|string|max:255',
-            'description' => 'nullable|string|max:255',
+            'title' => 'required|string|max:255',
+            'link' => 'nullable|string|max:255',
             'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
@@ -28,10 +26,9 @@ class PoolController extends Controller
 
         $request->image->storeAs('baseImages', $imageName, 'public');
 
-
         $baseImage = new BaseImage();
         $baseImage->name = $request->title;
-        $baseImage->link = $request->link;
+        $baseImage->link = (isset($request->link) && strlen($request->link) > 0) ? $request->link : '#';
         $baseImage->path = '/storage/baseImages/' . $imageName;
         $baseImage->processed = false;
 

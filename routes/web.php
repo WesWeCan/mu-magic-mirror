@@ -41,6 +41,7 @@ Route::prefix('/pool')->middleware(['auth', 'verified'])->group(function () {
     Route::get('/manager', [PoolController::class, "poolManager"])->name('pool.manage');
 
     Route::get("/gallery", [ArchiveController::class, "gallery"])->name('pool.gallery');
+    Route::delete("/gallery/{id}", [ArchiveController::class, "destroy"])->name('pool.gallery.destroy');
 });
 
 

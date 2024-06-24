@@ -19,6 +19,7 @@ class ArchiveController extends Controller
         
         $corpseData = $corpses->map(function($corpse){
             return [
+                "id" => $corpse->id,
                 'path' => $corpse->path,
                 'base_images' => $corpse->getBaseImages(),
             ];
@@ -29,4 +30,19 @@ class ArchiveController extends Controller
         ]);
 
     }
+
+    public function destroy($id){
+
+        $corpse = Corpse::findOrFail($id);
+
+        $imagePath = $corpse->path;
+        Storage::delete($imagePath);
+
+        $corpse->delete();
+
+        return response()->json(['success'=>'You have successfully deleted the corpse.']);
+
+    }
+
+
 }

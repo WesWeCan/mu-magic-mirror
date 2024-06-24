@@ -57,6 +57,7 @@ class BaseImageController extends Controller
 
     /**
      * Remove the specified resource from storage.
+     * Mask images are delete on baseimage delete!
      */
     public function destroy($id)
     {
