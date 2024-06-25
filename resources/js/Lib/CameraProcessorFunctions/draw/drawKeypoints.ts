@@ -2,6 +2,15 @@
 import { CameraProcessor } from '@/Lib/CameraProcessor';
 import * as poseDetection from '@tensorflow-models/pose-detection';
 
+
+/**
+ * Draw the keypoints on the canvas.
+ * 
+ * @param {CameraProcessor} context - The camera processor.
+ * @param {CanvasRenderingContext2D} ctx - The canvas rendering context.
+ * @param {poseDetection.Keypoint[]} keypoints - The keypoints.
+ * @returns {Promise<void>}
+ */
 export const drawKeypoints = async (context: CameraProcessor, ctx: CanvasRenderingContext2D, keypoints: poseDetection.Keypoint[]) => {
 
     if (!ctx) {
@@ -34,6 +43,14 @@ export const drawKeypoints = async (context: CameraProcessor, ctx: CanvasRenderi
 
 }
 
+/**
+ * Draw a keypoint on the canvas.
+ * 
+ * @param {CameraProcessor} context - The camera processor.
+ * @param {CanvasRenderingContext2D} ctx - The canvas rendering context.
+ * @param {poseDetection.Keypoint} keypoint - The keypoint.
+ * @returns {Promise<void>}
+ */
 export const drawKeypoint = async (context: CameraProcessor, ctx: CanvasRenderingContext2D, keypoint: poseDetection.Keypoint) => {
     // If score is null, just show the keypoint.
     const score = keypoint.score != null ? keypoint.score : 1;

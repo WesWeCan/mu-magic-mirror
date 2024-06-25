@@ -1,6 +1,12 @@
 import { CameraProcessor } from "@/Lib/CameraProcessor";
 import * as tf from '@tensorflow/tfjs';
 
+
+/**
+ * Use the cocoSsd model to detect humans in the image.
+ * 
+ * @returns {Promise<cocoSsd.DetectedObject[]>}
+ */
 export const detectHumans = async (context: CameraProcessor, input: tf.Tensor3D | ImageData | HTMLImageElement |
     HTMLCanvasElement | HTMLVideoElement) => {
 

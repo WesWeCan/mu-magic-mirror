@@ -74,8 +74,10 @@ export interface CorpsesObject {
 export interface CorpseArchive {
     path: string;
     id: number;
-    base_images: {
-        name: string,
-        link: string
-    };
+    base_images: CorspeArchiveBaseImage[];
+}
+
+export interface CorspeArchiveBaseImage {
+    name: string;
+    link: string;
 }

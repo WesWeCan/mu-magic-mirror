@@ -1,23 +1,17 @@
 <script setup lang="ts">
 
 import { BaseImage, Cutout, CutoutRaw, ProcesImage } from '@/types/PoolTypes';
-import { draw } from '@tensorflow/tfjs-core/dist/ops/browser';
-
-
 import { onMounted, ref, watch } from 'vue';
 
 const props = defineProps<{
     baseImage: BaseImage
 }>();
 
-
 const canvas = ref<HTMLCanvasElement | null>(null);
-const ctx = ref<CanvasRenderingContext2D | null>(null);
 const image = ref<HTMLImageElement | null>(null);
 
-
 type CurrentMask = {
-    
+
     start: {
         x: number | null,
         y: number | null,
@@ -40,32 +34,20 @@ const currentMask = ref<CurrentMask>({
     }
 });
 
-
 const emit = defineEmits(['cutout']);
 
-
 onMounted(() => {
-    console.log('props', props.baseImage)
-
     init();
 });
-
 
 watch(() => props.baseImage, () => {
-    console.log('base image changed', props.baseImage);
+    console.info('base image changed', props.baseImage);
     init();
 });
-
 
 
 const init = () => {
-
-    
-
     loadImage(props.baseImage.path);
-
-    loadImage(props.baseImage.path);
-
 
     if (!canvas.value) {
         console.error('no canvas');
@@ -81,7 +63,6 @@ const init = () => {
     });
 
     canvas.value.addEventListener('mousemove', drawCurrentMask);
-    // canvas.value.addEventListener('mousemove', followMouse);
     canvas.value.addEventListener('click', setCurrentMask);
     canvas.value.addEventListener('contextmenu', (e) => {
         e.preventDefault();
@@ -89,16 +70,12 @@ const init = () => {
     });
 }
 
-
-
-
-
 const loadImage = (src: string) => {
 
     const tempImage = new Image();
     tempImage.src = src;
     tempImage.onload = () => {
-        console.log('image loaded', tempImage);
+        console.warn('Image loaded', tempImage);
 
         image.value = tempImage;
 
@@ -108,50 +85,48 @@ const loadImage = (src: string) => {
 
         canvas.value.width = image.value.width;
         canvas.value.height = image.value.height;
-
         canvas.value.getContext('2d')?.drawImage(image.value, 0, 0);
     }
 }
 
-// follow the mouse with a circle
-const followMouse = (e: MouseEvent) => {
-    if (!canvas.value) {
-        console.error('no canvas');
-        return;
-    }
+// Unused
+// const followMouse = (e: MouseEvent) => {
+//     if (!canvas.value) {
+//         console.error('no canvas');
+//         return;
+//     }
 
-    if (!image.value) {
-        console.error('no image');
-        return;
-    }
+//     if (!image.value) {
+//         console.error('no image');
+//         return;
+//     }
 
-    const rect = canvas.value.getBoundingClientRect();
+//     const rect = canvas.value.getBoundingClientRect();
 
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+//     const x = e.clientX - rect.left;
+//     const y = e.clientY - rect.top;
 
-    const ctx = canvas.value.getContext('2d');
+//     const ctx = canvas.value.getContext('2d');
 
-    if (!ctx) {
-        return;
-    }
+//     if (!ctx) {
+//         return;
+//     }
 
-    ctx.clearRect(0, 0, canvas.value.width, canvas.value.height);
-
-
-    ctx.drawImage(image.value, 0, 0);
-
-    ctx.beginPath();
-    ctx.strokeStyle = 'red';
-    ctx.lineWidth = 4;
-    ctx.fillStyle = 'white';
-    ctx.beginPath();
-    ctx.arc(x, y, 10, 0, 2 * Math.PI);
-    ctx.fill();
-    ctx.stroke();
+//     ctx.clearRect(0, 0, canvas.value.width, canvas.value.height);
 
 
-}
+//     ctx.drawImage(image.value, 0, 0);
+
+//     ctx.beginPath();
+//     ctx.strokeStyle = 'red';
+//     ctx.lineWidth = 4;
+//     ctx.fillStyle = 'white';
+//     ctx.beginPath();
+//     ctx.arc(x, y, 10, 0, 2 * Math.PI);
+//     ctx.fill();
+//     ctx.stroke();
+
+// }
 
 const resetCurrentMask = () => {
     currentMask.value.start.x = null;
@@ -164,7 +139,6 @@ const resetCurrentMask = () => {
 
 const drawCurrentMask = (e: MouseEvent) => {
 
-
     if (!canvas.value) {
         console.error('no canvas');
         return;
@@ -175,16 +149,15 @@ const drawCurrentMask = (e: MouseEvent) => {
         return;
     }
 
-    // draw a circle on xy
     const ctx = canvas.value.getContext('2d');
 
-        if (!ctx) {
-            return;
-        }
+    if (!ctx) {
+        return;
+    }
 
-        ctx.clearRect(0, 0, canvas.value.width, canvas.value.height);
+    ctx.clearRect(0, 0, canvas.value.width, canvas.value.height);
 
-        ctx.drawImage(image.value, 0, 0);
+    ctx.drawImage(image.value, 0, 0);
 
 
     if (currentMask.value.start.x === null && currentMask.value.start.y === null) {
@@ -192,7 +165,7 @@ const drawCurrentMask = (e: MouseEvent) => {
     }
 
     if (
-        currentMask.value.start.x != null && currentMask.value.start.y != null &&   
+        currentMask.value.start.x != null && currentMask.value.start.y != null &&
         currentMask.value.end.x === null && currentMask.value.end.y === null
     ) {
 
@@ -205,7 +178,7 @@ const drawCurrentMask = (e: MouseEvent) => {
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
 
-        
+
 
         // draw a rect from x,y to mouseX, mouseY
         ctx.beginPath();
@@ -236,14 +209,14 @@ const setCurrentMask = (e: MouseEvent) => {
     const y = e.clientY - rect.top;
 
     if (currentMask.value.start.x === null && currentMask.value.start.y === null) {
-        
+
         currentMask.value.start.x = x;
         currentMask.value.start.y = y;
 
         return;
     }
     else {
-        
+
         currentMask.value.end.x = x;
         currentMask.value.end.y = y;
 
@@ -311,7 +284,7 @@ const cutOutMask = () => {
     img.src = canvas.value.toDataURL();
 
     img.onload = () => {
-    
+
         const cutOutCanvas = document.createElement('canvas');
         cutOutCanvas.width = maxX - minX;
         cutOutCanvas.height = maxY - minY;
@@ -330,33 +303,15 @@ const cutOutMask = () => {
             img: cutOutCanvas.toDataURL()
         }
 
-
         emit('cutout', cutOut);
-    
     }
 }
-
-
 
 </script>
 
 
 <template>
-
-
-
-
     <div class="image-processor">
-
-        <canvas ref="canvas"></canvas>
+        <canvas class="slice-canvas" ref="canvas"></canvas>
     </div>
-
-
 </template>
-
-
-<style scoped>
-canvas {
-    cursor: crosshair;
-}
-</style>

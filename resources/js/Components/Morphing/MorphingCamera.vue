@@ -1,50 +1,37 @@
 <script setup lang="ts">
 
-import { CameraProcessor } from '@/Lib/CameraProcessor';
-import { CutoutRaw } from '@/types/PoolTypes';
+
+
 import { usePage } from '@inertiajs/vue3';
 import { onMounted, ref } from 'vue';
 
-
-const page = usePage();
+import { CameraProcessor } from '@/Lib/CameraProcessor';
 const cp = new CameraProcessor();
 
+
+
+const page = usePage();
 
 const video_container = ref<HTMLDivElement | null>(null);
 const div_process = ref<HTMLDivElement | null>(null);
 const div_render = ref<HTMLDivElement | null>(null);
 
-
-const emit = defineEmits(['newSlice', 'pictureTaken', "updateList"]);
+const emit = defineEmits(['newSlice', "updateList"]);
 
 const loadingText = ref('Loading...');
 
 
 onMounted(async () => {
-
-    console.log('mounted Camera.vue', page.props.corpses);
-
     if (video_container.value && div_process.value && div_render.value && page.props.corpses) {
         await cp.init(video_container.value, div_process.value, div_render.value, page.props.corpses);
 
-        // div_process.value.addEventListener('click', (e) => {
-        //     const slice = cp.takePictureAndSlice()
-        //         .then((res) => {
-
-        //             if (res != null) {
-        //                 emit('newSlice', res);
-        //             }
-
-        //         })
-
-        // });
-
         requestAnimationFrame(loop);
     }
-
 });
 
-
+/**
+ * Main loop that runs the camera processor.
+ */
 const loop = async () => {
     if (video_container.value && div_process.value) {
 
@@ -64,18 +51,14 @@ const loop = async () => {
     }
 }
 
-const cutOuts = ref<CutoutRaw[]>([]);
-
 const switchDevice = () => {
     cp.switchVideoDevice();
 }
-
 
 const takePhoto = () => {
     console.log('take photo');
     cp.togglePicture();
 }
-
 
 const downloadImage = () => {
     cp.downloadImage();
@@ -98,20 +81,10 @@ defineExpose({
 
 
 <template>
-
     <div ref="video_container" class="video-container"></div>
     <div ref="div_process" class="div-process"></div>
 
     <div ref="div_render" class="div-render">
         <span class="loading">{{ loadingText }}</span>
     </div>
-
-    <!-- <button class="switch-device-button" @click="switchDevice">Switch Device</button> -->
-
-    <!-- <div class="take-photo-button" @click="takePhoto">Take Photo</div> -->
-
-    <div v-for="cutOut in cutOuts" :key="cutOut.part">
-        <img :src="cutOut.img" :alt="cutOut.part" />
-    </div>
-
 </template>

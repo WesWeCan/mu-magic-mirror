@@ -1,8 +1,5 @@
 import { CameraProcessor } from "@/Lib/CameraProcessor";
 
-
-
-
 // NOTE: I am keeping the previous inference models commented out for now, so the CameraProcessor class can be easily reused if needed.
 
 // import * as bodySegmentation from '@tensorflow-models/body-segmentation';
@@ -13,6 +10,15 @@ import '@tensorflow/tfjs-backend-webgl';
 import '@tensorflow/tfjs-backend-cpu';
 import * as tf from '@tensorflow/tfjs';
 
+
+/**
+ * Setup the inferences.
+ * 
+ * This function sets up the inferences for the camera processor.
+ * 
+ * @param {CameraProcessor} context - The camera processor.
+ * @returns {Promise<void>}
+ */
 export const setupInferences = async (context: CameraProcessor) => {
 
     console.info('Setting up inferences')
@@ -26,6 +32,7 @@ export const setupInferences = async (context: CameraProcessor) => {
 
     
     // // OpenCV
+    // To use this check the app.blade.php file and uncomment the opencv.js script
     // console.info(cv.getBuildInformation());
 
 
@@ -59,13 +66,14 @@ export const setupInferences = async (context: CameraProcessor) => {
 
     // BlazePose
     context.inference.blazePose = undefined;
+
+    // the models are made local so we don't need to download them from the Google Cloud
     const detectorConfig : poseDetection.BlazePoseTfjsModelConfig = {
         runtime: 'tfjs',
         enableSmoothing: true,
-        // modelType: "lite",
+        // modelType: "lite", // Local models override this
         detectorModelUrl: '/models/blazepose/detector/blazepose-3d-tfjs-detector-v1/model.json',       
         landmarkModelUrl: '/models/blazepose/landmark/blazepose-3d-tfjs-landmark-lite-v2/model.json',
-        
     };
     const blazePose = await poseDetection.createDetector(poseDetection.SupportedModels.BlazePose, detectorConfig);
     context.inference.blazePose = blazePose;

@@ -3,6 +3,13 @@ import * as poseDetection from '@tensorflow-models/pose-detection';
 import { drawKeypoints } from "./drawKeypoints";
 import { drawSkeleton } from "./drawSkeleton";
 
+
+/**
+ * Draw the poses on the canvas.
+ * 
+ * @param {CameraProcessor} context - The camera processor.
+ * @returns {Promise<void>}
+ */
 export const drawPose = async (context: CameraProcessor) => {
 
 

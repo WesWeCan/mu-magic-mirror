@@ -12,7 +12,57 @@ use Inertia\Inertia;
 
 class PoolController extends Controller
 {
-    
+
+
+    /** View the pool uploader.
+     * 
+     * @return \Inertia\Response
+     * 
+     */
+    public function upload(){
+        return Inertia::render('Pool/PoolUploader');
+    }
+
+
+    /**
+     * View the pool slicer.
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function poolProcessor()
+    {
+        $baseImages = BaseImage::where('processed', false)->get();
+        return Inertia::render('Pool/PoolSlicer', [
+            'baseImages' => $baseImages
+        ]);
+    }
+
+
+    /**
+     * View the pool manager.
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function poolManager()
+    {
+
+        $baseImages = BaseImage::where('processed', true)->with("maskImages")->get();
+
+        return Inertia::render('Pool/PoolManager', [
+            'baseImages' => $baseImages
+        ]);
+    }
+
+
+
+    /**
+     * Upload a base image.
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
     public function uploadBase(Request $request)
     {
 
@@ -26,6 +76,7 @@ class PoolController extends Controller
 
         $request->image->storeAs('baseImages', $imageName, 'public');
 
+        // Create a new base image
         $baseImage = new BaseImage();
         $baseImage->name = $request->title;
         $baseImage->link = (isset($request->link) && strlen($request->link) > 0) ? $request->link : '#';
@@ -34,29 +85,38 @@ class PoolController extends Controller
 
         $baseImage->save();
 
-
-
-        return response()->json(['success'=>'You have successfully uploaded an image.']);
+        return response()->json(['success' => 'You have successfully uploaded an image.']);
     }
 
+    /**
+     * Mark a base image as processed.
+     * It won't be showing up in the pool slicer.
+     *  
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
     public function markAsProcessed($id)
     {
 
+        $baseImage = BaseImage::findOrFail($id);
 
-        $baseImage = BaseImage::find($id);
-
-        if(!$baseImage){
-            return response()->json(['error'=>'Base Image not found.']);
+        if (!$baseImage) {
+            return response()->json(['error' => 'Base Image not found.']);
         }
 
         $baseImage->processed = true;
         $baseImage->save();
 
-        return response()->json(['success'=>'You have successfully marked the image as processed.']);
-
+        return response()->json(['success' => 'You have successfully marked the image as processed.']);
     }
 
 
+    /**
+     * Upload a masked image.
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
     public function uploadMasked(Request $request)
     {
 
@@ -69,8 +129,8 @@ class PoolController extends Controller
 
         $baseImage = BaseImage::find($request->base_image_id);
 
-        if(!$baseImage){
-            return response()->json(['error'=>'Base Image not found.']);
+        if (!$baseImage) {
+            return response()->json(['error' => 'Base Image not found.']);
         }
 
         $imageName = time() . "_" . $request->image->getClientOriginalName();
@@ -89,31 +149,9 @@ class PoolController extends Controller
         $baseImage->processed = true;
         $baseImage->save();
 
+
+        return response()->json(['success' => 'You have successfully uploaded an image.']);
+    }
+
     
-        return response()->json(['success'=>'You have successfully uploaded an image.']);
-    }
-
-    public function poolProcessor(){
-        $baseImages = BaseImage::where('processed', false)->get();
-        return Inertia::render('PoolSlicer', [
-            'baseImages' => $baseImages
-        ]);
-    }
-
-
-    public function poolManager(){
-
-        $baseImages = BaseImage::where('processed', true)->with("maskImages")->get();
-
-        return Inertia::render('PoolManager', [
-            'baseImages' => $baseImages
-        ]);
-
-    }
-
-
-   
-
-
-
 }

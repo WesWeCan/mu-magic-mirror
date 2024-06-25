@@ -15,10 +15,6 @@ use Inertia\Inertia;
 Route::get('/', [FrontController::class, 'index'])->name('mirror');
 Route::post('/archive', [FrontController::class, 'archive'])->name('upload');
 
-// Route::get('/dashboard', function () {
-//     return Inertia::render('Dashboard');
-// })->middleware(['auth', 'verified'])->name('dashboard');
-
 
 Route::prefix('/pool')->middleware(['auth', 'verified'])->group(function () {
 
@@ -26,9 +22,7 @@ Route::prefix('/pool')->middleware(['auth', 'verified'])->group(function () {
         return redirect()->route('pool.manage');
     });
 
-    Route::get('/upload', function () {
-        return Inertia::render('PoolUploader');
-    })->name('pool.upload');
+    Route::get('/upload', [PoolController::class, "upload"])->name('pool.upload');
 
     Route::get('/process', [PoolController::class, "poolProcessor"])->name('pool.process');
 
@@ -40,8 +34,8 @@ Route::prefix('/pool')->middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/manager', [PoolController::class, "poolManager"])->name('pool.manage');
 
-    Route::get("/gallery", [ArchiveController::class, "gallery"])->name('pool.gallery');
-    Route::delete("/gallery/{id}", [ArchiveController::class, "destroy"])->name('pool.gallery.destroy');
+    Route::get("/archive", [ArchiveController::class, "archive"])->name('pool.archive');
+    Route::delete("/archive/{id}", [ArchiveController::class, "destroy"])->name('pool.archive.destroy');
 });
 
 

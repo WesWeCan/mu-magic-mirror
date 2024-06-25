@@ -386,11 +386,13 @@ body.pool {
 
 }
 
+.slice-canvas {
+    cursor: crosshair;
+}
 
 
 
-
-.gallery {
+.archive {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 1rem;

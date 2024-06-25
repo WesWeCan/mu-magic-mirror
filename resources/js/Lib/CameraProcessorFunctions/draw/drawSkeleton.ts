@@ -2,6 +2,16 @@
 import { CameraProcessor } from '@/Lib/CameraProcessor';
 import * as poseDetection from '@tensorflow-models/pose-detection';
 
+
+/**
+ * Draw the pose estimation skeleton on the canvas.
+ * 
+ * @param {CameraProcessor} context - The camera processor.
+ * @param {CanvasRenderingContext2D} ctx - The canvas rendering context.
+ * @param {poseDetection.Keypoint[]} keypoints - The keypoints.
+ * @param {number} poseId - The pose ID.
+ * @returns {Promise<void>}
+ */
 export const drawSkeleton = async (context: CameraProcessor, ctx: CanvasRenderingContext2D, keypoints: poseDetection.Keypoint[], poseId: number) => {
 
     const COLOR_PALETTE = [

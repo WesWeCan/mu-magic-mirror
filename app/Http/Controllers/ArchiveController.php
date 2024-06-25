@@ -12,37 +12,43 @@ use Illuminate\Support\Facades\Storage;
 
 class ArchiveController extends Controller
 {
-    public function gallery(){
 
+    /**
+     * Display the archive page.
+     * 
+     * @return \Inertia\Response
+     */
+    public function archive()
+    {
         $corpses = Corpse::latest()->get();
 
-        
-        $corpseData = $corpses->map(function($corpse){
+        $corpseData = $corpses->map(function ($corpse) {
             return [
                 "id" => $corpse->id,
                 'path' => $corpse->path,
                 'base_images' => $corpse->getBaseImages(),
             ];
         });
-        
-        return Inertia::render('PoolGallery', [
+
+        return Inertia::render('Pool/PoolArchive', [
             'corpseArchive' => $corpseData,
         ]);
-
     }
 
-    public function destroy($id){
+
+    /**
+     * Delete the specified resource from storage.
+     * As well as the image and corpse image.
+     * 
+     * @param  int  $id
+     * @return \Inertia\Response
+     */
+    public function destroy($id)
+    {
 
         $corpse = Corpse::findOrFail($id);
-
-        $imagePath = $corpse->path;
-        Storage::delete($imagePath);
-
         $corpse->delete();
 
-        return response()->json(['success'=>'You have successfully deleted the corpse.']);
-
+        return response()->json(['success' => 'You have successfully deleted the corpse.']);
     }
-
-
 }

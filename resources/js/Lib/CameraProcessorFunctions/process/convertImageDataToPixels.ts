@@ -1,7 +1,15 @@
 import { CameraProcessor } from "@/Lib/CameraProcessor";
 import { Pixel } from "@/types";
 
-// Important: this image data is a .mask.toImageData() from the segmentation, NOT .toColoredMask()
+/**
+ * Convert the image data to pixels.
+ * 
+ * Important: this image data is a .mask.toImageData() from the segmentation, NOT .toColoredMask()
+ * 
+ * @param {CameraProcessor} context - The camera processor.
+ * @param {ImageData} imageData - The image data.
+ * @returns {Promise<Pixel[]>}
+ */
 export const convertImageDataToPixels = async (context: CameraProcessor, imageData: ImageData) => {
 
     let pixels: Pixel[] = [];

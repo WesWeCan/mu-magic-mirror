@@ -8,6 +8,16 @@ import * as poseDetection from '@tensorflow-models/pose-detection';
 import * as cocoSsd from '@tensorflow-models/coco-ssd';
 
 
+/**
+ * Get the bounding boxes of the human in the image.
+ * 
+ * This function uses the poses and input to get the bounding boxes.
+ * 
+ * @param {CameraProcessor} context - The camera processor.
+ * @param {poseDetection.Pose[]} poses - The poses of the human.
+ * @param {PixelInput | undefined} input - The input image.
+ * @returns {Promise<BoundingBox[]>}
+ */
 export const getBoundingBoxes = async (context: CameraProcessor, poses: poseDetection.Pose[], input: PixelInput | undefined = undefined) => {
 
 
@@ -23,6 +33,18 @@ export const getBoundingBoxes = async (context: CameraProcessor, poses: poseDete
 
 }
 
+
+/**
+ * Get the bounding box of the human in the image.
+ * 
+ * This function uses the keypoints, keypoints3D, and input to get the bounding box.
+ * 
+ * @param {CameraProcessor} context - The camera processor.
+ * @param {poseDetection.Keypoint[]} keypoints - The keypoints of the human.
+ * @param {poseDetection.Keypoint[]} keypoints3D - The keypoints3D of the human.
+ * @param {PixelInput | undefined} input - The input image.
+ * @returns {Promise<BoundingBox>}
+ */
 export const getBoundingBox = async (context: CameraProcessor, keypoints: poseDetection.Keypoint[], keypoints3D: poseDetection.Keypoint[], input: PixelInput | undefined = undefined) => {    
 
     context.boundingBoxes = [];
@@ -193,7 +215,15 @@ export const getBoundingBox = async (context: CameraProcessor, keypoints: poseDe
 }
 
 
-
+/**
+ * Process the bounding boxes.
+ * 
+ * This function uses the bounding boxes and input to process the bounding boxes.
+ * It is manually called positioned in the process function.
+ * 
+ * @param {CameraProcessor} context - The camera processor.
+ * @returns {Promise<void>}
+ */
 export const processBoundingBoxes = async (context: CameraProcessor) => {
     context.boundingBoxesProcessed = [];
     

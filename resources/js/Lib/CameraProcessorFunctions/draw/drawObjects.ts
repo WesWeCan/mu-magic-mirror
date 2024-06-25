@@ -1,5 +1,12 @@
 import { CameraProcessor } from "@/Lib/CameraProcessor";
 
+
+/**
+ * Draw the detected objects on the canvas.
+ * 
+ * @param {CameraProcessor} context - The camera processor.
+ * @returns {Promise<void>}
+ */
 export const drawObjects = async (context: CameraProcessor) => {
 
     if (!context.canvas_process || !context.inferenceData.detectedOjects) {

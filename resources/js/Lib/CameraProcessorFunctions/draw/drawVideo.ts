@@ -1,5 +1,11 @@
 import { CameraProcessor } from "@/Lib/CameraProcessor";
 
+/**
+ * Draw the video on the canvas.
+ * 
+ * @param {CameraProcessor} context - The camera processor.
+ * @returns {Promise<void>}
+ */
 export const drawVideo = async (context: CameraProcessor) => {
     if (!context.canvas_process || !context.video) {
         console.error('No canvas or video');

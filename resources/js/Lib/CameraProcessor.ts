@@ -8,38 +8,27 @@ import '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-backend-webgl';
 import '@mediapipe/selfie_segmentation';
 
-import { PixelInput, Segmentation } from '@tensorflow-models/body-segmentation/dist/shared/calculators/interfaces/common_interfaces';
+import { Segmentation } from '@tensorflow-models/body-segmentation/dist/shared/calculators/interfaces/common_interfaces';
 import * as cocoSsd from '@tensorflow-models/coco-ssd';
 
 import * as poseDetection from '@tensorflow-models/pose-detection';
-// Register WebGL backend.
-import '@tensorflow/tfjs-backend-webgl';
+
+import '@tensorflow/tfjs-backend-webgl'; // Register WebGL backend.
 import { setupInferences } from './CameraProcessorFunctions/setup/setupInferences'
 import { getAvailableVideoDevices, getMediaStream, switchVideoDevice } from './CameraProcessorFunctions/setup/setupVideo'
 import { createCanvasses } from './CameraProcessorFunctions/setup/setupCanvasses'
-import { segmentBodyPix } from './CameraProcessorFunctions/process/segmentBodyPix';
-import { estimatePose } from './CameraProcessorFunctions/process/estimatePose';
-import { convertImageDataToPixels } from './CameraProcessorFunctions/process/convertImageDataToPixels';
-import { getBoundingBoxes } from './CameraProcessorFunctions/process/getBoundingBoxes';
-import { clearCanvas } from './CameraProcessorFunctions/draw/clearCanvas';
-import { drawVideo } from './CameraProcessorFunctions/draw/drawVideo';
-import { drawSegmentation } from './CameraProcessorFunctions/draw/drawSegmentation';
-import { drawPose } from './CameraProcessorFunctions/draw/drawPose';
-import { drawBoundingBoxes } from './CameraProcessorFunctions/draw/drawBoundingboxes';
-import { detectHumans } from './CameraProcessorFunctions/process/detectHumans';
-import { drawObjects } from './CameraProcessorFunctions/draw/drawObjects';
 import { process } from './CameraProcessorFunctions/process/process';
 import { draw } from './CameraProcessorFunctions/draw/draw';
 
 import { CorpsesObject } from '@/types';
 
 import axios from 'axios';
+import { downloadImage } from './CameraProcessorFunctions/share/downloadImage';
+import { shareImage } from './CameraProcessorFunctions/share/shareImage';
 
 
 export class CameraProcessor {
 
-
-    // drawCanvas: boolean = false;
     running: boolean = true;
 
     canvasses: HTMLCanvasElement | null = null;
@@ -58,7 +47,6 @@ export class CameraProcessor {
 
     mousePos: { x: number, y: number } = { x: 0, y: 0 };
 
-
     availableVideoDevices: {
         device: InputDeviceInfo,
         capabilities: MediaTrackCapabilities
@@ -71,7 +59,6 @@ export class CameraProcessor {
         shuffleBoundingBoxes: 0,
         shuffleYou: 0
     };
-
 
     inference:
         {
@@ -86,6 +73,7 @@ export class CameraProcessor {
             cocoSsd: undefined,
             selfieSegmentation: undefined
         };
+
     inferenceData: {
         poses: poseDetection.Pose[] | undefined,
         coloredPartImage: ImageData | undefined,
@@ -108,51 +96,62 @@ export class CameraProcessor {
     boundingBoxes: BoundingBox[] = [];
     boundingBoxesProcessed: BoundingBox[] = [];
 
-
     pieces: any = [];
     currentlyShownPieces: any = {};
-
-
     resolutionScaling: number = 2;
-
     processingDownload: boolean = false;
-
     showLegsSeparately: boolean = false;
 
     constructor() {
-        console.log("ImageProcessor constructor");
+        console.log("CameraProcessor constructed");
     }
 
 
+    /**
+     * Initialize the camera processor.
+     * 
+     * @param {HTMLDivElement} videoDiv - The video div element.
+     * @param {HTMLDivElement} div_process - The div process element.
+     * @param {HTMLDivElement} div_render - The div render element.
+     * @param {CorpsesObject} corpse - The corpse object.
+     * @returns {Promise<void>}
+     */
     async init(videoDiv: HTMLDivElement, div_process: HTMLDivElement, div_render: HTMLDivElement, corpse: CorpsesObject) {
-        console.log("init");
+        console.info("Initializing camera processor");
 
         await getAvailableVideoDevices(this);
-        console.log('Got available video devices');
+        console.info('Got available video devices');
 
 
-        if(this.videoPermission === false) {
+        if (this.videoPermission === false) {
             console.error('No video permission');
             return;
         }
 
         await setupInferences(this);
-        console.log('Inferences setup');
+        console.info('Inferences setup');
 
         await getMediaStream(this, videoDiv);
-        console.log('Got media stream');
+        console.info('Got media stream');
 
         await createCanvasses(this, div_process, div_render);
-        console.log('Canvasses created');
+        console.info('Canvasses created');
 
         await this.loadPieces(corpse);
-        console.log('Pieces loaded');
+        console.info('Pieces loaded');
 
         return new Promise<boolean>((resolve, reject) => {
             resolve(true);
         });
     }
 
+    /**
+     * Load the pieces from the corpses object.
+     * Makes all images in memory.
+     * 
+     * @param {CorpsesObject} corpses - The corpses object.
+     * @returns {Promise<void>}
+     */
     async loadPieces(corpses: CorpsesObject) {
 
         let start = performance.now();
@@ -167,9 +166,7 @@ export class CameraProcessor {
             const key = keys[i];
             const corpseParts = corpses[key];
 
-
-
-            for(let j = 0; j < corpseParts.length; j++) {
+            for (let j = 0; j < corpseParts.length; j++) {
                 const corpsePart = corpseParts[j];
 
                 const img = new Image();
@@ -199,21 +196,29 @@ export class CameraProcessor {
 
         let end = performance.now();
 
-        console.log(`${pieces.length} pieces loaded in ${end - start} ms`);
+        console.warn(`${pieces.length} pieces loaded in ${end - start} ms`);
 
         this.pieces = pieces;
 
     }
 
+    /**
+     * Switch the video device.
+     * 
+     * @returns {Promise<void>}
+     */
     async switchVideoDevice() {
-
         await switchVideoDevice(this);
-
     }
 
 
     // --------------------------------------------------
 
+    /**
+     * Loop the camera processor.
+     * 
+     * @returns {Promise<void>}
+     */
     async loop() {
 
         if (!this.running) {
@@ -229,7 +234,6 @@ export class CameraProcessor {
         await process(this, this.video);
         await this.draw();
         await this.render();
-
     }
 
     // --------------------------------------------------
@@ -238,20 +242,27 @@ export class CameraProcessor {
 
     // --------------------------------------------------
 
+    /**
+     * Draw the canvas.
+     * 
+     * @returns {Promise<void>}
+     */
     async draw() {
-
         await draw(this);
     }
 
+    /**
+     * Render the canvas, in a responsive way.
+     * the processing canvas is scaled to fit the rendering canvas.
+     * 
+     * @returns {Promise<void>}
+     */
     async render() {
 
         // console.log('render');
 
         // render the processed canvas to the rendering canvas
         // fill the rendering canvas with the processed canvas, make it responsive
-
-        
-
         if (!this.canvas_process || !this.canvas_render) {
             console.error('No canvas or rendering canvas');
             return;
@@ -281,180 +292,96 @@ export class CameraProcessor {
 
     }
 
+    /**
+     * Toggle the picture taken state.
+     * 
+     * @returns {Promise<void>}
+     */
     async togglePicture() {
         this.running = !this.running;
         this.loop();
     }
 
 
+    /**
+     * Get the current time in the format YYYY_MM_DD_HH_MM_SS.
+     * 
+     * @returns {string} The current time in the format YYYY_MM_DD_HH_MM_SS.
+     */
     getCurrentTime() {
-
-        const options: DateTimeFormatOptions = { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' };
+        const options: Intl.DateTimeFormatOptions = { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', hour12: false };
         const currentTime: string = new Intl.DateTimeFormat('en-GB', options).format(new Date()).replace(/[:\s]/g, '_');
-
         return currentTime;
 
     }
 
     async downloadImage(isSharing = false) {
-        if (this.processingDownload) {
-            return;
-        }
-        this.processingDownload = true;
-    
-        try {
-            if (this.running) {
-                this.running = false;
-                await this.loop();
-                await this.draw();
-                // Wait for the last draw to finish if necessary
-                await new Promise(resolve => setTimeout(resolve, 2000));
-            }
-    
-            if (!this.canvas_render) {
-                console.error('No rendering canvas');
-                this.processingDownload = false;
-                return;
-            }
-    
-            const canvas_render = this.canvas_render as HTMLCanvasElement;
-            const dataUrl = canvas_render.toDataURL();
-    
-            const a = document.createElement('a');
-            a.href = dataUrl;
-    
-
-    
-            a.download = `Corpse_Image_${this.getCurrentTime()}.png`;
-            a.click();
-    
-            if (isSharing) {
-                await this.archiveImage(dataUrl);
-            }
-        } catch (error) {
-            console.error('Error downloading or archiving image', error);
-        } finally {
-            this.processingDownload = false;
-        }
+        await downloadImage(this, isSharing);
     }
 
-
+    /**
+     * Share the user generated corpse.
+     * 
+     * @returns {Promise<void>}
+     */
     async shareImage() {
-
-
-        const userUsesMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-        if(!userUsesMobile) {
-            this.downloadImage(true);
-            return;
-        }
-
-        if(this.processingDownload) {
-            return;
-        }
-        this.processingDownload = true;
-
-        if(this.running) {
-            this.running = false;
-            await this.loop();
-            await this.draw();
-            // wait for the last draw to finish
-            await new Promise((resolve) => {
-                setTimeout(() => {
-                    resolve(true);
-                }, 2000);
-            });
-
-        }
-
-
-        if (!this.canvas_render) {
-            console.error('No rendering canvas');
-            return;
-        }
-
-        const canvas_render = this.canvas_render as HTMLCanvasElement;
-
-        const dataUrl = canvas_render.toDataURL();
-
-       const currentTime = this.getCurrentTime();
-
-        // share as file
-        const blob = await fetch(dataUrl).then(res => res.blob());
-        const filesArray = [new File([blob], `image ${currentTime}.png`, { type: 'image/png' })];
-
-        const shareData = {
-            files: filesArray,
-            title: `image ${currentTime}`,
-            text: `image ${currentTime}`,
-            url: import.meta.env.VITE_APP_URL
-        };       
-
-        try {
-            if (navigator.share && userUsesMobile) {
-                await navigator.share(shareData);
-                console.log('Shared successfully');
-            } else {
-                console.error('Sharing is not supported (on desktop)');
-                this.downloadImage();
-            }
-        } catch (err) {
-            console.error('Error sharing', err);
-        }
-
-        this.processingDownload = false;
-
+        await shareImage(this);
     }
 
-
+    /**
+     * Archive the user generated corpse.
+     * 
+     * @param  {string} dataUrl - The data URL of the image to be archived.
+     * @returns {Promise<void>}
+     */
     async archiveImage(dataUrl: string) {
 
-    if(confirm('Do you consent that we archive this image?')) {
+        if (confirm('Do you consent that we archive this image?')) {
 
-        // console.log('Archiving image');
-        console.log('Archiving image');
-        const formData = new FormData();
+            // console.log('Archiving image');
+            console.info('Archiving image');
+            const formData = new FormData();
 
-        const currentTime = this.getCurrentTime();
+            const currentTime = this.getCurrentTime();
 
-        const file = await fetch(dataUrl).then(res => res.blob())
-            .then(blob => new File([blob], `image ${currentTime}.png`, { type: 'image/png' }));
-            
-    
-        // Append the File to FormData
-        formData.append('image', file);
+            const file = await fetch(dataUrl).then(res => res.blob())
+                .then(blob => new File([blob], `image ${currentTime}.png`, { type: 'image/png' }));
 
 
+            // Append the File to FormData
+            formData.append('image', file);
 
-        const usedPiecesList = Object.keys(this.currentlyShownPieces).map((key) => {
-            const piece = this.currentlyShownPieces[key];
 
-            if(piece.baseImage.name === 'YOU!') {
-                return -1;
-            }
-            else {
-                return piece.baseImage.id;
-            }
-        });
 
-        formData.append('usedPieces', JSON.stringify(usedPiecesList));
+            const usedPiecesList = Object.keys(this.currentlyShownPieces).map((key) => {
+                const piece = this.currentlyShownPieces[key];
 
-        // get the list of used pieces
-        console.log('Used pieces', usedPiecesList);
-
-        try {
-            const response = await axios.post('/archive', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
+                if (piece.baseImage.name === 'YOU!') {
+                    return -1;
+                }
+                else {
+                    return piece.baseImage.id;
                 }
             });
 
-            console.log('Image archived', response);
-        } catch (error) {
-            console.error('Error archiving image', error);
-        } 
+            formData.append('usedPieces', JSON.stringify(usedPiecesList));
+
+            // get the list of used pieces
+            console.info('Used pieces', usedPiecesList);
+
+            try {
+                const response = await axios.post('/archive', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
+
+                console.log('Image archived', response);
+            } catch (error) {
+                console.error('Error archiving image', error);
+            }
+        }
     }
-}
 
 
 

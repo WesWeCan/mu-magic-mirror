@@ -1,7 +1,7 @@
 import { CameraProcessor } from "@/Lib/CameraProcessor";
 import { BoundingBox } from "@/types";
 import { BaseImage, CutoutRaw } from "@/types/PoolTypes";
-import { Mat } from "mirada";
+
 
 export interface CorpsPart {
     base_image_id: number;
@@ -18,6 +18,29 @@ export interface CorpseObject {
     [key: string]: CorpsPart;
 }
 
+
+
+/**
+ * Draws the morphing effect onto a given canvas context.
+ *
+ * This function handles several tasks related to drawing:
+ * 1. Shuffling pieces and bounding boxes at specific intervals.
+ * 2. Filtering out invalid bounding boxes.
+ * 3. Inserting and positioning "you" piece into the processed bounding boxes.
+ * 4. Drawing processed bounding boxes and their related images onto the canvas.
+ *
+ * @param {CameraProcessor} context - The context containing details such as canvas, bounding boxes, and drawing pieces.
+ *
+ * @throws {Error} Will log errors if the necessary canvas or context is not available.
+ *
+ * The context parameter should include the following properties:
+ * - canvas_process: HTMLCanvasElement - The canvas where the drawing is performed.
+ * - boundingBoxesProcessed: Array - Array of processed bounding boxes.
+ * - lastDraws: Object - Timestamps of the last shuffle operations for pieces, bounding boxes, and "you" piece.
+ * - pieces: Array - Array of available pieces to be drawn.
+ * - showLegsSeparately: boolean - Flag to determine whether to show legs separately.
+ * - currentlyShownPieces: Object - Container for the currently shown pieces, keyed by their labels.
+ */
 export const drawMorph = async (context: CameraProcessor) => {
     if (!context.canvas_process || !context.boundingBoxesProcessed) {
         console.error('No canvas or bounding boxes');
@@ -32,22 +55,19 @@ export const drawMorph = async (context: CameraProcessor) => {
         return;
     }
 
-    // let pieces = context.pieces;
-
     const now = new Date().getTime();
 
-
-
+    // Shuffle pieces at regular intervals
     const timeIntervalPieces = 100;
     const timeDifferencePieces = now - context.lastDraws.shufflePieces;
 
     if (timeDifferencePieces > timeIntervalPieces) {
         context.pieces = context.pieces.sort(() => Math.random() - 0.5);
         context.lastDraws.shufflePieces = now;
-
         context.showLegsSeparately = Math.random() > 0.5;
     }
 
+    // Shuffle bounding boxes at regular intervals
     const timeIntervalBox = timeIntervalPieces / 2;
     const timeDifferenceBoundingBoxes = now - context.lastDraws.shuffleBoundingBoxes;
 
@@ -56,10 +76,12 @@ export const drawMorph = async (context: CameraProcessor) => {
         return Math.sin(nowBox / timeIntervalBox) - 0.5;
     });
 
+    // Filter out invalid bounding boxes
     const filteredBoundingBoxes = context.boundingBoxesProcessed.filter((box) => {
         return box.x !== Infinity && box.y !== Infinity && box.width !== Infinity && box.height !== Infinity;
     });
 
+    // Insert and shuffle "you" piece at regular intervals
     const timeIntervalYou = timeIntervalBox * 2;
     const timeDifferenceYou = now - context.lastDraws.shuffleYou;
 
@@ -68,6 +90,7 @@ export const drawMorph = async (context: CameraProcessor) => {
         context.lastDraws.shuffleYou = now;
     }
 
+    // Define piece alignment logic
     interface Alignments {
         [key: string]: string;
     }
@@ -87,87 +110,75 @@ export const drawMorph = async (context: CameraProcessor) => {
         "legs": "top",
     };
 
-    let positions: any = {};
+    let positions: Record<string, any> = {};
 
-    // Draw the bounding boxes on the canvas
-    for (let i = 0; i < filteredBoundingBoxes.length; i++) {
-        const box = filteredBoundingBoxes[i];
-
-        let pieceLabel: string | boolean = false;
-        let piece = null;
-
-        ctx.strokeStyle = 'blue';
-
-        pieceLabel = box.label.replace('_processed', '');
-
-
-        if(context.showLegsSeparately && pieceLabel === 'legs') {
-            continue;
+    // Compute positions for each bounding box and draw the piece
+    filteredBoundingBoxes.forEach((box) => {
+        let pieceLabel = box.label.replace('_processed', '');
+        if ((!context.showLegsSeparately && (pieceLabel === 'right_leg' || pieceLabel === 'left_leg')) ||
+            (context.showLegsSeparately && pieceLabel === 'legs')) {
+            return;
         }
 
-        if(!context.showLegsSeparately && (pieceLabel === 'right_leg' || pieceLabel === 'left_leg')) {
-            continue;
+        let piece = context.pieces.find((p: any) => p.label === pieceLabel);
+        if (!piece) return;
+
+        let alignment = alignments[box.label];
+        let scale, pieceWidth, pieceHeight, pieceX, pieceY;
+        
+        switch (alignment) {
+            case "top":
+                scale = Math.min(box.width / piece.width, box.height / piece.height);
+                pieceWidth = piece.width * scale;
+                pieceHeight = piece.height * scale;
+                pieceX = box.x + (box.width - pieceWidth) / 2;
+                pieceY = box.y;
+                break;
+            case "bottom":
+                scale = Math.min(box.width / piece.width, box.height / piece.height);
+                pieceWidth = piece.width * scale;
+                pieceHeight = piece.height * scale;
+                pieceX = box.x + (box.width - pieceWidth) / 2;
+                pieceY = box.y + box.height - pieceHeight;
+                break;
+            case "center":
+                scale = Math.min(box.width / piece.width, box.height / piece.height);
+                pieceWidth = piece.width * scale;
+                pieceHeight = piece.height * scale;
+                pieceX = box.x + (box.width - pieceWidth) / 2;
+                pieceY = box.y + (box.height - pieceHeight) / 2;
+                break;
+            case "right":
+                scale = Math.min(box.width / piece.width, box.height / piece.height);
+                pieceWidth = piece.width * scale;
+                pieceHeight = piece.height * scale;
+                pieceX = box.x + box.width - pieceWidth;
+                pieceY = box.y + (box.height - pieceHeight) / 2;
+                break;
+            case "left":
+                scale = Math.min(box.width / piece.width, box.height / piece.height);
+                pieceWidth = piece.width * scale;
+                pieceHeight = piece.height * scale;
+                pieceX = box.x;
+                pieceY = box.y + (box.height - pieceHeight) / 2;
+                break;
         }
 
-        // Get the piece
-        piece = context.pieces.find((p: any) => p.label === pieceLabel);
-
-        // Based on the label, get the alignment and fill the positions object
-        if (piece) {
-            let alignment: string = alignments[box.label];
-
-            switch (alignment) {
-                case "top":
-                    const scaleTop = Math.min(box.width / piece.width, box.height / piece.height);
-                    const pieceWidthTop = piece.width * scaleTop;
-                    const pieceHeightTop = piece.height * scaleTop;
-                    const pieceXTop = box.x + (box.width - pieceWidthTop) / 2;
-                    const pieceYTop = box.y;
-                    positions[box.label] = { x: pieceXTop, y: pieceYTop, width: pieceWidthTop, height: pieceHeightTop };
-                    break;
-                case "bottom":
-                    const scale = Math.min(box.width / piece.width, box.height / piece.height);
-                    const pieceWidth = piece.width * scale;
-                    const pieceHeight = piece.height * scale;
-                    const pieceX = box.x + (box.width - pieceWidth) / 2;
-                    const pieceY = box.y + box.height - pieceHeight;
-                    positions[box.label] = { x: pieceX, y: pieceY, width: pieceWidth, height: pieceHeight };
-                    break;
-                case "center":
-                    const scaleCenter = Math.min(box.width / piece.width, box.height / piece.height);
-                    const pieceWidthCenter = piece.width * scaleCenter;
-                    const pieceHeightCenter = piece.height * scaleCenter;
-                    const pieceXCenter = box.x + (box.width - pieceWidthCenter) / 2;
-                    const pieceYCenter = box.y + (box.height - pieceHeightCenter) / 2;
-                    positions[box.label] = { x: pieceXCenter, y: pieceYCenter, width: pieceWidthCenter, height: pieceHeightCenter };
-                    break;
-                case "right":
-                    const scaleRight = Math.min(box.width / piece.width, box.height / piece.height);
-                    const pieceWidthRight = piece.width * scaleRight;
-                    const pieceHeightRight = piece.height * scaleRight;
-                    const pieceXRight = box.x + box.width - pieceWidthRight;
-                    const pieceYRight = box.y + (box.height - pieceHeightRight) / 2;
-                    positions[box.label] = { x: pieceXRight, y: pieceYRight, width: pieceWidthRight, height: pieceHeightRight };
-                    break;
-                case "left":
-                    const scaleLeft = Math.min(box.width / piece.width, box.height / piece.height);
-                    const pieceWidthLeft = piece.width * scaleLeft;
-                    const pieceHeightLeft = piece.height * scaleLeft;
-                    const pieceXLeft = box.x;
-                    const pieceYLeft = box.y + (box.height - pieceHeightLeft) / 2;
-                    positions[box.label] = { x: pieceXLeft, y: pieceYLeft, width: pieceWidthLeft, height: pieceHeightLeft };
-                    break;
-            }
-
-            positions[box.label].img = piece.img;
-            positions[box.label].baseImage = piece.baseImage;
-        }
-    }
+        positions[box.label] = {
+            x: pieceX,
+            y: pieceY,
+            width: pieceWidth,
+            height: pieceHeight,
+            img: piece.img,
+            baseImage: piece.baseImage
+        };
+    });
 
     const canvasWidth = canvas.width;
     const canvasHeight = canvas.height;
 
-    const filteredPositions = Object.keys(positions).reduce((acc, key) => {
+    // Filter positions to fit within canvas dimensions
+    const filteredPositions = Object.keys(positions).reduce((acc: Record<string, any>, key: string) => {
         const piece = positions[key];
         const pieceX = piece.x;
         const pieceY = piece.y;
@@ -188,46 +199,57 @@ export const drawMorph = async (context: CameraProcessor) => {
 
     context.currentlyShownPieces = filteredPositions;
 
-    // Draw the bounding boxes and images on the canvas
-    Object.keys(positions).forEach((key) => {
-        const piece = positions[key];
-        const pieceX = piece.x;
-        const pieceY = piece.y;
-        const pieceWidth = piece.width;
-        const pieceHeight = piece.height;
-
-        ctx.drawImage(piece.img, pieceX, pieceY, pieceWidth, pieceHeight);
-        // drawDash(ctx, pieceX, pieceY, pieceWidth, pieceHeight);
+    // Draw pieces on the canvas
+    Object.keys(filteredPositions).forEach((key) => {
+        const piece = filteredPositions[key];
+        ctx.drawImage(piece.img, piece.x, piece.y, piece.width, piece.height);
     });
 
+    // Uncomment the following block if you need to add text labels to the images in the future
     // Object.keys(positions).forEach((key) => {
     //     const piece = positions[key];
-
     //     const pieceX = piece.x;
     //     const pieceY = piece.y;
     //     const pieceWidth = piece.width;
     //     const pieceHeight = piece.height;
-
     //     let fontSize = 18;
-
     //     ctx.font = `${fontSize}px Arial`;
     //     ctx.fillStyle = 'blue';
     //     ctx.fillText(piece.baseImage.name, pieceX, pieceY + pieceHeight + (fontSize * 1.01));
     // });
-}
+};
 
-const drawDash = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number) => {
-    const lineWidth = 2;
-    const lineDash = [2, 4];
-    ctx.beginPath();
-    ctx.setLineDash(lineDash);
-    ctx.strokeStyle = 'blue';
-    ctx.lineWidth = lineWidth;
-    ctx.rect(x, y, width, height);
-    ctx.stroke();
-    ctx.setLineDash([]);
-}
 
+/**
+ * Draw a dashed line around the bounding box.
+ * 
+ * @param {CanvasRenderingContext2D} ctx - The canvas rendering context.
+ * @param {number} x - The x coordinate of the line.
+ * @param {number} y - The y coordinate of the line.
+ * @param {number} width - The width of the line.
+ * @param {number} height - The height of the line.
+ * @returns {void}
+ */
+// const drawDash = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number) => {
+//     const lineWidth = 2;
+//     const lineDash = [2, 4];
+//     ctx.beginPath();
+//     ctx.setLineDash(lineDash);
+//     ctx.strokeStyle = 'blue';
+//     ctx.lineWidth = lineWidth;
+//     ctx.rect(x, y, width, height);
+//     ctx.stroke();
+//     ctx.setLineDash([]);
+// }
+
+
+/**
+ * Cut out the image from the video.
+ * 
+ * @param {CameraProcessor} context - The camera processor.
+ * @param {BoundingBox} boundingBox - The bounding box.
+ * @returns {Promise<void>}
+ */
 async function cutOutFromVideo(context: CameraProcessor, boundingBox: BoundingBox) {
     if (!context.video || !context.canvas_process) {
         console.error('No video or canvas');
@@ -264,31 +286,31 @@ async function cutOutFromVideo(context: CameraProcessor, boundingBox: BoundingBo
 
     tempContext.drawImage(video, 0, 0, video.videoWidth, video.videoHeight, 0, 0, tempCanvas.width, tempCanvas.height);
 
-// Create imgCanvas to draw the bounding box from the scaled video
-const imgCanvas = document.createElement('canvas');
-imgCanvas.id = 'imgCanvas';
-imgCanvas.width = boundingBox.width;
-imgCanvas.height = boundingBox.height;
+    // Create imgCanvas to draw the bounding box from the scaled video
+    const imgCanvas = document.createElement('canvas');
+    imgCanvas.id = 'imgCanvas';
+    imgCanvas.width = boundingBox.width;
+    imgCanvas.height = boundingBox.height;
 
-const imgContext = imgCanvas.getContext('2d');
+    const imgContext = imgCanvas.getContext('2d');
 
-if (!imgContext) {
-    console.error('No context');
-    return null;
-}
+    if (!imgContext) {
+        console.error('No context');
+        return null;
+    }
 
-/// Draw the bounding box from the scaled video onto imgCanvas
-imgContext.drawImage(
-    tempCanvas,
-    boundingBox.x,
-    boundingBox.y,
-    boundingBox.width,
-    boundingBox.height,
-    0,
-    0,
-    imgCanvas.width,
-    imgCanvas.height
-);
+    /// Draw the bounding box from the scaled video onto imgCanvas
+    imgContext.drawImage(
+        tempCanvas,
+        boundingBox.x,
+        boundingBox.y,
+        boundingBox.width,
+        boundingBox.height,
+        0,
+        0,
+        imgCanvas.width,
+        imgCanvas.height
+    );
 
     const img = new Image();
     img.src = imgCanvas.toDataURL();
@@ -320,6 +342,13 @@ imgContext.drawImage(
     return img;
 }
 
+/**
+ * Insert the YOU! piece into the corpse.
+ * 
+ * @param {CameraProcessor} context - The camera processor.
+ * @param {BoundingBox[]} boundingBoxes - The bounding boxes.
+ * @returns {Promise<void>}
+ */
 async function insertYouPiece(context: CameraProcessor, boundingBoxes: BoundingBox[]) {
 
 
@@ -334,7 +363,7 @@ async function insertYouPiece(context: CameraProcessor, boundingBoxes: BoundingB
     const boundingBox = boundingBoxes.find((box) => box.label === currentFirstPieceLabel + "_processed");
 
     if (!boundingBox) {
-        console.error('No bounding box');
+        console.error('No bounding box, continue');
         return;
     }
 

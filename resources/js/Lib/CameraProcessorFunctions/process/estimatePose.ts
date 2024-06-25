@@ -3,6 +3,14 @@ import { PixelInput } from '@tensorflow-models/body-segmentation/dist/shared/cal
 
 import * as poseDetection from '@tensorflow-models/pose-detection';
 
+
+/**
+ * Estimate the pose of the human in the image.
+ * 
+ * @param {CameraProcessor} context - The camera processor.
+ * @param {PixelInput} input - The input image.
+ * @returns {Promise<poseDetection.Pose[]>}
+ */
 export const estimatePose = async (context: CameraProcessor, input: PixelInput) => {
     if (!input || !context.inference.blazePose || !context.video) {
         console.error('No video or inference');

@@ -1,5 +1,11 @@
 import { CameraProcessor } from "@/Lib/CameraProcessor";
 
+/**
+ * Draw the segmentation on the canvas.
+ * 
+ * @param {CameraProcessor} context - The camera processor.
+ * @returns {Promise<void>}
+ */
 export const drawSegmentation = async (context: CameraProcessor) => {
 
     if (!context.canvas_process || !context.inferenceData.coloredPartImage) {

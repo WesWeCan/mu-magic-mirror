@@ -5,8 +5,6 @@ import { onMounted, onUnmounted, ref } from 'vue';
 
 import PoolLayout from '@/Layouts/PoolLayout.vue';
 import BaseImageDetails from '@/Components/Pool/BaseImageDetails.vue';
-
-import { ImageProcessor } from '@/Lib/Processor';
 import { usePage } from '@inertiajs/vue3';
 
 import axios from 'axios';
@@ -46,7 +44,7 @@ const loadMore = async () => {
 
 const deleteCorpse = (id: number) => {
 
-    const url = route('pool.gallery.destroy', {id: id});
+    const url = route('pool.archive.destroy', {id: id});
 
     axios.delete(url).then(() => {
         toast.success('Corpse deleted');
@@ -64,14 +62,14 @@ const deleteCorpse = (id: number) => {
 
 <template>
 
-    <Head title="Pool Gallery"></Head>
+    <Head title="Pool Archive"></Head>
 
     <PoolLayout>
         <div>
-            <h1>Corpse Gallery</h1>
+            <h1>Corpse Archive</h1>
         </div>
 
-        <div class="gallery" v-if="page.props.corpseArchive">
+        <div class="archive" v-if="page.props.corpseArchive">
 
             <template v-for="(corpse, index) in page.props.corpseArchive">
 
@@ -85,7 +83,7 @@ const deleteCorpse = (id: number) => {
                         <a :href="corpseBase.link" target="_blank">{{ corpseBase.name }}</a>
                     </span>
                 </div>
-        
+    
                 <button @click="deleteCorpse(corpse.id)" class="danger">Delete</button>
             </div>
 

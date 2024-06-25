@@ -1,5 +1,11 @@
 import { CameraProcessor } from "@/Lib/CameraProcessor";
 
+/**
+ * Clear the canvas. with a transparent background.
+ * 
+ * @param {CameraProcessor} context - The camera processor.
+ * @returns {Promise<void>}
+ */
 export const clearCanvas = async (context: CameraProcessor) => {
     if (!context.canvas_process) {
         console.error('No canvas');
@@ -17,6 +23,5 @@ export const clearCanvas = async (context: CameraProcessor) => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = 'rgb(255, 255, 255)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
 
 }

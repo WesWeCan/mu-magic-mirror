@@ -2,6 +2,16 @@ import { CameraProcessor } from "@/Lib/CameraProcessor";
 import { PixelInput } from "@tensorflow-models/body-segmentation/dist/shared/calculators/interfaces/common_interfaces";
 import * as bodySegmentation from '@tensorflow-models/body-segmentation';
 
+
+/**
+ * Segment the body in the image.
+ * 
+ * This function uses the input to segment the body in the image.
+ * 
+ * @param {CameraProcessor} context - The camera processor.
+ * @param {PixelInput} input - The input image.
+ * @returns {Promise<bodySegmentation.Segmentation[]>}
+ */
 export const segmentBodyPix = async (context: CameraProcessor, input: PixelInput) => {
 
     if (!input || !context.inference.bodyPix) {

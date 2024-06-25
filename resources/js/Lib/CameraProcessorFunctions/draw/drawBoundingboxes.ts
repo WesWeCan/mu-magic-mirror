@@ -1,5 +1,12 @@
 import { CameraProcessor } from "@/Lib/CameraProcessor";
 
+/**
+ * Draw the bounding boxes on the canvas.
+ * Based on the labels, draw the bounding boxes in green for the poses and red for the human parts.
+ * 
+ * @param {CameraProcessor} context - The camera processor.
+ * @returns {Promise<void>}
+ */
 export const drawBoundingBoxes = async (context: CameraProcessor) => {
 
     if (!context.canvas_process || !context.boundingBoxes) {
@@ -31,11 +38,13 @@ export const drawBoundingBoxes = async (context: CameraProcessor) => {
 
 }
 
-
+/**
+ * Draw the bounding boxes on the canvas for the processed image.
+ * 
+ * @param {CameraProcessor} context - The camera processor.
+ * @returns {Promise<void>}
+ */
 export const drawBoundingBoxesProcessed = async (context: CameraProcessor) => {
-
-    
-
     if (!context.canvas_process || !context.boundingBoxesProcessed) {
         console.error('No canvas or bounding boxes');
         return;
@@ -61,6 +70,4 @@ export const drawBoundingBoxesProcessed = async (context: CameraProcessor) => {
         ctx.fillText(boundingBox.label, boundingBox.x, boundingBox.y - 10);
 
     }
-
-    // console.log('drawBoundingBoxesProcessed', context.boundingBoxesProcessed);
 }

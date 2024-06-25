@@ -29,9 +29,6 @@ Exhibitions and events at MU can be unpredictable, playful, touching, stimulatin
 ### List of credits
 
 
-
-
-
 # Technology
 This project uses the following technologies:
 - Laravel (v11)

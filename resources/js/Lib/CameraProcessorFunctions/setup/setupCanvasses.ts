@@ -1,5 +1,15 @@
 import { CameraProcessor } from "@/Lib/CameraProcessor";
 
+/**
+ * Create the canvasses.
+ * 
+ * This function creates the canvasses for the process and render.
+ * 
+ * @param {CameraProcessor} context - The camera processor.
+ * @param {HTMLDivElement} div_process - The div for the process.
+ * @param {HTMLDivElement} div_render - The div for the render.
+ * @returns {Promise<void>}
+ */
 export const createCanvasses = async (context: CameraProcessor, div_process: HTMLDivElement, div_render: HTMLDivElement) => {
 
     if (!div_process) {
@@ -23,15 +33,6 @@ export const createCanvasses = async (context: CameraProcessor, div_process: HTM
     context.canvas_process = canvas_process;
 
     context.div_process.appendChild(canvas_process);
-
-
-
-    
-
-
-
-
-
 
     if (!div_render) {
         console.error('No div render');
@@ -69,7 +70,14 @@ export const createCanvasses = async (context: CameraProcessor, div_process: HTM
 }
 
 
-
+/**
+ * Resize the canvasses.
+ * 
+ * This function resizes the canvasses for the process and render.
+ * 
+ * @param {CameraProcessor} context - The camera processor.
+ * @returns {Promise<void>}
+ */
 const resizeCanvases = async (context: CameraProcessor) => {
     if (!context.canvas_render || !context.div_render) {
         console.error('No canvas render or div render');

@@ -10,7 +10,10 @@ class BaseImageController extends Controller
     
 
     /**
-     * Set the processed status of the specified resource.
+     * Set the processed status  of the specified resource.
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
      */
     public function setProcessed(Request $request)
     {
@@ -24,9 +27,17 @@ class BaseImageController extends Controller
 
     /**
      * Set the title of the specified resource.
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
      */
     public function setTitle(Request $request)
     {
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'id' => 'required|integer',
+        ]);
         
         $baseImage = BaseImage::findOrFail($request->id);
         $baseImage->name = $request->title;
@@ -38,18 +49,21 @@ class BaseImageController extends Controller
 
     /**
      * Set the link of the specified resource.
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
      */
     public function setLink(Request $request)
     {
 
         $request->validate([
             'link' => 'required|string|url|max:255',
+            'id' => 'required|integer',
         ]);
         
         $baseImage = BaseImage::findOrFail($request->id);
         $baseImage->link = $request->link;
         $baseImage->save();
-
 
         return response()->json(['success'=>'You have successfully changed the link.']);
     }
@@ -57,14 +71,16 @@ class BaseImageController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     * Mask images are delete on baseimage delete!
+     * Mask images are delete on baseimage delete.
+     * 
+     * @param  int  $id
+     * @return \Inertia\Response
      */
     public function destroy($id)
     {
         $baseImage = BaseImage::findOrFail($id);
         $baseImage->delete();
         
-
         return response()->json(['success'=>'You have successfully deleted the image.']);
     }
 }

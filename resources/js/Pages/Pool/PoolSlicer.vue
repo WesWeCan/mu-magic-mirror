@@ -1,20 +1,11 @@
 <script setup lang="ts">
-
-
 import { computed, onMounted, onUnmounted, ref } from 'vue';
-
 import { BaseImage, Cutout, CutoutRaw, ProcesImage } from '@/types/PoolTypes';
-
-
 import PoolLayout from '@/Layouts/PoolLayout.vue';
-
 import BaseImageDetails from '@/Components/Pool/BaseImageDetails.vue';
-
 import ImageSlicer from '@/Components/Pool/ImageSlicer.vue';
 import { usePage } from '@inertiajs/vue3';
-
 import axios from 'axios';
-
 import { Head } from "@inertiajs/vue3";
 
 

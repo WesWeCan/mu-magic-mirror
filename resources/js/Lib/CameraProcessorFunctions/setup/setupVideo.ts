@@ -1,23 +1,37 @@
 import { CameraProcessor } from "@/Lib/CameraProcessor";
 
-export const getAvailableVideoDevices = async (context : CameraProcessor) => {
+
+/**
+ * Get the available video devices.
+ *  
+ * @param {CameraProcessor} context - The camera processor.
+ * @returns {Promise<void>}
+ */
+export const getAvailableVideoDevices = async (context: CameraProcessor) => {
     try {
         // Ask for permission to use the camera first so enumeration goes correctly
-        const stream = await navigator.mediaDevices.getUserMedia({video: true});
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
         stream.getTracks().forEach(track => track.stop());
     } catch (error) {
         console.error('Error accessing media devices.', error);
         return;
     }
 
+
+    // On certain Apple devices, you must first enumerate devices to prompt permission for accessing media devices.
+    // By doing this, you ensure that the browser can list available video devices (cameras) and prompt the user for access, 
+    // if required, on the first permissions request.
+    // This step is crucial, especially on Apple devices, to avoid issues with accessing video devices later.
     const devices = await navigator.mediaDevices.enumerateDevices();
     const availableVideoDevices = devices.filter(device => device.kind === 'videoinput') as InputDeviceInfo[];
 
     const withCapabilities = await Promise.all(availableVideoDevices.map(async (device) => {
         let capabilities;
+
+        // Use a try to make sure it is working in Firefox
         try {
             // Create a temporary stream to access capabilities if not Firefox
-            const stream = await navigator.mediaDevices.getUserMedia({video: {deviceId: device.deviceId}});
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: device.deviceId } });
             const track = stream.getVideoTracks()[0];
             capabilities = track.getCapabilities ? track.getCapabilities() : {};
             track.stop();
@@ -34,8 +48,8 @@ export const getAvailableVideoDevices = async (context : CameraProcessor) => {
     console.log(withCapabilities);
 
     // Find a device with the label or capability of facingMode of 'environment'
-    const environmentDevice = withCapabilities.find(device => 
-        device.device.label.toLowerCase().includes('back') || 
+    const environmentDevice = withCapabilities.find(device =>
+        device.device.label.toLowerCase().includes('back') ||
         (device.capabilities.facingMode && device.capabilities.facingMode.includes('environment'))
     ) || withCapabilities[0];
 
@@ -47,8 +61,15 @@ export const getAvailableVideoDevices = async (context : CameraProcessor) => {
     context.videoPermission = true;
 }
 
-
-export const switchVideoDevice = async (context : CameraProcessor) => {
+/**
+ * Switch the video device.
+ * 
+ * This function switches the video device. Based on the current video device, it will switch to the next available video device.
+ * 
+ * @param {CameraProcessor} context - The camera processor.
+ * @returns {Promise<void>}
+ */
+export const switchVideoDevice = async (context: CameraProcessor) => {
 
     if (!context.currentVideoDeviceId) {
         console.error('No current video device');
@@ -73,6 +94,16 @@ export const switchVideoDevice = async (context : CameraProcessor) => {
 
 }
 
+
+/**
+ * Get the media stream.
+ * 
+ * This function gets the media stream for the video element.
+ * 
+ * @param {CameraProcessor} context - The camera processor.
+ * @param {HTMLDivElement} videoDiv - The video div.
+ * @returns {Promise<void>}
+ */
 export const getMediaStream = async (context: CameraProcessor, videoDiv: HTMLDivElement) => {
 
     if (!videoDiv) {

@@ -2,13 +2,9 @@
 import { onMounted, onUnmounted } from 'vue';
 import { Link } from '@inertiajs/vue3';
 
-
 onMounted(() => {
-    
-
     // add class to body 'pool'
     document.body.classList.add('pool');
-
 });
 
 onUnmounted(() => {
@@ -40,7 +36,7 @@ onUnmounted(() => {
             <Link :href="route('pool.manage')">3) Manage</Link>
         </li>
         <li>
-            <Link :href="route('pool.gallery')">4) Archive</Link>
+            <Link :href="route('pool.archive')">4) Archive</Link>
         </li>
     </ul>
 </nav>
