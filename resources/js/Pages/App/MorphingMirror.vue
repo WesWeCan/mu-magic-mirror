@@ -121,6 +121,23 @@ setInterval(() => {
 }, 1000);
 
 
+const showCameraSelector = ref(false);
+const cameraSelector = ref<HTMLDivElement | null>(null);
+
+/**
+ * Removes ID information from a given device label string.
+ *
+ * The ID information is expected to be in the format (id:id) and will
+ * be removed from the input label string.
+ *
+ * @param {string} label - The label string from which the ID information will be removed.
+ * @returns {string} - The modified label string with the ID information removed.
+ */
+const removeIdFromLabel = (label: string): string => {
+    return label.replace(/\(\w+:\w+\)/, '').trim();
+}
+
+
 </script>
 
 
@@ -150,6 +167,13 @@ setInterval(() => {
 
             <div class="screen" :hidden="currentScreen != 'camera'" v-if="currentScreen == 'camera'">
                 <MorphingCamera ref="cameraRef" @update-list="updateList"></MorphingCamera>
+                <div class="camera-selector" v-if="showCameraSelector" ref="cameraSelector">
+                    <select :value="cameraRef?.currentVideoDeviceId" @change="($event : any) => {cameraRef?.switchDeviceTo( $event.target.value ); showCameraSelector = false }" v-if="cameraRef?.availableVideoDevices">
+                        <option v-for="device in cameraRef?.availableVideoDevices" :key="device.device.deviceId" :value="device.device.deviceId">
+                            {{ removeIdFromLabel(device.device.label) }}
+                        </option>
+                    </select>
+                </div>
             </div>
 
             <div class="screen" :hidden="!showList">
@@ -165,7 +189,10 @@ setInterval(() => {
         <footer>
             <div class="nav">
                 <div class="group" v-if="currentScreen != 'welcome'">
-                    <button @click="switchDevice" class="icon_switch">&nbsp;</button>
+                    <button @click="()=>{showCameraSelector = !showCameraSelector; cameraSelector?.click()}"
+                        :onblur="(event : any) => {event.preventDownshiftDefault = true; }"
+                        class="icon_switch">&nbsp;</button>
+                    <!-- <button @click="switchDevice" class="icon_switch">&nbsp;</button>  -->
                     <button @click="takePicture" class="icon_photo">&nbsp;</button>
                 </div>
                 <div class="group" v-if="currentScreen != 'welcome'">

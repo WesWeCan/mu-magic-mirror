@@ -20,11 +20,14 @@ const emit = defineEmits(['newSlice', "updateList"]);
 
 const loadingText = ref('Loading...');
 
+const availableVideoDevices = ref<{ device: InputDeviceInfo, capabilities: MediaTrackCapabilities }[]>([]);
+const currentVideoDeviceId = ref<string | undefined>(undefined);
 
 onMounted(async () => {
     if (video_container.value && div_process.value && div_render.value && page.props.corpses) {
         await cp.init(video_container.value, div_process.value, div_render.value, page.props.corpses);
-
+        availableVideoDevices.value = cp.availableVideoDevices;
+        currentVideoDeviceId.value = cp.currentVideoDeviceId;
         requestAnimationFrame(loop);
     }
 });
@@ -53,6 +56,14 @@ const loop = async () => {
 
 const switchDevice = () => {
     cp.switchVideoDevice();
+    availableVideoDevices.value = cp.availableVideoDevices;
+    currentVideoDeviceId.value = cp.currentVideoDeviceId;
+}
+
+const switchDeviceTo = (deviceId: string) => {
+    cp.switchToVideoDevice(deviceId);
+    availableVideoDevices.value = cp.availableVideoDevices;
+    currentVideoDeviceId.value = cp.currentVideoDeviceId;
 }
 
 const takePhoto = () => {
@@ -72,8 +83,11 @@ const shareImage = () => {
 defineExpose({
     takePhoto,
     switchDevice,
+    switchDeviceTo,
     downloadImage,
-    shareImage
+    shareImage,
+    availableVideoDevices,
+    currentVideoDeviceId
 });
 
 

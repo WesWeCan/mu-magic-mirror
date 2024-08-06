@@ -47,15 +47,25 @@ export const getAvailableVideoDevices = async (context: CameraProcessor) => {
 
     console.log(withCapabilities);
 
-    // Find a device with the label or capability of facingMode of 'environment'
-    const environmentDevice = withCapabilities.find(device =>
-        device.device.label.toLowerCase().includes('back') ||
-        (device.capabilities.facingMode && device.capabilities.facingMode.includes('environment'))
+    // // Find a device with the label or capability of facingMode of 'environment'
+    // const environmentDevice = withCapabilities.find(device =>
+    //     device.device.label.toLowerCase().includes('back') ||
+    //     (device.capabilities.facingMode && device.capabilities.facingMode.includes('environment'))
+    // ) || withCapabilities[0];
+
+    // context.currentVideoDeviceId = environmentDevice.device.deviceId;
+
+    // // Find a device with the label or capability of facingMode of 'user' (front-facing camera) and make it default
+    const frontFacingDevice = withCapabilities.find(device =>
+        device.device.label.toLowerCase().includes('front') ||
+        (device.capabilities.facingMode && device.capabilities.facingMode.includes('user'))
     ) || withCapabilities[0];
 
+    context.currentVideoDeviceId = frontFacingDevice.device.deviceId;
+
+    
     context.availableVideoDevices = withCapabilities;
-    context.currentVideoDeviceId = environmentDevice.device.deviceId;
-    console.log('Current video device: ' + environmentDevice.device.label);
+ 
 
     // Update video permission in context
     context.videoPermission = true;
@@ -76,7 +86,9 @@ export const switchVideoDevice = async (context: CameraProcessor) => {
         return;
     }
 
-    const currentDevice = context.availableVideoDevices.find(device => device.device.deviceId === context.currentVideoDeviceId);
+    // const currentDevice = context.availableVideoDevices.find(device => device.device.deviceId === context.currentVideoDeviceId);
+
+    console.log(context.availableVideoDevices);
 
     // get index of current device
     const currentIndex = context.availableVideoDevices.findIndex(device => device.device.deviceId === context.currentVideoDeviceId);
@@ -92,6 +104,21 @@ export const switchVideoDevice = async (context: CameraProcessor) => {
     getMediaStream(context, context.div_video as HTMLDivElement);
     // createCanvasses(this, this.div_process as HTMLDivElement, this.div_render as HTMLDivElement);
 
+}
+
+
+export const switchToVideoDevice = async (context: CameraProcessor, deviceId: string) => {
+
+    if (!context.availableVideoDevices) {
+        console.error('No available video devices');
+        return;
+    }
+
+    // set next device
+    context.currentVideoDeviceId = deviceId;
+
+    getMediaStream(context, context.div_video as HTMLDivElement);
+    // createCanvasses(this, this.div_process as HTMLDivElement, this.div_render as HTMLDivElement);
 }
 
 

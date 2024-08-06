@@ -26,6 +26,8 @@ import axios from 'axios';
 import { downloadImage } from './CameraProcessorFunctions/share/downloadImage';
 import { shareImage } from './CameraProcessorFunctions/share/shareImage';
 
+import { switchToVideoDevice } from './CameraProcessorFunctions/setup/setupVideo';
+
 
 export class CameraProcessor {
 
@@ -209,6 +211,10 @@ export class CameraProcessor {
      */
     async switchVideoDevice() {
         await switchVideoDevice(this);
+    }
+
+    async switchToVideoDevice(deviceId: string) {
+        await switchToVideoDevice(this, deviceId);
     }
 
 
