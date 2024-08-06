@@ -1,23 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 512 512">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 513.2 513.2">
   <defs>
     <style>
       .cls-1 {
         fill: blue;
-        stroke-width: 0px;
-      }
-
-      .cls-2 {
-        fill: none;
-        stroke: blue;
-        stroke-miterlimit: 10;
-        stroke-width: 8px;
       }
     </style>
   </defs>
+  <!-- Generator: Adobe Illustrator 28.6.0, SVG Export Plug-In . SVG Version: 1.2.0 Build 709)  -->
   <g>
-    <line class="cls-2" x1="2.9" y1="509.1" x2="509.1" y2="2.9"/>
-    <line class="cls-2" x1="509.1" y1="509.1" x2="2.9" y2="2.9"/>
+    <g id="Layer_2">
+      <path class="cls-1" d="M512.6,505.5V7.7l.6-.6-.6-.6V.6h-5.9l-.6-.6-.6.6H7.7L7.1,0l-.6.6H.6v5.9L0,7.1l.6.6v497.9l-.6.6.6.6v5.9h5.9l.6.6.6-.6h497.9l.6.6.6-.6h5.9v-5.9l.6-.6-.6-.6ZM502.6,495.5l-238.9-238.9L502.6,17.7v477.9ZM495.5,10.6l-238.9,238.9L17.7,10.6h477.9ZM10.6,17.7l238.9,238.9L10.6,495.5V17.7ZM17.7,502.6l238.9-238.9,238.9,238.9H17.7Z"/>
+    </g>
   </g>
-  <path class="cls-1" d="M504,8v496H8V8h496M512,0H0v512h512V0h0Z"/>
 </svg>

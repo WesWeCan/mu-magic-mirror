@@ -1,19 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 512 512">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 512 522">
   <defs>
     <style>
       .cls-1 {
-        fill: none;
-        stroke: blue;
-        stroke-miterlimit: 10;
-        stroke-width: 16px;
+        fill: blue;
       }
     </style>
   </defs>
-  <line class="cls-1" y1="8.1" x2="512" y2="8.1"/>
-  <line class="cls-1" y1="305.6" x2="512" y2="305.6"/>
-  <line class="cls-1" y1="206.4" x2="512" y2="206.4"/>
-  <line class="cls-1" y1="107.2" x2="512" y2="107.2"/>
-  <line class="cls-1" y1="404.7" x2="512" y2="404.7"/>
-  <line class="cls-1" x1="512" y1="503.9" y2="503.9"/>
+  <!-- Generator: Adobe Illustrator 28.6.0, SVG Export Plug-In . SVG Version: 1.2.0 Build 709)  -->
+  <g>
+    <g id="Layer_2">
+      <g>
+        <polygon class="cls-1" points="0 0 0 5 0 10 0 15 512 15 512 10 512 5 512 0 0 0"/>
+        <polygon class="cls-1" points="0 258.5 0 263.5 0 268.5 512 268.5 512 263.5 512 258.5 512 253.5 0 253.5 0 258.5"/>
+        <polygon class="cls-1" points="0 385.2 0 390.2 0 395.2 512 395.2 512 390.2 512 385.2 512 380.2 0 380.2 0 385.2"/>
+        <polygon class="cls-1" points="0 512 0 517 0 522 512 522 512 517 512 512 512 507 0 507 0 512"/>
+        <polygon class="cls-1" points="0 131.7 0 136.7 0 141.7 512 141.7 512 136.7 512 131.7 512 126.7 0 126.7 0 131.7"/>
+      </g>
+    </g>
+  </g>
 </svg>

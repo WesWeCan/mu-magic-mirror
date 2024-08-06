@@ -1,18 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 512 511.9">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 512 524">
   <defs>
     <style>
       .cls-1 {
-        fill: none;
-        stroke: blue;
-        stroke-miterlimit: 10;
-        stroke-width: 8px;
+        fill: blue;
       }
     </style>
   </defs>
-  <line class="cls-1" y1=".7" x2="512" y2=".7"/>
+  <!-- Generator: Adobe Illustrator 28.6.0, SVG Export Plug-In . SVG Version: 1.2.0 Build 709)  -->
   <g>
-    <polyline class="cls-1" points="75 185.4 256 4.4 437 185.4"/>
-    <line class="cls-1" x1="256" y1="511.3" x2="256" y2="4.7"/>
+    <g id="Layer_2">
+      <g>
+        <rect class="cls-1" y="514" width="512" height="10"/>
+        <polygon class="cls-1" points="251 19.1 251 514 261 514 261 19.1 433.5 191.6 440.6 184.6 256 0 71.4 184.6 78.5 191.6 251 19.1"/>
+      </g>
+    </g>
   </g>
 </svg>

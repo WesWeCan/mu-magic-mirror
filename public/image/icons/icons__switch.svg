@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 512 512">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 472.8 394.8">
   <defs>
     <style>
       .cls-1 {
-        fill: none;
-        stroke: blue;
-        stroke-miterlimit: 10;
-        stroke-width: 8px;
+        fill: blue;
       }
     </style>
   </defs>
-  <polyline class="cls-1" points="140.6 177.4 66.6 220.1 23.9 146.1"/>
+  <!-- Generator: Adobe Illustrator 28.6.0, SVG Export Plug-In . SVG Version: 1.2.0 Build 709)  -->
   <g>
-    <path class="cls-1" d="M67.2,293.3c17.4,88.4,95.3,155.1,188.8,155.1s171.4-66.7,188.8-155.1"/>
-    <path class="cls-1" d="M444.8,218.7c-17.4-88.4-95.3-155.1-188.8-155.1S84.6,130.3,67.2,218.7"/>
+    <g id="Layer_2">
+      <g>
+        <path class="cls-1" d="M123.5,123.1l-5-8.7-63.8,36.8C75.6,68.8,150.5,10,236.4,10s166.7,63.5,183.9,151l9.8-1.9C412,66.9,330.5,0,236.4,0S67.4,61.7,45.2,148.3L8.7,85,0,90l45.2,78.3,78.3-45.2Z"/>
+        <path class="cls-1" d="M472.8,304.4l-45.2-78.3-78.3,45.2,5,8.7,64-36.9c-20.7,82.7-95.6,141.8-181.8,141.8s-166.6-63.5-183.9-151l-9.8,1.9c18.1,92.2,99.6,159.1,193.7,159.1s169.2-61.8,191.3-148.5l36.4,63.1,8.7-5Z"/>
+      </g>
+    </g>
   </g>
-  <polyline class="cls-1" points="371.3 334.2 445.3 291.5 488 365.5"/>
 </svg>
