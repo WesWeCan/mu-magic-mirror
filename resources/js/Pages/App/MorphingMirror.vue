@@ -165,13 +165,12 @@ setInterval(() => {
         <footer>
             <div class="nav">
                 <div class="group" v-if="currentScreen != 'welcome'">
-                    <button @click="takePicture" class="icon_photo">&nbsp;</button>
                     <button @click="switchDevice" class="icon_switch">&nbsp;</button>
+                    <button @click="takePicture" class="icon_photo">&nbsp;</button>
                 </div>
                 <div class="group" v-if="currentScreen != 'welcome'">
+                    <button @click="showList = !showList" class="icon_list" :class="{ 'light': !showList }">&nbsp;</button>
                     <button @click="showList = false" class="icon_image" :class="{ 'light': showList }">&nbsp;</button>
-                    <button @click="showList = !showList" class="icon_list"
-                        :class="{ 'light': !showList }">&nbsp;</button>
                 </div>
                 <div class="group" v-if="currentScreen != 'welcome'">
                     <button @click="downloadImage" class="icon_download">&nbsp;</button>
