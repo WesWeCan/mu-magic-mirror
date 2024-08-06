@@ -92,6 +92,7 @@ const uploadImage = (image: Image): Promise<void> => {
         } catch (error) {
             console.error(error);
             image.error = (error as any).response.data.message;
+            toast.error((error as any).response.data.message);
             reject((error as any).response.data.message);
         }
     });
