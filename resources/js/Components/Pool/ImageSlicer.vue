@@ -62,13 +62,29 @@ const init = () => {
         resetCurrentMask();
     });
 
+    window.removeEventListener('keydown', handleEscape);
+
     canvas.value.addEventListener('mousemove', drawCurrentMask);
     canvas.value.addEventListener('click', setCurrentMask);
     canvas.value.addEventListener('contextmenu', (e) => {
         e.preventDefault();
         resetCurrentMask();
     });
+
+    // when escape is pressed, reset the current mask
+    window.addEventListener('keydown', handleEscape);
+
+
 }
+
+const handleEscape = (e: KeyboardEvent) => {
+    if (e.key === 'Escape' || e.key === 'Esc') {
+        resetCurrentMask();
+    }
+};
+
+
+
 
 const loadImage = (src: string) => {
 

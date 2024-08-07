@@ -158,10 +158,10 @@ const removeIdFromLabel = (label: string): string => {
                 <p>The Magic MUrror will match your pose with images of our archive</p>
                 <p>Love, MU.</p>
                 <button @click="start">Start</button>
-                <br /><br />
+                <!-- <br /><br />
                 <small>
                     We won't store any images of you without your permission.
-                </small>
+                </small> -->
             </div>
 
 
@@ -196,12 +196,12 @@ const removeIdFromLabel = (label: string): string => {
                     <button @click="takePicture" class="icon_photo">&nbsp;</button>
                 </div>
                 <div class="group" v-if="currentScreen != 'welcome'">
-                    <button @click="showList = !showList" class="icon_list" :class="{ 'light': !showList }">&nbsp;</button>
-                    <button @click="showList = false" class="icon_image" :class="{ 'light': showList }">&nbsp;</button>
+                    <button @click="showList = !showList" class="icon_list" :class="{ 'light': showList }">&nbsp;</button>
+                    <button @click="showList = false" class="icon_image" :class="{ 'light': !showList }">&nbsp;</button>
                 </div>
                 <div class="group" v-if="currentScreen != 'welcome'">
-                    <button @click="downloadImage" class="icon_download">&nbsp;</button>
-                    <button @click="shareImage" class="icon_share">&nbsp;</button>
+                    <button @click="downloadImage" class="icon_download" :class="{ 'light': showList }" :disabled="showList">&nbsp;</button>
+                    <button @click="shareImage" class="icon_share" :class="{ 'light': showList }" :disabled="showList">&nbsp;</button>
                 </div>
             </div>
 

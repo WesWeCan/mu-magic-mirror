@@ -25,6 +25,7 @@ import { CorpsesObject } from '@/types';
 import axios from 'axios';
 import { downloadImage } from './CameraProcessorFunctions/share/downloadImage';
 import { shareImage } from './CameraProcessorFunctions/share/shareImage';
+import { archiveImage } from './CameraProcessorFunctions/share/archiveImage';
 
 import { switchToVideoDevice } from './CameraProcessorFunctions/setup/setupVideo';
 
@@ -341,52 +342,7 @@ export class CameraProcessor {
      * @returns {Promise<void>}
      */
     async archiveImage(dataUrl: string) {
-
-        if (confirm('Do you consent that we archive this image?')) {
-
-            // console.log('Archiving image');
-            console.info('Archiving image');
-            const formData = new FormData();
-
-            const currentTime = this.getCurrentTime();
-
-            const file = await fetch(dataUrl).then(res => res.blob())
-                .then(blob => new File([blob], `image ${currentTime}.png`, { type: 'image/png' }));
-
-
-            // Append the File to FormData
-            formData.append('image', file);
-
-
-
-            const usedPiecesList = Object.keys(this.currentlyShownPieces).map((key) => {
-                const piece = this.currentlyShownPieces[key];
-
-                if (piece.baseImage.name === 'YOU!') {
-                    return -1;
-                }
-                else {
-                    return piece.baseImage.id;
-                }
-            });
-
-            formData.append('usedPieces', JSON.stringify(usedPiecesList));
-
-            // get the list of used pieces
-            console.info('Used pieces', usedPiecesList);
-
-            try {
-                const response = await axios.post('/archive', formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    }
-                });
-
-                console.log('Image archived', response);
-            } catch (error) {
-                console.error('Error archiving image', error);
-            }
-        }
+        await archiveImage(this,dataUrl);
     }
 
 

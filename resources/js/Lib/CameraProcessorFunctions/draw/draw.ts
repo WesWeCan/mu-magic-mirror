@@ -33,11 +33,11 @@ export const draw = async (context: CameraProcessor) => {
     // await drawBoundingBoxesProcessed(context);
 
     if ((context.inferenceData.poses?.length ?? 0) > 0) {
-        await drawSheet(context, .93);
+        await drawSheet(context, 1);
         await drawMorph(context);
     }
     else {
-        await drawSheet(context, .75);
+        await drawSheet(context, 1);
         drawNoPosesDetected(context);
     }
 }

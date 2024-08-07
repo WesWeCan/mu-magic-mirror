@@ -22,14 +22,14 @@ body.mirror {
     }
 
     header{
-        height: 8svh;
+        height: 6svh;
     }
 
     
 
     footer {
         z-index: 99999999;
-        height: 17svh;
+        height: 19svh;
         font-size: 0.75em;
         display: flex;
         flex-direction: column;
@@ -53,7 +53,7 @@ body.mirror {
             .group {
                 display: flex;
                 justify-content: center;
-                gap: 1.5rem;
+                gap: 1rem;
 
                 &:first-child {
                     justify-content: flex-start;
@@ -66,8 +66,8 @@ body.mirror {
 
             button {
                 // background-color: green;
-                width: 33px;
-                height: 33px;
+                width: 39px;
+                height: 39px;;
 
                 background-image: url("/image/icons/icons_photo.svg");
                 background-size: contain;
@@ -336,7 +336,8 @@ body.mirror {
         gap: 1rem;
         padding: 1rem;
 
-        background-color: rgba(255, 255, 255, 0.925);
+        // background-color: rgba(255, 255, 255, 0.925);
+        background-color: white;
 
         z-index: 1;
 

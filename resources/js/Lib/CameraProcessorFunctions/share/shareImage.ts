@@ -1,12 +1,15 @@
 import { CameraProcessor } from "@/Lib/CameraProcessor";
 
+import { archiveImage } from "@/Lib/CameraProcessorFunctions/share/archiveImage";
+
 export const shareImage = async (context: CameraProcessor) => {
 
 
     const userUsesMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
     if (!userUsesMobile) {
-        context.downloadImage(true);
+        // Needs this otherwise there is not DataURL
+        context.downloadImage(true); 
         return;
     }
 
@@ -53,8 +56,14 @@ export const shareImage = async (context: CameraProcessor) => {
 
     try {
         if (navigator.share && userUsesMobile) {
+            
+            await archiveImage(context,dataUrl);
+            
             await navigator.share(shareData);
             console.log('Shared successfully');
+
+
+
         } else {
             console.error('Sharing is not supported (on desktop)');
             context.downloadImage();

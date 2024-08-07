@@ -58,7 +58,7 @@ export const drawMorph = async (context: CameraProcessor) => {
     const now = new Date().getTime();
 
     // Shuffle pieces at regular intervals
-    const timeIntervalPieces = 100;
+    const timeIntervalPieces = 333;
     const timeDifferencePieces = now - context.lastDraws.shufflePieces;
 
     if (timeDifferencePieces > timeIntervalPieces) {
@@ -81,14 +81,14 @@ export const drawMorph = async (context: CameraProcessor) => {
         return box.x !== Infinity && box.y !== Infinity && box.width !== Infinity && box.height !== Infinity;
     });
 
-    // Insert and shuffle "you" piece at regular intervals
-    const timeIntervalYou = timeIntervalBox * 2;
-    const timeDifferenceYou = now - context.lastDraws.shuffleYou;
+    // // Insert and shuffle "you" piece at regular intervals
+    // const timeIntervalYou = timeIntervalBox * 2;
+    // const timeDifferenceYou = now - context.lastDraws.shuffleYou;
 
-    if (timeDifferenceYou > timeIntervalYou) {
-        await insertYouPiece(context, filteredBoundingBoxes);
-        context.lastDraws.shuffleYou = now;
-    }
+    // if (timeDifferenceYou > timeIntervalYou) {
+    //     await insertYouPiece(context, filteredBoundingBoxes);
+    //     context.lastDraws.shuffleYou = now;
+    // }
 
     // Define piece alignment logic
     interface Alignments {
