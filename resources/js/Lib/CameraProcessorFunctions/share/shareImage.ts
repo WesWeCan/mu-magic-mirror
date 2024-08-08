@@ -49,8 +49,8 @@ export const shareImage = async (context: CameraProcessor) => {
 
     const shareData = {
         files: filesArray,
-        title: `image ${currentTime}`,
-        text: `image ${currentTime}`,
+        title: `Magic MUrror : image ${currentTime}`,
+        text: `Magic MUrror : image ${currentTime}`,
         url: import.meta.env.VITE_APP_URL
     };
 

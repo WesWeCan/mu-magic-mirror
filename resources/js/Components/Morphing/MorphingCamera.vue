@@ -20,6 +20,7 @@ const emit = defineEmits(['newSlice', "updateList"]);
 
 const loadingText = ref('Loading...');
 
+
 const availableVideoDevices = ref<{ device: InputDeviceInfo, capabilities: MediaTrackCapabilities }[]>([]);
 const currentVideoDeviceId = ref<string | undefined>(undefined);
 

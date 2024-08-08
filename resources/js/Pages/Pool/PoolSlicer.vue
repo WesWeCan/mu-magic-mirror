@@ -258,7 +258,7 @@ const canProcessBecauseOfCutouts = computed(() => {
                                     <div class="label-wrap">
                                     <label>Label</label>
                                     <select v-model="cutout.part">
-                                        <option v-for="label in allowedLabels" :key="label" :value="label">{{ label }}</option>
+                                        <option v-for="label in allowedLabels" :key="label" :value="label">{{ label == 'head' ? 'face' : label }}</option>
                                     </select>
                                     </div>
 

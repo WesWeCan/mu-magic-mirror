@@ -97,7 +97,7 @@ const loadMore = () => {
                             <div class="mask-img">
                                 <img :src="mask.path" alt="mask.title">
                             </div>
-                            <span>{{ mask.label }}</span>
+                            <span>{{ mask.label == 'head' ? 'face' : mask.label }}</span>
                         </div>
                         <strong v-else>No masks for this base image</strong>
    

@@ -143,7 +143,7 @@ const removeIdFromLabel = (label: string): string => {
 
 <template>
 
-    <Head title="Morphing Mirror"></Head>
+    <Head title="Magic MUrror"></Head>
 
     <div class="morphing-mirror-layout">
 
@@ -153,23 +153,52 @@ const removeIdFromLabel = (label: string): string => {
 
         <main>
             <div class="screen welcome" :hidden="currentScreen != 'welcome'">
-                <p>Welcome!</p>
-                <p>Use your body to explore our archive.</p>
-                <p>The Magic MUrror will match your pose with images of our archive</p>
-                <p>Love, MU.</p>
+
+                <div class="content">
+                <p>
+                    Hi there!
+                </p>
+                <p>
+                    Welcome to 25 years of MU Hybrid Art House!
+                </p>
+                <p>
+                    Pose to compose — our app captures body parts with front or back camera and mirror them with body
+                    parts from humans and humanoids found in 25 years of MU Hybrid Art exhibitions.
+                </p>
+                <p>
+                    Play around alone or with friends, move your bodies, freeze the collage and check out the original
+                    context of the fetched body parts.
+                </p>
+                <p>
+                    We like to invite you to share your collages on Instagram with the tag #MagicMUrror to establish a
+                    collective online exhibition of exhibitions — a phantasmagorical creature gallery.
+                </p>
+                <p>
+                    Thank you for visiting!
+                </p>
+                <p>
+                    Love, MU.
+                </p>
+
+
+
                 <button @click="start">Start</button>
                 <!-- <br /><br />
                 <small>
                     We won't store any images of you without your permission.
                 </small> -->
             </div>
+            </div>
 
 
             <div class="screen" :hidden="currentScreen != 'camera'" v-if="currentScreen == 'camera'">
                 <MorphingCamera ref="cameraRef" @update-list="updateList"></MorphingCamera>
                 <div class="camera-selector" v-if="showCameraSelector" ref="cameraSelector">
-                    <select :value="cameraRef?.currentVideoDeviceId" @change="($event : any) => {cameraRef?.switchDeviceTo( $event.target.value ); showCameraSelector = false }" v-if="cameraRef?.availableVideoDevices">
-                        <option v-for="device in cameraRef?.availableVideoDevices" :key="device.device.deviceId" :value="device.device.deviceId">
+                    <select :value="cameraRef?.currentVideoDeviceId"
+                        @change="($event: any) => { cameraRef?.switchDeviceTo($event.target.value); showCameraSelector = false }"
+                        v-if="cameraRef?.availableVideoDevices">
+                        <option v-for="device in cameraRef?.availableVideoDevices" :key="device.device.deviceId"
+                            :value="device.device.deviceId">
                             {{ removeIdFromLabel(device.device.label) }}
                         </option>
                     </select>
@@ -189,24 +218,27 @@ const removeIdFromLabel = (label: string): string => {
         <footer>
             <div class="nav">
                 <div class="group" v-if="currentScreen != 'welcome'">
-                    <button @click="()=>{showCameraSelector = !showCameraSelector; cameraSelector?.click()}"
-                        :onblur="(event : any) => {event.preventDownshiftDefault = true; }"
+                    <button @click="() => { showCameraSelector = !showCameraSelector; cameraSelector?.click() }"
+                        :onblur="(event: any) => { event.preventDownshiftDefault = true; }"
                         class="icon_switch">&nbsp;</button>
                     <!-- <button @click="switchDevice" class="icon_switch">&nbsp;</button>  -->
                     <button @click="takePicture" class="icon_photo">&nbsp;</button>
                 </div>
                 <div class="group" v-if="currentScreen != 'welcome'">
-                    <button @click="showList = !showList" class="icon_list" :class="{ 'light': showList }">&nbsp;</button>
                     <button @click="showList = false" class="icon_image" :class="{ 'light': !showList }">&nbsp;</button>
+                    <button @click="showList = !showList" class="icon_list"
+                        :class="{ 'light': showList }">&nbsp;</button>
                 </div>
                 <div class="group" v-if="currentScreen != 'welcome'">
-                    <button @click="downloadImage" class="icon_download" :class="{ 'light': showList }" :disabled="showList">&nbsp;</button>
-                    <button @click="shareImage" class="icon_share" :class="{ 'light': showList }" :disabled="showList">&nbsp;</button>
+                    <button @click="downloadImage" class="icon_download" :class="{ 'light': showList }"
+                        :disabled="showList">&nbsp;</button>
+                    <button @click="shareImage" class="icon_share" :class="{ 'light': showList }"
+                        :disabled="showList">&nbsp;</button>
                 </div>
             </div>
 
             <span class="title">
-                <strong>Magical Morphing MUrror</strong>
+                <strong>Magic MUrror</strong>
                 <span>{{ currentTime }}</span>
             </span>
         </footer>

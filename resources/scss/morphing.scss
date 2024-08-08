@@ -103,6 +103,11 @@ body.mirror {
     main {
         position: relative;
         overflow: hidden;
+
+        &:has(.welcome:not([hidden])) {
+            overflow: visible;
+        }
+
         // background-color: yellow;
         width: 100%;
         height: 100%;
@@ -127,17 +132,21 @@ body.mirror {
 
         display: flex;
         flex-direction: column;
-        justify-content: center;
+        justify-content:  center;
         align-items: center;
         text-align: center;
-        max-width: 45%;
-        gap: 1rem;
+        position: unset;
+        // gap: 1rem;
 
         font-weight: bold;
 
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
+        .content {
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            max-width: 45ch;
+            gap: .5rem;
+        }
 
         button {
             text-decoration: underline;
@@ -169,32 +178,33 @@ body.mirror {
             padding: 1rem;
             border-radius: 0.5rem;
 
-            &::before {
-                content: "";
-                display: block;
-                position: absolute;
-                top: 50%;
-                left: 50%;
+            // // Loading animation spinner
+            // &::before {
+            //     content: "";
+            //     display: block;
+            //     position: absolute;
+            //     top: 50%;
+            //     left: 50%;
 
-                width: 50px;
-                height: 50px;
+            //     width: 50px;
+            //     height: 50px;
 
                 
                 
 
-                    display: block;
+            //         display: block;
                     
                  
-                    background-image: url("/image/icons/icons_switch.svg");
-                    background-size: contain;
-                    background-repeat: no-repeat;
-                    background-position: center;
-                    stroke-width: 0;
+            //         background-image: url("/image/icons/icons_switch.svg");
+            //         background-size: contain;
+            //         background-repeat: no-repeat;
+            //         background-position: center;
+            //         stroke-width: 0;
 
-                    animation: spin 1s ease-in-out infinite;
+            //         animation: spin 1s ease-in-out infinite;
                 
                
-            }
+            // }
 
             
 
