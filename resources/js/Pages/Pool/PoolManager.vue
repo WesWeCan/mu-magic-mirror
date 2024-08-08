@@ -7,6 +7,7 @@ import axios from 'axios';
 import { Head } from "@inertiajs/vue3";
 
 import { BaseImage, Cutout, CutoutRaw, ProcesImage, MaskImage } from '@/types/PoolTypes';
+import { toast } from 'vue3-toastify';
 
 const page = usePage();
 const procesImages = ref<ProcesImage[]>([]);
@@ -62,6 +63,24 @@ const loadMore = () => {
 }
 
 
+
+const deleteMask = (id: number, index: number) => {
+    const url = route('pool.mask.destroy', {id: id});
+
+    axios.delete(url).then(() => {
+        toast.success('Mask deleted');
+
+        if (page.props.baseImages && page.props.baseImages[index]) {
+            page.props.baseImages[index].mask_images = page.props.baseImages[index].mask_images?.filter((mask : MaskImage) => mask.id !== id);
+        }
+    })
+    .catch(() => {
+        toast.error('Failed to delete mask');
+    });
+
+}
+
+
 </script>
 
 <template>
@@ -94,10 +113,11 @@ const loadMore = () => {
                             
                             v-if="image.mask_images"
                             >
+                            <button @click="()=>{deleteMask(mask.id, index)}" class="danger">Delete</button>
                             <div class="mask-img">
                                 <img :src="mask.path" alt="mask.title">
                             </div>
-                            <span>{{ mask.label == 'head' ? 'face' : mask.label }}</span>
+                            <span>{{ mask.label == 'head' ? 'face' : mask.label }} {{ mask.included ? '' : '(Not Included)' }}</span>
                         </div>
                         <strong v-else>No masks for this base image</strong>
    

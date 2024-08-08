@@ -29,6 +29,8 @@ Route::prefix('/pool')->middleware(['auth', 'verified'])->group(function () {
     Route::post('/baseupload', [PoolController::class, 'uploadBase'])->name('pool.base.upload');
 
     Route::post('/maskupload', [PoolController::class, 'uploadMasked'])->name('pool.mask.upload');
+    Route::delete('/maskupload/{id}', [PoolController::class, 'deleteMasked'])->name('pool.mask.destroy');
+
 
     Route::post('/markasprocessed/{id}', [PoolController::class, 'markAsProcessed'])->name('pool.markasprocessed');
 

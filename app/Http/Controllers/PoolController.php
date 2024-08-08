@@ -110,6 +110,21 @@ class PoolController extends Controller
         return response()->json(['success' => 'You have successfully marked the image as processed.']);
     }
 
+    /**
+     * Delete a mask image.
+     * 
+ 
+     */
+    public function deleteMasked($id)
+    {
+        
+        
+        $maskImage = MaskImage::findOrFail($id);
+        $maskImage->delete();
+        
+        return response()->json(['success' => 'You have successfully deleted the mask image.']);
+    }
+
 
     /**
      * Upload a masked image.
@@ -133,7 +148,7 @@ class PoolController extends Controller
             return response()->json(['error' => 'Base Image not found.']);
         }
 
-        $imageName = time() . "_" . $request->image->getClientOriginalName();
+        $imageName = time() . "_" . rand(1000, 9999) . "_" . $request->image->getClientOriginalName();
 
         $request->image->storeAs('maskImages', $imageName, 'public');
 
