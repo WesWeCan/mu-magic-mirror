@@ -15,15 +15,36 @@ const currentScreen = ref("welcome")
 
 const cameraRef = ref<null | InstanceType<typeof MorphingCamera>>(null);
 
+const footerTexts = ref(["MU", "Magick", "Mirror"]);
+
+let shuffleFooterTextsInterval: NodeJS.Timeout | null = null;
+
 onMounted(async () => {
     document.body.classList.add('mirror');
 
     await nextTick();
+
+    const shuffleFooterTexts = () => {
+        let shuffled;
+        do {
+            shuffled = [...footerTexts.value].sort(() => Math.random() - 0.5);
+        } while (JSON.stringify(shuffled) === JSON.stringify(footerTexts.value));
+        footerTexts.value = shuffled;
+    };
+    
+    shuffleFooterTextsInterval = setInterval(shuffleFooterTexts, 700);
 });
 
 onUnmounted(() => {
     // remove class from body 'mirror'
     document.body.classList.remove('mirror');
+
+    if (shuffleFooterTextsInterval) {
+        clearInterval(shuffleFooterTextsInterval);
+    }
+
+
+   
 });
 
 
@@ -138,6 +159,10 @@ const removeIdFromLabel = (label: string): string => {
 }
 
 
+
+
+
+
 </script>
 
 
@@ -238,7 +263,7 @@ const removeIdFromLabel = (label: string): string => {
             </div>
 
             <span class="title">
-                <strong>Magic MUrror</strong>
+                <strong>{{ footerTexts.join(' ') }}</strong>
                 <span>{{ currentTime }}</span>
             </span>
         </footer>
