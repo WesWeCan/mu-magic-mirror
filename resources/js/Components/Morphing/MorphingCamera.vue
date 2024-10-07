@@ -3,12 +3,12 @@
 
 
 import { usePage } from '@inertiajs/vue3';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, inject, Ref } from 'vue';
 
 import { CameraProcessor } from '@/Lib/CameraProcessor';
 const cp = new CameraProcessor();
 
-
+const language = inject('language') as Ref<string>;
 
 const page = usePage();
 
@@ -40,7 +40,13 @@ const loop = async () => {
     if (video_container.value && div_process.value) {
 
         if (!cp.videoPermission) {
-            loadingText.value = 'No permission to use camera, check your settings and refresh the page.';
+
+            if (language.value === 'en') {
+                loadingText.value = 'No permission to use camera, check your settings and refresh the page.';
+            }
+            else if (language.value === 'nl') {
+                loadingText.value = 'Geen toestemming om de camera te gebruiken, controleer je instellingen en ververs de pagina.';
+            }
             console.error('No video permission');
             return;
         }
