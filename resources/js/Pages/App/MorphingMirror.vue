@@ -181,7 +181,9 @@ const closeCredits = () => {
 
 <template>
 
-    <Head title="Magic MUrror"></Head>
+    <Head>
+        <title>Mirror</title>
+    </Head>
 
     <div class="morphing-mirror-layout">
 
@@ -207,7 +209,8 @@ const closeCredits = () => {
                             ArcHive.</p>
                         <p>Play alone or with friends, take pronounced poses and get your hybrid mirror image back in
                             your
-                            Magic MU Mirror. Freeze the collage and view the original context of the retrieved images.
+                            <ChangingTitle :titles="['MU', 'Magic', 'Mirror']">
+                            </ChangingTitle>. Freeze the collage and view the original context of the retrieved images.
                         </p>
 
                         <p>We invite you to share your collages on Instagram with the tag #MUMagicMirror to create a
@@ -226,7 +229,8 @@ const closeCredits = () => {
                             knop en binnen een paar tellen wordt de foto gespiegeld met poses van mensen en niet-mensen
                             in het uitgebreide MU Hybrid ArcHive.</p>
                         <p>Speel alleen of met vrienden, neem uitgesproken poses aan en krijg je hybride spiegelbeeld
-                            terug in je Magic MU Mirror. Bevries de collage en bekijk de originele context van de
+                            terug in je <ChangingTitle :titles="['MU', 'Magic', 'Mirror']">
+                            </ChangingTitle>. Bevries de collage en bekijk de originele context van de
                             opgehaalde afbeeldingen.</p>
 
                         <p>We nodigen jullie uit om jullie collages te delen op Instagram met de tag #MUMagicMirror om
